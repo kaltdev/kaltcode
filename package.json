@@ -1,10 +1,10 @@
 {
-  "name": "@gitlawb/openclaude",
+  "name": "@kaltdev/kalt-code",
   "version": "0.1.8",
-  "description": "Claude Code opened to any LLM — OpenAI, Gemini, DeepSeek, Ollama, and 200+ models",
+  "description": "Kalt Code opened to any LLM — OpenAI, Gemini, DeepSeek, Ollama, and 200+ models",
   "type": "module",
   "bin": {
-    "openclaude": "./bin/openclaude"
+    "kalt-code": "./bin/kalt-code"
   },
   "files": [
     "bin/",
@@ -135,10 +135,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://gitlawb.com/z6MkqDnb7Siv3Cwj7pGJq4T5EsUisECqR8KpnDLwcaZq5TPr/openclaude"
+    "url": "https://github.com/kaltdev/kalt-code"
   },
   "keywords": [
-    "claude-code",
+    "kalt-code",
     "openai",
     "llm",
     "cli",
