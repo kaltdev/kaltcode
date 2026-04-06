@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, mock, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { APIError } from '@anthropic-ai/sdk'
 
 // Helper to build a mock APIError with specific headers
@@ -15,6 +15,24 @@ function makeError(headers: Record<string, string>): APIError {
 
 // Save/restore env vars between tests
 const originalEnv = { ...process.env }
+let importCounter = 0
+
+beforeEach(() => {
+  for (const key of [
+    'KALT_CODE_USE_OPENAI',
+    'KALT_CODE_USE_GEMINI',
+    'KALT_CODE_USE_GITHUB',
+    'KALT_CODE_USE_BEDROCK',
+    'KALT_CODE_USE_VERTEX',
+    'KALT_CODE_USE_FOUNDRY',
+  ]) {
+    if (originalEnv[key] === undefined) delete process.env[key]
+    else process.env[key] = originalEnv[key]
+  }
+  mock.restore()
+  mock.clearAllMocks()
+})
+
 afterEach(() => {
   for (const key of [
     'KALT_CODE_USE_OPENAI',
@@ -28,6 +46,7 @@ afterEach(() => {
     else process.env[key] = originalEnv[key]
   }
   mock.restore()
+  mock.clearAllMocks()
 })
 
 async function importFreshWithRetryModule(
@@ -41,12 +60,11 @@ async function importFreshWithRetryModule(
     | 'codex'
     | 'foundry' = 'firstParty',
 ) {
-  mock.restore()
   mock.module('src/utils/model/providers.js', () => ({
     getAPIProvider: () => provider,
     getAPIProviderForStatsig: () => provider,
   }))
-  return import(`./withRetry.js?ts=${Date.now()}-${Math.random()}`)
+  return import(`./withRetry.js?test=${++importCounter}`)
 }
 
 // --- parseOpenAIDuration ---

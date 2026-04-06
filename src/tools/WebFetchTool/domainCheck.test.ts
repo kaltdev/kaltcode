@@ -2,19 +2,22 @@ import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import axios from 'axios'
 
 const originalEnv = { ...process.env }
+let importCounter = 0
 
 async function importFreshModule() {
-  mock.restore()
-  return import(`./utils.ts?ts=${Date.now()}-${Math.random()}`)
+  return import(`./utils.ts?test=${++importCounter}`)
 }
 
 beforeEach(() => {
   process.env = { ...originalEnv }
+  mock.restore()
+  mock.clearAllMocks()
 })
 
 afterEach(() => {
   process.env = { ...originalEnv }
   mock.restore()
+  mock.clearAllMocks()
 })
 
 describe('checkDomainBlocklist', () => {
