@@ -1217,9 +1217,9 @@ export function saveOAuthTokensIfNeeded(tokens: OAuthTokens): {
 
   try {
     const storageData = secureStorage.read() || {}
-    const existingOauth = storageData.kalt-codeAiOauth
+    const existingOauth = storageData['kalt-codeAiOauth']
 
-    storageData.kalt-codeAiOauth = {
+    storageData['kalt-codeAiOauth'] = {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       expiresAt: tokens.expiresAt,
@@ -1291,7 +1291,7 @@ export const getClaudeAIOAuthTokens = memoize((): OAuthTokens | null => {
   try {
     const secureStorage = getSecureStorage()
     const storageData = secureStorage.read()
-    const oauthData = storageData?.kalt-codeAiOauth
+    const oauthData = storageData?.['kalt-codeAiOauth']
 
     if (!oauthData?.accessToken) {
       return null
@@ -1415,7 +1415,7 @@ export async function getClaudeAIOAuthTokensAsync(): Promise<OAuthTokens | null>
   try {
     const secureStorage = getSecureStorage()
     const storageData = await secureStorage.readAsync()
-    const oauthData = storageData?.kalt-codeAiOauth
+    const oauthData = storageData?.['kalt-codeAiOauth']
     if (!oauthData?.accessToken) {
       return null
     }
