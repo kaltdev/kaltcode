@@ -846,11 +846,11 @@ export function to1PEventFormat(
   if (feature('COWORKER_TYPE_TELEMETRY') && envContext.coworkerType) {
     env.coworker_type = envContext.coworkerType
   }
-  if (envContext.kalt-codeCodeContainerId) {
-    env.kalt-code_code_container_id = envContext.kalt-codeCodeContainerId
+  if (envContext.kaltCodeCodeContainerId) {
+    env.kalt_code_code_container_id = envContext.kaltCodeCodeContainerId
   }
-  if (envContext.kalt-codeCodeRemoteSessionId) {
-    env.kalt-code_code_remote_session_id = envContext.kalt-codeCodeRemoteSessionId
+  if (envContext.kaltCodeCodeRemoteSessionId) {
+    env.kalt_code_code_remote_session_id = envContext.kaltCodeCodeRemoteSessionId
   }
   if (envContext.tags) {
     env.tags = envContext.tags
