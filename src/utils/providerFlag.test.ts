@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-import { expect, test } from 'bun:test'
-
-test('providerFlag test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import {
   parseProviderFlag,
@@ -402,7 +396,6 @@ describe('applyProviderFlagFromArgs', () => {
   test('returns undefined when --provider is absent', () => {
     expect(applyProviderFlagFromArgs(['--model', 'gpt-4o'])).toBeUndefined()
   })
->>>>>>> upstream/main
 })
 
 // --- parseModelFlag ---

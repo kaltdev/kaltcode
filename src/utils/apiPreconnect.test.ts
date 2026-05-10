@@ -1,9 +1,5 @@
-import { expect, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 
-<<<<<<< HEAD
-test('apiPreconnect test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 const originalEnv = { ...process.env }
 const originalFetch = globalThis.fetch
 
@@ -91,5 +87,4 @@ describe('preconnectAnthropicApi', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
->>>>>>> upstream/main
 })

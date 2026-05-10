@@ -49,15 +49,10 @@ export function MemoryFileSelector(t0) {
     onCancel
   } = t0;
   const existingMemoryFiles = use(getMemoryFiles());
-<<<<<<< HEAD
-  const userMemoryPath = join(getClaudeConfigHomeDir(), "KALT_CODE.md");
-  const projectMemoryPath = join(getOriginalCwd(), "KALT_CODE.md");
-=======
   const originalCwd = getOriginalCwd();
   const userMemoryPath = join(getClaudeConfigHomeDir(), "CLAUDE.md");
   const projectMemoryPath = getProjectMemoryPathForSelector(existingMemoryFiles, originalCwd);
   const projectMemoryFileName = basename(projectMemoryPath);
->>>>>>> upstream/main
   const hasUserMemory = existingMemoryFiles.some(f => f.path === userMemoryPath);
   const hasProjectMemory = existingMemoryFiles.some(f_0 => f_0.path === projectMemoryPath);
   const allMemoryFiles = [...existingMemoryFiles.filter(_temp).map(_temp2), ...(hasUserMemory ? [] : [{
@@ -95,14 +90,10 @@ export function MemoryFileSelector(t0) {
     let description;
     const isGit = projectIsInGitRepo(originalCwd);
     if (file.type === "User" && !file.isNested) {
-      description = "Saved in ~/.kalt-code/KALT_CODE.md";
+      description = "Saved in ~/.claude/CLAUDE.md";
     } else {
       if (file.type === "Project" && !file.isNested && file.path === projectMemoryPath) {
-<<<<<<< HEAD
-        description = `${isGit ? "Checked in at" : "Saved in"} ./KALT_CODE.md`;
-=======
         description = `${isGit ? "Checked in at" : "Saved in"} ./${projectMemoryFileName}`;
->>>>>>> upstream/main
       } else {
         if (file.parent) {
           description = "@-imported";

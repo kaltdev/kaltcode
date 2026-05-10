@@ -2,11 +2,7 @@ import { isInBundledMode } from 'src/utils/bundledMode.js';
 import { getCurrentInstallationType } from 'src/utils/doctorDiagnostic.js';
 import { isEnvTruthy } from 'src/utils/envUtils.js';
 import { useStartupNotification } from './useStartupNotification.js';
-<<<<<<< HEAD
-const NPM_DEPRECATION_MESSAGE = 'Kalt Code has switched from npm to native installer. Run `kalt-code install` or see https://docs.anthropic.com/en/docs/kalt-code/getting-started for more options.';
-=======
 const NPM_DEPRECATION_MESSAGE = 'OpenClaude has switched from npm to the native installer. Run `openclaude install` or see https://github.com/Gitlawb/openclaude#quick-start for more options.';
->>>>>>> upstream/main
 export function useNpmDeprecationNotification() {
   useStartupNotification(_temp);
 }

@@ -1,10 +1,3 @@
-<<<<<<< HEAD
-import { expect, test } from 'bun:test'
-
-test('conversationRecovery test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-})
-=======
 import { afterEach, expect, mock, test } from 'bun:test'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -159,4 +152,3 @@ test('deserializeMessages preserves thinking blocks for GitHub native Claude tra
   }>
   expect(content.some(block => block.type === 'thinking')).toBe(true)
 })
->>>>>>> upstream/main

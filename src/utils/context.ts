@@ -44,7 +44,7 @@ export const ESCALATED_MAX_TOKENS = 64_000
  * Used by C4E admins to disable 1M context for HIPAA compliance.
  */
 export function is1mContextDisabled(): boolean {
-  return isEnvTruthy(process.env.KALT_CODE_DISABLE_1M_CONTEXT)
+  return isEnvTruthy(process.env.CLAUDE_CODE_DISABLE_1M_CONTEXT)
 }
 
 export function has1mContext(model: string): boolean {
@@ -86,9 +86,9 @@ export function getContextWindowForModel(
   // while still using a 1M-capable endpoint.
   if (
     process.env.USER_TYPE === 'ant' &&
-    process.env.KALT_CODE_MAX_CONTEXT_TOKENS
+    process.env.CLAUDE_CODE_MAX_CONTEXT_TOKENS
   ) {
-    const override = parseInt(process.env.KALT_CODE_MAX_CONTEXT_TOKENS, 10)
+    const override = parseInt(process.env.CLAUDE_CODE_MAX_CONTEXT_TOKENS, 10)
     if (!isNaN(override) && override > 0) {
       return override
     }
@@ -99,17 +99,6 @@ export function getContextWindowForModel(
     return 1_000_000
   }
 
-<<<<<<< HEAD
-  // OpenAI-compatible provider — use known context windows for the model
-  if (
-    isEnvTruthy(process.env.KALT_CODE_USE_OPENAI) ||
-    isEnvTruthy(process.env.KALT_CODE_USE_GEMINI) ||
-    isEnvTruthy(process.env.KALT_CODE_USE_GITHUB)
-  ) {
-    const openaiWindow = getOpenAIContextWindow(model)
-    if (openaiWindow !== undefined) {
-      return openaiWindow
-=======
   // OpenAI-compatible provider — use known context windows for the model.
   // Unknown models get a conservative 128k default. This was previously 8k,
   // but that caused auto-compact to fire on every turn because the effective
@@ -118,7 +107,6 @@ export function getContextWindowForModel(
     const runtimeLimits = resolveModelRuntimeLimits({ model })
     if (runtimeLimits.contextWindow !== undefined) {
       return runtimeLimits.contextWindow
->>>>>>> upstream/main
     }
     console.error(
       `[context] Warning: model "${model}" not in integration model metadata — using conservative 128k default. ` +
@@ -219,16 +207,6 @@ export function getModelMaxOutputTokens(model: string): {
   }
 
   // OpenAI-compatible provider — use known output limits to avoid 400 errors
-<<<<<<< HEAD
-  if (
-    isEnvTruthy(process.env.KALT_CODE_USE_OPENAI) ||
-    isEnvTruthy(process.env.KALT_CODE_USE_GEMINI) ||
-    isEnvTruthy(process.env.KALT_CODE_USE_GITHUB)
-  ) {
-    const openaiMax = getOpenAIMaxOutputTokens(model)
-    if (openaiMax !== undefined) {
-      return { default: openaiMax, upperLimit: openaiMax }
-=======
   if (shouldUseIntegrationRuntimeLimits()) {
     const runtimeLimits = resolveModelRuntimeLimits({ model })
     if (runtimeLimits.maxOutputTokens !== undefined) {
@@ -236,7 +214,6 @@ export function getModelMaxOutputTokens(model: string): {
         default: runtimeLimits.maxOutputTokens,
         upperLimit: runtimeLimits.maxOutputTokens,
       }
->>>>>>> upstream/main
     }
   }
 

@@ -3,56 +3,12 @@ import {
   getCurrentProjectConfig,
   saveCurrentProjectConfig,
 } from './utils/config.js'
-<<<<<<< HEAD
-import { getCwd } from './utils/cwd.js'
-import { isDirEmpty } from './utils/file.js'
-import { getFsImplementation } from './utils/fsOperations.js'
-
-export type Step = {
-  key: string
-  text: string
-  isComplete: boolean
-  isCompletable: boolean
-  isEnabled: boolean
-}
-
-export function getSteps(): Step[] {
-  const hasClaudeMd = getFsImplementation().existsSync(
-    join(getCwd(), 'KALT_CODE.md'),
-  )
-  const isWorkspaceDirEmpty = isDirEmpty(getCwd())
-
-  return [
-    {
-      key: 'workspace',
-      text: 'Ask Claude to create a new app or clone a repository',
-      isComplete: false,
-      isCompletable: true,
-      isEnabled: isWorkspaceDirEmpty,
-    },
-    {
-      key: 'claudemd',
-      text: 'Run /init to create a KALT_CODE.md file with instructions for Claude',
-      isComplete: hasClaudeMd,
-      isCompletable: true,
-      isEnabled: !isWorkspaceDirEmpty,
-    },
-  ]
-}
-
-export function isProjectOnboardingComplete(): boolean {
-  return getSteps()
-    .filter(({ isCompletable, isEnabled }) => isCompletable && isEnabled)
-    .every(({ isComplete }) => isComplete)
-}
-=======
 export {
   getSteps,
   isProjectOnboardingComplete,
   type Step,
 } from './projectOnboardingSteps.js'
 import { isProjectOnboardingComplete } from './projectOnboardingSteps.js'
->>>>>>> upstream/main
 
 export function maybeMarkProjectOnboardingComplete(): void {
   // Short-circuit on cached config — isProjectOnboardingComplete() hits

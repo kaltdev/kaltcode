@@ -1,9 +1,6 @@
-import { expect, test } from 'bun:test'
+import assert from 'node:assert/strict'
+import test from 'node:test'
 
-<<<<<<< HEAD
-test('providerRecommendation test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 import {
   applyBenchmarkLatency,
   getGoalDefaultOpenAIModel,
@@ -194,5 +191,4 @@ test('goal defaults choose sensible openai models', () => {
   assert.equal(getGoalDefaultOpenAIModel('latency'), 'gpt-4o-mini')
   assert.equal(getGoalDefaultOpenAIModel('balanced'), 'gpt-5.5')
   assert.equal(getGoalDefaultOpenAIModel('coding'), 'gpt-5.5')
->>>>>>> upstream/main
 })

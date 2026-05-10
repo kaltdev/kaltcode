@@ -127,11 +127,7 @@ export async function generateSessionTitle(
 
     // Fallback: When using 3P providers without a compatible schema,
     // default to the application name.
-<<<<<<< HEAD
-    return 'Kalt Code'
-=======
     return 'OpenClaude'
->>>>>>> upstream/main
   }
 }
 

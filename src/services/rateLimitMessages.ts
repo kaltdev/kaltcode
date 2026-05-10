@@ -279,11 +279,7 @@ function getWarningUpsellText(
 
     // Pro/Max users: prompt to upgrade
     if (subscriptionType === 'pro' || subscriptionType === 'max') {
-<<<<<<< HEAD
-      return '/upgrade to keep using Kalt Code'
-=======
       return '/upgrade to keep using OpenClaude'
->>>>>>> upstream/main
     }
   }
 

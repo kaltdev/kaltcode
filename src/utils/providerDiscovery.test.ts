@@ -1,10 +1,5 @@
-import { expect, test } from 'bun:test'
+import { afterEach, expect, mock, test } from 'bun:test'
 
-<<<<<<< HEAD
-test('providerDiscovery test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-})
-=======
 async function loadProviderDiscoveryModule() {
   // @ts-expect-error cache-busting query string for Bun module mocks
   return import(`./providerDiscovery.js?ts=${Date.now()}-${Math.random()}`)
@@ -393,4 +388,3 @@ test('atomic chat readiness returns loaded model ids when ready', async () => {
     models: ['Qwen3_5-4B_Q4_K_M', 'llama-3.1-8b-instruct'],
   })
 })
->>>>>>> upstream/main

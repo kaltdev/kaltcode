@@ -376,30 +376,6 @@ export async function getProviderValidationError(
     ) => Promise<GeminiResolvedCredential>
   },
 ): Promise<string | null> {
-<<<<<<< HEAD
-  const useOpenAI = isEnvTruthy(env.KALT_CODE_USE_OPENAI)
-  const useGithub = isEnvTruthy(env.KALT_CODE_USE_GITHUB)
-
-  if (isEnvTruthy(env.KALT_CODE_USE_GEMINI)) {
-    const geminiCredential = await (
-      options?.resolveGeminiCredential ?? resolveGeminiCredential
-    )(env)
-    if (geminiCredential.kind === 'none') {
-      return 'GEMINI_API_KEY, GOOGLE_API_KEY, GEMINI_ACCESS_TOKEN, or Google ADC credentials are required when KALT_CODE_USE_GEMINI=1.'
-    }
-    return null
-  }
-
-  if (useGithub && !useOpenAI) {
-    const token = (env.GITHUB_TOKEN?.trim() || env.GH_TOKEN?.trim()) ?? ''
-    if (!token) {
-      return 'GITHUB_TOKEN or GH_TOKEN is required when KALT_CODE_USE_GITHUB=1.'
-    }
-    return null
-  }
-
-  if (!useOpenAI) {
-=======
   const secretSource: SecretValueSource = {
     OPENAI_API_KEY: env.OPENAI_API_KEY,
     CODEX_API_KEY: env.CODEX_API_KEY,
@@ -412,7 +388,6 @@ export async function getProviderValidationError(
   const validationTarget = getRuntimeValidationTarget(env)
 
   if (!useOpenAI && !validationTarget) {
->>>>>>> upstream/main
     return null
   }
 
@@ -488,9 +463,6 @@ export async function getProviderValidationError(
 
       return null
     }
-<<<<<<< HEAD
-    return 'OPENAI_API_KEY is required when KALT_CODE_USE_OPENAI=1 and OPENAI_BASE_URL is not local.'
-=======
   }
 
   if (genericRouteValidation.applicable) {
@@ -499,7 +471,6 @@ export async function getProviderValidationError(
 
   if (!env.OPENAI_API_KEY && !isLocalProviderUrl(request.baseUrl)) {
     return getOpenAIMissingKeyMessage()
->>>>>>> upstream/main
   }
 
   return null

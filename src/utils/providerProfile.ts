@@ -38,7 +38,7 @@ export {
 } from './providerSecrets.js'
 import { getClaudeConfigHomeDir, isEnvTruthy } from './envUtils.js'
 
-export const PROFILE_FILE_NAME = '.kalt-code-profile.json'
+export const PROFILE_FILE_NAME = '.openclaude-profile.json'
 export const DEFAULT_GEMINI_BASE_URL =
   'https://generativelanguage.googleapis.com/v1beta/openai'
 export const DEFAULT_GEMINI_MODEL = 'gemini-3-flash-preview'
@@ -46,13 +46,6 @@ export const DEFAULT_MISTRAL_BASE_URL = 'https://api.mistral.ai/v1'
 export const DEFAULT_MISTRAL_MODEL = 'devstral-latest'
 
 const PROFILE_ENV_KEYS = [
-<<<<<<< HEAD
-  'KALT_CODE_USE_OPENAI',
-  'KALT_CODE_USE_GEMINI',
-  'KALT_CODE_USE_BEDROCK',
-  'KALT_CODE_USE_VERTEX',
-  'KALT_CODE_USE_FOUNDRY',
-=======
   'CLAUDE_CODE_USE_OPENAI',
   'CLAUDE_CODE_USE_GITHUB',
   'CLAUDE_CODE_USE_GEMINI',
@@ -66,7 +59,6 @@ const PROFILE_ENV_KEYS = [
   'ANTHROPIC_CUSTOM_HEADERS',
   'ANTHROPIC_BEDROCK_BASE_URL',
   'ANTHROPIC_VERTEX_BASE_URL',
->>>>>>> upstream/main
   'OPENAI_BASE_URL',
   'OPENAI_API_BASE',
   'OPENAI_MODEL',
@@ -880,14 +872,6 @@ export function hasExplicitProviderSelection(
   }
 
   return (
-<<<<<<< HEAD
-    processEnv.KALT_CODE_USE_OPENAI !== undefined ||
-    processEnv.KALT_CODE_USE_GITHUB !== undefined ||
-    processEnv.KALT_CODE_USE_GEMINI !== undefined ||
-    processEnv.KALT_CODE_USE_BEDROCK !== undefined ||
-    processEnv.KALT_CODE_USE_VERTEX !== undefined ||
-    processEnv.KALT_CODE_USE_FOUNDRY !== undefined
-=======
     isEnvTruthy(processEnv.CLAUDE_CODE_USE_OPENAI) ||
     isEnvTruthy(processEnv.CLAUDE_CODE_USE_GITHUB) ||
     isEnvTruthy(processEnv.CLAUDE_CODE_USE_GEMINI) ||
@@ -895,7 +879,6 @@ export function hasExplicitProviderSelection(
     isEnvTruthy(processEnv.CLAUDE_CODE_USE_BEDROCK) ||
     isEnvTruthy(processEnv.CLAUDE_CODE_USE_VERTEX) ||
     isEnvTruthy(processEnv.CLAUDE_CODE_USE_FOUNDRY)
->>>>>>> upstream/main
   )
 }
 
@@ -980,12 +963,6 @@ export async function buildLaunchEnv(options: {
   const persistedGeminiKey = sanitizeApiKey(persistedEnv.GEMINI_API_KEY)
   const persistedGeminiAuthMode = persistedEnv.GEMINI_AUTH_MODE
 
-<<<<<<< HEAD
-  if (options.profile === 'gemini') {
-    const env: NodeJS.ProcessEnv = {
-      ...processEnv,
-      KALT_CODE_USE_GEMINI: '1',
-=======
   if (hasExplicitProviderSelection(processEnv)) {
     const explicitProfileOverrides: Array<[string, ProviderProfile]> = [
       ['CLAUDE_CODE_USE_GITHUB', 'github'],
@@ -1007,14 +984,9 @@ export async function buildLaunchEnv(options: {
         }
         break
       }
->>>>>>> upstream/main
     }
   }
 
-<<<<<<< HEAD
-    delete env.KALT_CODE_USE_OPENAI
-    delete env.KALT_CODE_USE_GITHUB
-=======
   if (options.profile === 'github') {
     return buildCompatibilityProcessEnv({
       processEnv,
@@ -1025,7 +997,6 @@ export async function buildLaunchEnv(options: {
       }),
     })
   }
->>>>>>> upstream/main
 
   if (options.profile === 'anthropic') {
     const anthropicBaseUrl =
@@ -1138,21 +1109,6 @@ export async function buildLaunchEnv(options: {
     })
   }
 
-<<<<<<< HEAD
-  const env: NodeJS.ProcessEnv = {
-    ...processEnv,
-    KALT_CODE_USE_OPENAI: '1',
-  }
-
-  delete env.KALT_CODE_USE_GEMINI
-  delete env.KALT_CODE_USE_GITHUB
-  delete env.GEMINI_API_KEY
-  delete env.GEMINI_AUTH_MODE
-  delete env.GEMINI_ACCESS_TOKEN
-  delete env.GEMINI_MODEL
-  delete env.GEMINI_BASE_URL
-  delete env.GOOGLE_API_KEY
-=======
   if (options.profile === 'mistral') {
     const shellMistralModel = normalizeProfileModel(
       sanitizeProviderConfigValue(
@@ -1221,7 +1177,6 @@ export async function buildLaunchEnv(options: {
       profileEnv: env,
     })
   }
->>>>>>> upstream/main
 
   if (options.profile === 'ollama') {
     const getOllamaBaseUrl =
@@ -1432,7 +1387,7 @@ export async function buildStartupEnvFromProfile(options?: {
     persisted,
     goal:
       options?.goal ??
-      normalizeRecommendationGoal(processEnv.KALT_CODE_PROFILE_GOAL),
+      normalizeRecommendationGoal(processEnv.OPENCLAUDE_PROFILE_GOAL),
     processEnv,
     getOllamaChatBaseUrl:
       options?.getOllamaChatBaseUrl ?? getOllamaChatBaseUrl,

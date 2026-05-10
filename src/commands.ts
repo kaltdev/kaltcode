@@ -202,11 +202,7 @@ import stats from './commands/stats/index.js'
 const usageReport: Command = {
   type: 'prompt',
   name: 'insights',
-<<<<<<< HEAD
-  description: 'Generate a report analyzing your Kalt Code sessions',
-=======
   description: 'Generate a report analyzing your OpenClaude sessions',
->>>>>>> upstream/main
   contentLength: 0,
   progressMessage: 'analyzing your sessions',
   source: 'builtin',

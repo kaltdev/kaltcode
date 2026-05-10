@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-import { expect, test } from 'bun:test'
-
-test('providerProfiles test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -1538,7 +1532,6 @@ describe('deleteProviderProfile', () => {
     expect(process.env.OPENAI_BASE_URL).toBe('http://localhost:11434/v1')
     expect(process.env.OPENAI_MODEL).toBe('qwen2.5:3b')
   })
->>>>>>> upstream/main
 })
 
 describe('getProfileModelOptions', () => {

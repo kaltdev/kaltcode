@@ -31,7 +31,7 @@ import { getInitialSettings } from 'src/utils/settings/settings.js'
 export async function update() {
   // Block updates for third-party providers. The update mechanism downloads
   // from the first-party distribution bucket, which would silently replace the
-  // Kalt Code build (with the OpenAI shim) with the upstream Kalt Code
+  // OpenClaude build (with the OpenAI shim) with the upstream Claude Code
   // binary (without it).
   if (getAPIProvider() !== 'firstParty') {
     writeToStdout(
@@ -150,7 +150,7 @@ export async function update() {
         writeToStdout(`Update available: ${MACRO.DISPLAY_VERSION} → ${latest}\n`)
         writeToStdout('\n')
         writeToStdout('To update, run:\n')
-        writeToStdout(chalk.bold('  brew upgrade kalt-code') + '\n')
+        writeToStdout(chalk.bold('  brew upgrade claude-code') + '\n')
       } else {
         writeToStdout('Claude is up to date!\n')
       }
@@ -174,7 +174,7 @@ export async function update() {
         writeToStdout(`Update available: ${MACRO.DISPLAY_VERSION} → ${latest}\n`)
         writeToStdout('\n')
         writeToStdout('To update, run:\n')
-        writeToStdout(chalk.bold('  apk upgrade kalt-code') + '\n')
+        writeToStdout(chalk.bold('  apk upgrade claude-code') + '\n')
       } else {
         writeToStdout('Claude is up to date!\n')
       }
@@ -262,11 +262,7 @@ export async function update() {
 
       if (result.latestVersion === MACRO.DISPLAY_VERSION) {
         writeToStdout(
-<<<<<<< HEAD
-          chalk.green(`Kalt Code is up to date (${MACRO.VERSION})`) + '\n',
-=======
           chalk.green(`OpenClaude is up to date (${MACRO.DISPLAY_VERSION})`) + '\n',
->>>>>>> upstream/main
         )
       } else {
         writeToStdout(
@@ -280,11 +276,7 @@ export async function update() {
     } catch (error) {
       process.stderr.write('Error: Failed to install native update\n')
       process.stderr.write(String(error) + '\n')
-<<<<<<< HEAD
-      process.stderr.write('Try running "kalt-code doctor" for diagnostics\n')
-=======
       process.stderr.write('Try running "openclaude doctor" for diagnostics\n')
->>>>>>> upstream/main
       await gracefulShutdown(1)
     }
   }
@@ -327,8 +319,8 @@ export async function update() {
     const packageName =
       MACRO.PACKAGE_URL ||
       (process.env.USER_TYPE === 'ant'
-        ? '@anthropic-ai/kalt-code'
-        : '@anthropic-ai/kalt-code')
+        ? '@anthropic-ai/claude-cli'
+        : '@anthropic-ai/claude-code')
     process.stderr.write(
       `  • Manually check: npm view ${packageName} version\n`,
     )
@@ -340,11 +332,7 @@ export async function update() {
   // Check if versions match exactly, including any build metadata (like SHA)
   if (latestVersion === MACRO.DISPLAY_VERSION) {
     writeToStdout(
-<<<<<<< HEAD
-      chalk.green(`Kalt Code is up to date (${MACRO.VERSION})`) + '\n',
-=======
       chalk.green(`OpenClaude is up to date (${MACRO.DISPLAY_VERSION})`) + '\n',
->>>>>>> upstream/main
     )
     await gracefulShutdown(0)
   }
@@ -422,20 +410,12 @@ export async function update() {
       if (useLocalUpdate) {
         process.stderr.write('Try manually updating with:\n')
         process.stderr.write(
-<<<<<<< HEAD
-          `  cd ~/.kalt-code/local && npm update ${MACRO.PACKAGE_URL}\n`,
-=======
           `  cd ~/.openclaude/local && npm update ${MACRO.PACKAGE_URL}\n`,
->>>>>>> upstream/main
         )
       } else {
         process.stderr.write('Try running with sudo or fix npm permissions\n')
         process.stderr.write(
-<<<<<<< HEAD
-          'Or consider using native installation with: kalt-code install\n',
-=======
           'Or consider using native installation with: openclaude install\n',
->>>>>>> upstream/main
         )
       }
       await gracefulShutdown(1)
@@ -445,19 +425,11 @@ export async function update() {
       if (useLocalUpdate) {
         process.stderr.write('Try manually updating with:\n')
         process.stderr.write(
-<<<<<<< HEAD
-          `  cd ~/.kalt-code/local && npm update ${MACRO.PACKAGE_URL}\n`,
-        )
-      } else {
-        process.stderr.write(
-          'Or consider using native installation with: kalt-code install\n',
-=======
           `  cd ~/.openclaude/local && npm update ${MACRO.PACKAGE_URL}\n`,
         )
       } else {
         process.stderr.write(
           'Or consider using native installation with: openclaude install\n',
->>>>>>> upstream/main
         )
       }
       await gracefulShutdown(1)

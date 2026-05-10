@@ -41,18 +41,11 @@ type GitHubRelease = {
  * 2. We fetch GitHub release notes in the background and store them in config
  * 3. Next startup, the cached release notes are available immediately
  */
-<<<<<<< HEAD
-export const CHANGELOG_URL =
-  'https://github.com/anthropics/kalt-code/blob/main/CHANGELOG.md'
-const RAW_CHANGELOG_URL =
-  'https://raw.githubusercontent.com/anthropics/kalt-code/refs/heads/main/CHANGELOG.md'
-=======
 export const RELEASES_URL = OPENCLAUDE_RELEASES_URL
->>>>>>> upstream/main
 
 /**
  * Get the path for the cached changelog file.
- * The changelog is stored at ~/.kalt-code/cache/changelog.md
+ * The changelog is stored at ~/.claude/cache/changelog.md
  */
 function getChangelogCachePath(): string {
   return join(getClaudeConfigHomeDir(), 'cache', 'changelog.md')

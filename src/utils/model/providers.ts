@@ -23,24 +23,6 @@ export type LegacyAPIProvider =
   | 'mistral'
   | 'xai'
 
-<<<<<<< HEAD
-export function getAPIProvider(): APIProvider {
-  return isEnvTruthy(process.env.KALT_CODE_USE_GEMINI)
-    ? 'gemini'
-    : isEnvTruthy(process.env.KALT_CODE_USE_GITHUB)
-      ? 'github'
-      : isEnvTruthy(process.env.KALT_CODE_USE_OPENAI)
-        ? isCodexModel()
-          ? 'codex'
-          : 'openai'
-        : isEnvTruthy(process.env.KALT_CODE_USE_BEDROCK)
-          ? 'bedrock'
-          : isEnvTruthy(process.env.KALT_CODE_USE_VERTEX)
-            ? 'vertex'
-            : isEnvTruthy(process.env.KALT_CODE_USE_FOUNDRY)
-              ? 'foundry'
-              : 'firstParty'
-=======
 // Backward-compatible public alias. Keep importing APIProvider where callers
 // intentionally consume the legacy category surface.
 export type APIProvider = LegacyAPIProvider
@@ -93,7 +75,6 @@ export function getAPIProvider(): LegacyAPIProvider {
 
       return 'firstParty'
   }
->>>>>>> upstream/main
 }
 
 export function usesAnthropicAccountFlow(): boolean {

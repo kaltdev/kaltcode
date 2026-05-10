@@ -336,22 +336,17 @@ export const FileWriteTool = buildTool({
       limit: undefined,
     })
 
-<<<<<<< HEAD
-    // Log when writing to KALT_CODE.md
-    if (fullFilePath.endsWith(`${sep}KALT_CODE.md`)) {
-=======
     // Log when writing to the root project instruction file
     if (
       fullFilePath.endsWith(`${sep}AGENTS.md`) ||
       fullFilePath.endsWith(`${sep}CLAUDE.md`)
     ) {
->>>>>>> upstream/main
       logEvent('tengu_write_claudemd', {})
     }
 
     let gitDiff: ToolUseDiff | undefined
     if (
-      isEnvTruthy(process.env.KALT_CODE_REMOTE) &&
+      isEnvTruthy(process.env.CLAUDE_CODE_REMOTE) &&
       getFeatureValue_CACHED_MAY_BE_STALE('tengu_quartz_lantern', false)
     ) {
       const startTime = Date.now()

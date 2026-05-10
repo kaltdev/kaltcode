@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-import { expect, test } from 'bun:test'
-
-test('osc test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { join } from 'node:path'
 
@@ -153,5 +147,4 @@ describe('clipboard path behavior remains stable', () => {
       true,
     )
   })
->>>>>>> upstream/main
 })

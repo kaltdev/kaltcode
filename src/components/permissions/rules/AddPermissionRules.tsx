@@ -32,11 +32,7 @@ export function optionForPermissionSaveDestination(saveDestination: EditableSett
     case 'userSettings':
       return {
         label: 'User settings',
-<<<<<<< HEAD
-        description: `Saved in at ~/.kalt-code/settings.json`,
-=======
         description: `Saved in ~/.openclaude/settings.json`,
->>>>>>> upstream/main
         value: saveDestination
       };
   }

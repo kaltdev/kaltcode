@@ -1,9 +1,5 @@
-import { expect, test } from 'bun:test'
+import { afterEach, expect, test } from 'bun:test'
 
-<<<<<<< HEAD
-test('model providers test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 const originalEnv = {
   CLAUDE_CODE_USE_GEMINI: process.env.CLAUDE_CODE_USE_GEMINI,
   CLAUDE_CODE_USE_GITHUB: process.env.CLAUDE_CODE_USE_GITHUB,
@@ -185,7 +181,6 @@ test('official OpenAI base URLs now keep provider detection on openai for aliase
 
   const { getAPIProvider } = await importFreshProvidersModule()
   expect(getAPIProvider()).toBe('openai')
->>>>>>> upstream/main
 })
 
 test('descriptor-backed MiniMax routes keep the legacy minimax provider category', async () => {

@@ -1,9 +1,5 @@
-import { expect, test } from 'bun:test'
+import { afterEach, expect, test } from 'bun:test'
 
-<<<<<<< HEAD
-test('providerConfig.local test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 import {
   getAdditionalModelOptionsCacheScope,
   getLocalProviderRetryBaseUrls,
@@ -185,7 +181,6 @@ test('skips local model cache scope for remote openai-compatible providers', () 
   process.env.OPENAI_MODEL = 'gpt-4o'
 
   expect(getAdditionalModelOptionsCacheScope()).toBeNull()
->>>>>>> upstream/main
 })
 
 test('derives local retry base URLs with /v1 and loopback fallback candidates', () => {

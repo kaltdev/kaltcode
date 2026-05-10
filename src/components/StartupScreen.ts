@@ -1,8 +1,8 @@
 /**
- * Kalt Code startup screen — filled-block text logo with sunset gradient.
+ * OpenClaude startup screen — filled-block text logo with sunset gradient.
  * Called once at CLI startup before the Ink UI renders.
  *
- * Addresses: https://github.com/kaltdev/kalt-code/issues/55
+ * Addresses: https://github.com/Gitlawb/openclaude/issues/55
  */
 
 import { isLocalProviderUrl, resolveProviderRequest } from '../services/api/providerConfig.js'
@@ -74,18 +74,11 @@ const LOGO_CLAUDE = [
 
 // ─── Provider detection ───────────────────────────────────────────────────────
 
-<<<<<<< HEAD
-function detectProvider(): { name: string; model: string; baseUrl: string; isLocal: boolean } {
-  const useGemini = process.env.KALT_CODE_USE_GEMINI === '1' || process.env.KALT_CODE_USE_GEMINI === 'true'
-  const useGithub = process.env.KALT_CODE_USE_GITHUB === '1' || process.env.KALT_CODE_USE_GITHUB === 'true'
-  const useOpenAI = process.env.KALT_CODE_USE_OPENAI === '1' || process.env.KALT_CODE_USE_OPENAI === 'true'
-=======
 export function detectProvider(modelOverride?: string): { name: string; model: string; baseUrl: string; isLocal: boolean } {
   const useGemini = process.env.CLAUDE_CODE_USE_GEMINI === '1' || process.env.CLAUDE_CODE_USE_GEMINI === 'true'
   const useGithub = process.env.CLAUDE_CODE_USE_GITHUB === '1' || process.env.CLAUDE_CODE_USE_GITHUB === 'true'
   const useOpenAI = process.env.CLAUDE_CODE_USE_OPENAI === '1' || process.env.CLAUDE_CODE_USE_OPENAI === 'true'
   const useMistral = process.env.CLAUDE_CODE_USE_MISTRAL === '1' || process.env.CLAUDE_CODE_USE_MISTRAL === 'true'
->>>>>>> upstream/main
 
   if (useGemini) {
     const model = modelOverride || process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL
@@ -162,11 +155,6 @@ export function detectProvider(modelOverride?: string): { name: string; model: s
     return { name, model: displayModel, baseUrl, isLocal }
   }
 
-<<<<<<< HEAD
-  // Default: Anthropic
-  const model = process.env.ANTHROPIC_MODEL || process.env.KALT_CODE_MODEL || 'claude-sonnet-4-6'
-  return { name: 'Anthropic', model, baseUrl: 'https://api.anthropic.com', isLocal: false }
-=======
   // Default: Anthropic - check settings.model first, then env vars
   const settings = getSettings_DEPRECATED() || {}
   const modelSetting = modelOverride || process.env.ANTHROPIC_MODEL || process.env.CLAUDE_MODEL || settings.model || 'claude-sonnet-4-6'
@@ -174,7 +162,6 @@ export function detectProvider(modelOverride?: string): { name: string; model: s
   const baseUrl = process.env.ANTHROPIC_BASE_URL ?? 'https://api.anthropic.com'
   const isLocal = isLocalProviderUrl(baseUrl)
   return { name: 'Anthropic', model: resolvedModel, baseUrl, isLocal }
->>>>>>> upstream/main
 }
 
 // ─── Box drawing ──────────────────────────────────────────────────────────────
@@ -246,13 +233,8 @@ export function printStartupScreen(modelOverride?: string): void {
   const sLen = ` \u25cf ${sL}    Ready \u2014 type /help to begin`.length
   out.push(boxRow(sRow, W, sLen, BORDER))
 
-<<<<<<< HEAD
-  out.push(`${rgb(...BORDER)}\u255a${'\u2550'.repeat(W - 2)}\u255d${RESET}`)
-  out.push(`  ${DIM}${rgb(...DIMCOL)}kalt-code ${RESET}${rgb(...ACCENT)}v${MACRO.DISPLAY_VERSION ?? MACRO.VERSION}${RESET}`)
-=======
   out.push(`${ansiRgb(...BORDER)}\u255a${'\u2550'.repeat(W - 2)}\u255d${RESET}`)
   out.push(`  ${DIM}${ansiRgb(...DIMCOL)}openclaude ${RESET}${ansiRgb(...ACCENT)}v${MACRO.DISPLAY_VERSION ?? MACRO.VERSION}${RESET}`)
->>>>>>> upstream/main
   out.push('')
 
   process.stdout.write(out.join('\n') + '\n')

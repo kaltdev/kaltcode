@@ -139,31 +139,18 @@ export function HelpV2(t0) {
   const t5 = insideModal ? undefined : maxHeight;
   const publicBuildVersion = getPublicBuildVersion();
   let t6;
-<<<<<<< HEAD
-  if ($[31] !== tabs) {
-    t6 = <Tabs title={false ? "/help" : `Kalt Code v${MACRO.VERSION}`} color="professionalBlue" defaultTab="general">{tabs}</Tabs>;
-    $[31] = tabs;
-    $[32] = t6;
-=======
   if ($[31] !== publicBuildVersion || $[32] !== tabs) {
     t6 = <Tabs title={false ? "/help" : `OpenClaude v${publicBuildVersion}`} color="professionalBlue" defaultTab="general">{tabs}</Tabs>;
     $[31] = publicBuildVersion;
     $[32] = tabs;
     $[33] = t6;
->>>>>>> upstream/main
   } else {
     t6 = $[33];
   }
   let t7;
-<<<<<<< HEAD
-  if ($[33] === Symbol.for("react.memo_cache_sentinel")) {
-    t7 = <Box marginTop={1}><Text>For more help:{" "}<Link url="https://code.kalt-code.com/docs/en/overview" /></Text></Box>;
-    $[33] = t7;
-=======
   if ($[34] === Symbol.for("react.memo_cache_sentinel")) {
     t7 = <Box marginTop={1}><Text>For more help:{" "}<Link url="https://github.com/Gitlawb/openclaude" /></Text></Box>;
     $[34] = t7;
->>>>>>> upstream/main
   } else {
     t7 = $[34];
   }

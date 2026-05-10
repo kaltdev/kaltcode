@@ -100,11 +100,7 @@ export function calculateOptimalLeftWidth(
  */
 export function formatWelcomeMessage(username: string | null): string {
   if (!username || username.length > MAX_USERNAME_LENGTH) {
-<<<<<<< HEAD
-    return 'Welcome to Kalt Code'
-=======
     return 'Welcome to OpenClaude'
->>>>>>> upstream/main
   }
   return `Welcome back, ${username}`
 }

@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-import { expect, test } from 'bun:test'
-
-test('providerValidation test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 import { afterEach, beforeAll, beforeEach, expect, test } from 'bun:test'
 import { ensureIntegrationsLoaded, getAllGateways } from '../integrations/index.js'
 
@@ -102,7 +96,6 @@ test('still errors when no Gemini credential source is available', async () => {
   await expect(getProviderValidationError(process.env)).resolves.toBe(
     'GEMINI_API_KEY, GOOGLE_API_KEY, GEMINI_ACCESS_TOKEN, or Google ADC credentials are required when CLAUDE_CODE_USE_GEMINI=1.',
   )
->>>>>>> upstream/main
 })
 
 test('openai missing key error includes recovery guidance and config locations', async () => {

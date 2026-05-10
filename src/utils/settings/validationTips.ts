@@ -23,11 +23,6 @@ type TipMatcher = {
   tip: ValidationTip
 }
 
-<<<<<<< HEAD
-const DOCUMENTATION_BASE = 'https://code.kalt-code.com/docs/en'
-
-=======
->>>>>>> upstream/main
 const TIP_MATCHERS: TipMatcher[] = [
   {
     matches: (ctx): boolean =>

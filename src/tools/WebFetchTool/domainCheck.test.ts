@@ -1,9 +1,6 @@
-import { expect, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
+import axios from 'axios'
 
-<<<<<<< HEAD
-test('domainCheck test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 const originalEnv = { ...process.env }
 
 async function importFreshModule() {
@@ -83,5 +80,4 @@ describe('checkDomainBlocklist', () => {
     expect(result.status).toBe('allowed')
     expect(getSpy).toHaveBeenCalledTimes(1)
   })
->>>>>>> upstream/main
 })

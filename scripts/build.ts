@@ -1,5 +1,5 @@
 /**
- * Kalt Code build script — bundles the TypeScript source into a single
+ * OpenClaude build script — bundles the TypeScript source into a single
  * distributable JS file using Bun's bundler.
  *
  * Handles:
@@ -136,20 +136,15 @@ result = await Bun.build({
     // MACRO.* build-time constants
     // Keep the internal compatibility version high enough to pass
     // first-party minimum-version guards, but expose the real package
-    // version separately in Kalt Code branding.
+    // version separately in Open Claude branding.
     'MACRO.VERSION': JSON.stringify('99.0.0'),
     'MACRO.DISPLAY_VERSION': JSON.stringify(version),
     'MACRO.BUILD_TIME': JSON.stringify(new Date().toISOString()),
     'MACRO.ISSUES_EXPLAINER':
-<<<<<<< HEAD
-      JSON.stringify('report the issue at https://github.com/anthropics/kalt-code/issues'),
-    'MACRO.PACKAGE_URL': JSON.stringify('@kaltdev/kalt-code'),
-=======
       JSON.stringify('report the issue at https://github.com/Gitlawb/openclaude/issues'),
     'MACRO.FEEDBACK_CHANNEL':
       JSON.stringify('https://github.com/Gitlawb/openclaude/issues'),
     'MACRO.PACKAGE_URL': JSON.stringify('@gitlawb/openclaude'),
->>>>>>> upstream/main
     'MACRO.NATIVE_PACKAGE_URL': 'undefined',
   },
   plugins: [
@@ -466,9 +461,6 @@ if (!result.success) {
   console.log(`✓ Built openclaude v${version} → dist/cli.mjs`)
 }
 
-<<<<<<< HEAD
-console.log(`✓ Built kalt-code v${version} → dist/cli.mjs`)
-=======
 // ── SDK Bundle Build ──────────────────────────────────────────────────────
 // SDK is a separate bundle for npm consumption - must NOT bundle React/Ink
 console.log('Building SDK bundle...')
@@ -940,4 +932,3 @@ if (result?.success && sdkResult?.success) {
     process.exitCode = 1
   }
 }
->>>>>>> upstream/main

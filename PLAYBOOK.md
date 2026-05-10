@@ -1,6 +1,6 @@
-# Kalt Code Local Agent Playbook
+# OpenClaude Local Agent Playbook
 
-This playbook is a practical guide to run Kalt Code with a local model (Ollama), work safely, and get strong day-to-day results.
+This playbook is a practical guide to run OpenClaude with a local model (Ollama), work safely, and get strong day-to-day results.
 
 ## 1. What You Have
 
@@ -27,7 +27,7 @@ bun run dev:fast
 bun run dev:code
 ```
 
-If everything is healthy, Kalt Code starts directly.
+If everything is healthy, OpenClaude starts directly.
 
 ## 3. One-Time Setup (If Needed)
 
@@ -37,7 +37,7 @@ If everything is healthy, Kalt Code starts directly.
 bun run profile:init -- --provider ollama --model llama3.1:8b
 ```
 
-Or let Kalt Code recommend the best local model for your goal:
+Or let OpenClaude recommend the best local model for your goal:
 
 ```powershell
 bun run profile:init -- --provider ollama --goal coding
@@ -52,7 +52,7 @@ bun run profile:recommend -- --goal coding --benchmark
 ### 3.2 Confirm profile file
 
 ```powershell
-Get-Content .\.kalt-code-profile.json
+Get-Content .\.openclaude-profile.json
 ```
 
 ### 3.3 Validate environment
@@ -132,11 +132,7 @@ Cause:
 Fix:
 
 ```powershell
-<<<<<<< HEAD
-cd C:\Users\Lucas Pedry\Documents\kalt-code\kalt-code
-=======
 cd <PATH>
->>>>>>> upstream/main
 bun run dev:profile
 ```
 
@@ -264,11 +260,7 @@ bun run profile:init -- --provider ollama --goal coding
 
 - Run `doctor:runtime` before debugging provider issues.
 - Prefer `dev:profile` over manual env edits.
-<<<<<<< HEAD
-- Keep `.kalt-code-profile.json` local (already gitignored).
-=======
 - Keep any legacy workspace `.openclaude-profile.json` local; new provider saves use the user config directory.
->>>>>>> upstream/main
 - Use `doctor:report` before asking for help so you have a reproducible snapshot.
 
 ## 10. Quick Recovery Checklist

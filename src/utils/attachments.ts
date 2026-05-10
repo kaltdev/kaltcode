@@ -172,7 +172,7 @@ import {
     isMcpInstructionsDeltaEnabled,
     type ClientSideInstruction,
 } from "./mcpInstructionsDelta.js";
-import { KALT_CODE_IN_CHROME_MCP_SERVER_NAME } from "./claudeInChrome/common.js";
+import { CLAUDE_IN_CHROME_MCP_SERVER_NAME } from "./claudeInChrome/common.js";
 import { CHROME_TOOL_SEARCH_INSTRUCTIONS } from "./claudeInChrome/prompt.js";
 import type { MCPServerConnection } from "../services/mcp/types.js";
 import type {
@@ -1599,7 +1599,7 @@ export function getMcpInstructionsDeltaAttachment(
         isToolSearchToolAvailable(tools)
     ) {
         clientSide.push({
-            serverName: KALT_CODE_IN_CHROME_MCP_SERVER_NAME,
+            serverName: CLAUDE_IN_CHROME_MCP_SERVER_NAME,
             block: CHROME_TOOL_SEARCH_INSTRUCTIONS,
         });
     }
@@ -2101,10 +2101,9 @@ async function processMcpResourceAttachments(
                 }
 
                 try {
-                    const result: ReadResourceResult =
-                        await client.client.readResource({
-                            uri,
-                        });
+                    const result = await client.client.readResource({
+                        uri,
+                    });
 
                     logEvent("tengu_at_mention_mcp_resource_success", {});
 
@@ -2901,7 +2900,6 @@ export function extractAtMentionedFiles(content: string): string[] {
 }
 
 export function extractMcpResourceMentions(content: string): string[] {
-<<<<<<< HEAD
     // Extract MCP resources mentioned with @ symbol in format @server:uri
     // Example: "@server1:resource/path" would extract "server1:resource/path"
     //
@@ -2928,34 +2926,6 @@ export function extractMcpResourceMentions(content: string): string[] {
             // the regex alone cannot disambiguate from `@server:resource`.
             .filter((m) => !/^[A-Za-z]:[\\/]/.test(m)),
     );
-=======
-  // Extract MCP resources mentioned with @ symbol in format @server:uri
-  // Example: "@server1:resource/path" would extract "server1:resource/path"
-  //
-  // Two guards against Windows-path / quoted-file collisions (see
-  // `attachments.extractors.test.ts`):
-  //
-  // 1. `(?!")` right after `@` drops quoted tokens entirely. The earlier
-  //    form (without the lookahead and with `[^\s]` character classes)
-  //    backtracked past the closing `"` at the `\b` anchor and produced
-  //    ghost matches like `"C:\Users\...\file.txt` for any quoted file
-  //    mention containing a colon.
-  // 2. The `"` added to the character classes is belt-and-braces: even
-  //    if the lookahead were later removed or bypassed, the engine can
-  //    no longer consume a quote character mid-match.
-  const atMentionRegex = /(^|\s)@(?!")([^\s"]+:[^\s"]+)\b/g
-  const matches = content.match(atMentionRegex) || []
-
-  return uniq(
-    matches
-      .map(match => match.slice(match.indexOf('@') + 1))
-      // Post-match filter: a single-letter "server" followed by `:\` or
-      // `:/` is always a Windows drive-letter prefix, never a real MCP
-      // resource. This covers the unquoted `@C:\Users\...` case that
-      // the regex alone cannot disambiguate from `@server:resource`.
-      .filter(m => !/^[A-Za-z]:[\\/]/.test(m)),
-  )
->>>>>>> upstream/main
 }
 
 export function extractAgentMentions(content: string): string[] {
@@ -3022,19 +2992,11 @@ async function getDiagnosticAttachments(
         return [];
     }
 
-<<<<<<< HEAD
     // Get new diagnostics from the tracker (IDE diagnostics via MCP)
-    const newDiagnostics = await diagnosticTracker.getNewDiagnostics();
+    const newDiagnostics = await diagnosticTracker.getNewDiagnosticsCompat();
     if (newDiagnostics.length === 0) {
         return [];
     }
-=======
-  // Get new diagnostics from the tracker (IDE diagnostics via MCP)
-  const newDiagnostics = await diagnosticTracker.getNewDiagnosticsCompat()
-  if (newDiagnostics.length === 0) {
-    return []
-  }
->>>>>>> upstream/main
 
     return [
         {

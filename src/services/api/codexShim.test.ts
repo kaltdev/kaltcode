@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-import { expect, test } from 'bun:test'
-
-test('codexShim test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -926,5 +920,4 @@ describe('convertSystemPrompt', () => {
       'You are Claude Code.',
     )
   })
->>>>>>> upstream/main
 })

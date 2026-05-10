@@ -2,74 +2,71 @@
  * Utilities for handling local installation
  */
 
-import { access, chmod, writeFile } from 'fs/promises'
-import { homedir } from 'os'
-import { join } from 'path'
-import { type ReleaseChannel, saveGlobalConfig } from './config.js'
-import { getClaudeConfigHomeDir } from './envUtils.js'
-import { getErrnoCode } from './errors.js'
-import { execFileNoThrowWithCwd } from './execFileNoThrow.js'
-import { getFsImplementation } from './fsOperations.js'
-import { logError } from './log.js'
-import { jsonStringify } from './slowOperations.js'
+import { access, chmod, writeFile } from "fs/promises";
+import { homedir } from "os";
+import { join } from "path";
+import { type ReleaseChannel, saveGlobalConfig } from "./config.js";
+import { getClaudeConfigHomeDir } from "./envUtils.js";
+import { getErrnoCode } from "./errors.js";
+import { execFileNoThrowWithCwd } from "./execFileNoThrow.js";
+import { getFsImplementation } from "./fsOperations.js";
+import { logError } from "./log.js";
+import { jsonStringify } from "./slowOperations.js";
 
 // Lazy getters: getClaudeConfigHomeDir() is memoized and reads process.env.
 // Evaluating at module scope would capture the value before entrypoints like
-// hfi.tsx get a chance to set KALT_CODE_CONFIG_DIR in main(), and would also
+// hfi.tsx get a chance to set CLAUDE_CONFIG_DIR in main(), and would also
 // populate the memoize cache with that stale value for all 150+ other callers.
 function getLocalInstallDir(): string {
-  return join(getClaudeConfigHomeDir(), 'local')
+    return join(getClaudeConfigHomeDir(), "local");
 }
-<<<<<<< HEAD
-export function getLocalKaltCodePath(): string {
-  return join(getLocalInstallDir(), 'kalt-code')
-=======
 
 function getLegacyLocalInstallDir(homeDir = homedir()): string {
-  return join(homeDir, '.claude', 'local')
+    return join(homeDir, ".claude", "local");
 }
 
 export function getCandidateLocalInstallDirs(options?: {
-  configHomeDir?: string
-  homeDir?: string
+    configHomeDir?: string;
+    homeDir?: string;
 }): string[] {
-  const homeDir = options?.homeDir ?? homedir()
-  const configHomeDir = options?.configHomeDir ?? getClaudeConfigHomeDir()
-  return Array.from(
-    new Set([join(configHomeDir, 'local'), getLegacyLocalInstallDir(homeDir)]),
-  )
+    const homeDir = options?.homeDir ?? homedir();
+    const configHomeDir = options?.configHomeDir ?? getClaudeConfigHomeDir();
+    return Array.from(
+        new Set([
+            join(configHomeDir, "local"),
+            getLegacyLocalInstallDir(homeDir),
+        ]),
+    );
 }
 
 function getCandidateLocalBinaryPaths(localInstallDir: string): string[] {
-  return [
-    join(localInstallDir, 'node_modules', '.bin', 'openclaude'),
-    join(localInstallDir, 'node_modules', '.bin', 'claude'),
-  ]
+    return [
+        join(localInstallDir, "node_modules", ".bin", "openclaude"),
+        join(localInstallDir, "node_modules", ".bin", "claude"),
+    ];
 }
 
 export function isManagedLocalInstallationPath(execPath: string): boolean {
-  const normalizedExecPath = execPath.replace(/\\+/g, '/')
-  return (
-    normalizedExecPath.includes('/.openclaude/local/node_modules/') ||
-    normalizedExecPath.includes('/.claude/local/node_modules/')
-  )
+    const normalizedExecPath = execPath.replace(/\\+/g, "/");
+    return (
+        normalizedExecPath.includes("/.openclaude/local/node_modules/") ||
+        normalizedExecPath.includes("/.claude/local/node_modules/")
+    );
+}
+
+export function getLocalKaltCodePath(): string {
+    return join(getLocalInstallDir(), "kalt-code");
 }
 
 export function getLocalClaudePath(): string {
-  return join(getLocalInstallDir(), 'openclaude')
->>>>>>> upstream/main
+    return getLocalKaltCodePath();
 }
 
 /**
  * Check if we're running from our managed local installation
  */
 export function isRunningFromLocalInstallation(): boolean {
-<<<<<<< HEAD
-  const execPath = process.argv[1] || ''
-  return execPath.includes('/.kalt-code/local/node_modules/')
-=======
-  return isManagedLocalInstallationPath(process.argv[1] || '')
->>>>>>> upstream/main
+    return isManagedLocalInstallationPath(process.argv[1] || "");
 }
 
 /**
@@ -77,17 +74,17 @@ export function isRunningFromLocalInstallation(): boolean {
  * Uses O_EXCL ('wx') for atomic create-if-missing.
  */
 async function writeIfMissing(
-  path: string,
-  content: string,
-  mode?: number,
+    path: string,
+    content: string,
+    mode?: number,
 ): Promise<boolean> {
-  try {
-    await writeFile(path, content, { encoding: 'utf8', flag: 'wx', mode })
-    return true
-  } catch (e) {
-    if (getErrnoCode(e) === 'EEXIST') return false
-    throw e
-  }
+    try {
+        await writeFile(path, content, { encoding: "utf8", flag: "wx", mode });
+        return true;
+    } catch (e) {
+        if (getErrnoCode(e) === "EEXIST") return false;
+        throw e;
+    }
 }
 
 /**
@@ -95,50 +92,39 @@ async function writeIfMissing(
  * Creates the directory, package.json, and wrapper script
  */
 export async function ensureLocalPackageEnvironment(): Promise<boolean> {
-  try {
-    const localInstallDir = getLocalInstallDir()
+    try {
+        const localInstallDir = getLocalInstallDir();
 
-    // Create installation directory (recursive, idempotent)
-    await getFsImplementation().mkdir(localInstallDir)
+        // Create installation directory (recursive, idempotent)
+        await getFsImplementation().mkdir(localInstallDir);
 
-    // Create package.json if it doesn't exist
-    await writeIfMissing(
-      join(localInstallDir, 'package.json'),
-      jsonStringify(
-<<<<<<< HEAD
-        { name: 'kalt-code-local', version: '0.0.1', private: true },
-=======
-        { name: 'openclaude-local', version: '0.0.1', private: true },
->>>>>>> upstream/main
-        null,
-        2,
-      ),
-    )
+        // Create package.json if it doesn't exist
+        await writeIfMissing(
+            join(localInstallDir, "package.json"),
+            jsonStringify(
+                { name: "openclaude-local", version: "0.0.1", private: true },
+                null,
+                2,
+            ),
+        );
 
-    // Create the wrapper script if it doesn't exist
-<<<<<<< HEAD
-    const wrapperPath = join(localInstallDir, 'kalt-code')
-    const created = await writeIfMissing(
-      wrapperPath,
-      `#!/bin/sh\nexec "${localInstallDir}/node_modules/.bin/kalt-code" "$@"`,
-=======
-    const wrapperPath = getLocalClaudePath()
-    const created = await writeIfMissing(
-      wrapperPath,
-      `#!/bin/sh\nexec "${localInstallDir}/node_modules/.bin/openclaude" "$@"`,
->>>>>>> upstream/main
-      0o755,
-    )
-    if (created) {
-      // Mode in writeFile is masked by umask; chmod to ensure executable bit.
-      await chmod(wrapperPath, 0o755)
+        // Create the wrapper script if it doesn't exist
+        const wrapperPath = getLocalClaudePath();
+        const created = await writeIfMissing(
+            wrapperPath,
+            `#!/bin/sh\nexec "${localInstallDir}/node_modules/.bin/openclaude" "$@"`,
+            0o755,
+        );
+        if (created) {
+            // Mode in writeFile is masked by umask; chmod to ensure executable bit.
+            await chmod(wrapperPath, 0o755);
+        }
+
+        return true;
+    } catch (error) {
+        logError(error);
+        return false;
     }
-
-    return true
-  } catch (error) {
-    logError(error)
-    return false
-  }
 }
 
 /**
@@ -147,46 +133,46 @@ export async function ensureLocalPackageEnvironment(): Promise<boolean> {
  * @param specificVersion - Optional specific version to install (overrides channel)
  */
 export async function installOrUpdateClaudePackage(
-  channel: ReleaseChannel,
-  specificVersion?: string | null,
-): Promise<'in_progress' | 'success' | 'install_failed'> {
-  try {
-    // First ensure the environment is set up
-    if (!(await ensureLocalPackageEnvironment())) {
-      return 'install_failed'
+    channel: ReleaseChannel,
+    specificVersion?: string | null,
+): Promise<"in_progress" | "success" | "install_failed"> {
+    try {
+        // First ensure the environment is set up
+        if (!(await ensureLocalPackageEnvironment())) {
+            return "install_failed";
+        }
+
+        // Use specific version if provided, otherwise use channel tag
+        const versionSpec = specificVersion
+            ? specificVersion
+            : channel === "stable"
+              ? "stable"
+              : "latest";
+        const result = await execFileNoThrowWithCwd(
+            "npm",
+            ["install", `${MACRO.PACKAGE_URL}@${versionSpec}`],
+            { cwd: getLocalInstallDir(), maxBuffer: 1000000 },
+        );
+
+        if (result.code !== 0) {
+            const error = new Error(
+                `Failed to install Claude CLI package: ${result.stderr}`,
+            );
+            logError(error);
+            return result.code === 190 ? "in_progress" : "install_failed";
+        }
+
+        // Set installMethod to 'local' to prevent npm permission warnings
+        saveGlobalConfig((current) => ({
+            ...current,
+            installMethod: "local",
+        }));
+
+        return "success";
+    } catch (error) {
+        logError(error);
+        return "install_failed";
     }
-
-    // Use specific version if provided, otherwise use channel tag
-    const versionSpec = specificVersion
-      ? specificVersion
-      : channel === 'stable'
-        ? 'stable'
-        : 'latest'
-    const result = await execFileNoThrowWithCwd(
-      'npm',
-      ['install', `${MACRO.PACKAGE_URL}@${versionSpec}`],
-      { cwd: getLocalInstallDir(), maxBuffer: 1000000 },
-    )
-
-    if (result.code !== 0) {
-      const error = new Error(
-        `Failed to install Claude CLI package: ${result.stderr}`,
-      )
-      logError(error)
-      return result.code === 190 ? 'in_progress' : 'install_failed'
-    }
-
-    // Set installMethod to 'local' to prevent npm permission warnings
-    saveGlobalConfig(current => ({
-      ...current,
-      installMethod: 'local',
-    }))
-
-    return 'success'
-  } catch (error) {
-    logError(error)
-    return 'install_failed'
-  }
 }
 
 /**
@@ -194,48 +180,44 @@ export async function installOrUpdateClaudePackage(
  * Pure existence probe — callers use this to choose update path / UI hints.
  */
 export async function localInstallationExists(): Promise<boolean> {
-<<<<<<< HEAD
-  try {
-    await access(join(getLocalInstallDir(), 'node_modules', '.bin', 'kalt-code'))
-    return true
-  } catch {
-    return false
-=======
-  for (const localInstallDir of getCandidateLocalInstallDirs()) {
-    for (const binaryPath of getCandidateLocalBinaryPaths(localInstallDir)) {
-      try {
-        await access(binaryPath)
-        return true
-      } catch {
-        // Try next candidate
-      }
+    for (const localInstallDir of getCandidateLocalInstallDirs()) {
+        for (const binaryPath of getCandidateLocalBinaryPaths(
+            localInstallDir,
+        )) {
+            try {
+                await access(binaryPath);
+                return true;
+            } catch {
+                // Try next candidate
+            }
+        }
     }
->>>>>>> upstream/main
-  }
-  return false
+    return false;
 }
 
 export async function getDetectedLocalInstallDir(): Promise<string | null> {
-  for (const localInstallDir of getCandidateLocalInstallDirs()) {
-    for (const binaryPath of getCandidateLocalBinaryPaths(localInstallDir)) {
-      try {
-        await access(binaryPath)
-        return localInstallDir
-      } catch {
-        // Try next candidate
-      }
+    for (const localInstallDir of getCandidateLocalInstallDirs()) {
+        for (const binaryPath of getCandidateLocalBinaryPaths(
+            localInstallDir,
+        )) {
+            try {
+                await access(binaryPath);
+                return localInstallDir;
+            } catch {
+                // Try next candidate
+            }
+        }
     }
-  }
-  return null
+    return null;
 }
 
 /**
  * Get shell type to determine appropriate path setup
  */
 export function getShellType(): string {
-  const shellPath = process.env.SHELL || ''
-  if (shellPath.includes('zsh')) return 'zsh'
-  if (shellPath.includes('bash')) return 'bash'
-  if (shellPath.includes('fish')) return 'fish'
-  return 'unknown'
+    const shellPath = process.env.SHELL || "";
+    if (shellPath.includes("zsh")) return "zsh";
+    if (shellPath.includes("bash")) return "bash";
+    if (shellPath.includes("fish")) return "fish";
+    return "unknown";
 }

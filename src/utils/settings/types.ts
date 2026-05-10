@@ -64,7 +64,7 @@ export const PermissionsSchema = lazySchema(() =>
             : EXTERNAL_PERMISSION_MODES,
         )
         .optional()
-        .describe('Default permission mode when Kalt Code needs access'),
+        .describe('Default permission mode when Claude Code needs access'),
       disableBypassPermissionsMode: z
         .enum(['disable'])
         .optional()
@@ -218,7 +218,7 @@ export const DeniedMcpServerEntrySchema = lazySchema(() =>
  *
  * ⚠️ BACKWARD COMPATIBILITY NOTICE ⚠️
  *
- * This schema defines the structure of user settings files (.kalt-code/settings.json).
+ * This schema defines the structure of user settings files (.claude/settings.json).
  * We support backward-compatible changes! Here's how:
  *
  * ✅ ALLOWED CHANGES:
@@ -265,7 +265,7 @@ export const SettingsSchema = lazySchema(() =>
       $schema: z
         .literal(KALT_CODE_SETTINGS_SCHEMA_URL)
         .optional()
-        .describe('JSON Schema reference for Kalt Code settings'),
+        .describe('JSON Schema reference for Claude Code settings'),
       apiKeyHelper: z
         .string()
         .optional()
@@ -284,11 +284,11 @@ export const SettingsSchema = lazySchema(() =>
         .describe(
           'Command to refresh GCP authentication (e.g., gcloud auth application-default login)',
         ),
-      // Gated so the SDK generator (which runs without KALT_CODE_ENABLE_XAA)
+      // Gated so the SDK generator (which runs without CLAUDE_CODE_ENABLE_XAA)
       // doesn't surface this in GlobalClaudeSettings. Read via getXaaIdpSettings().
       // .passthrough() on the outer object keeps an existing settings.json key
       // alive across env-var-off sessions — it's just not schema-validated then.
-      ...(isEnvTruthy(process.env.KALT_CODE_ENABLE_XAA)
+      ...(isEnvTruthy(process.env.CLAUDE_CODE_ENABLE_XAA)
         ? {
             xaaIdp: z
               .object({
@@ -298,7 +298,7 @@ export const SettingsSchema = lazySchema(() =>
                   .describe('IdP issuer URL for OIDC discovery'),
                 clientId: z
                   .string()
-                  .describe("Kalt Code's client_id registered at the IdP"),
+                  .describe("Claude Code's client_id registered at the IdP"),
                 callbackPort: z
                   .number()
                   .int()
@@ -339,7 +339,7 @@ export const SettingsSchema = lazySchema(() =>
         ),
       env: EnvironmentVariablesSchema()
         .optional()
-        .describe('Environment variables to set for Kalt Code sessions'),
+        .describe('Environment variables to set for Claude Code sessions'),
       // Attribution for commits and PRs
       attribution: z
         .object({
@@ -361,7 +361,7 @@ export const SettingsSchema = lazySchema(() =>
         .optional()
         .describe(
           'Customize attribution text for commits and PRs. ' +
-            'Each field defaults to the standard Kalt Code attribution if not set.',
+            'Each field defaults to the standard Claude Code attribution if not set.',
         ),
       includeCoAuthoredBy: z
         .boolean()
@@ -382,7 +382,7 @@ export const SettingsSchema = lazySchema(() =>
       model: z
         .string()
         .optional()
-        .describe('Override the default model used by Kalt Code'),
+        .describe('Override the default model used by Claude Code'),
       // Enterprise allowlist of models
       availableModels: z
         .array(z.string())
@@ -554,7 +554,7 @@ export const SettingsSchema = lazySchema(() =>
         .describe(
           'When set in managed settings, blocks non-plugin customization sources for the listed surfaces. ' +
             'Array form locks specific surfaces (e.g. ["skills", "hooks"]); `true` locks all four; `false` is an explicit no-op. ' +
-            'Blocked: ~/.kalt-code/{surface}/, .kalt-code/{surface}/ (project), settings.json hooks, .mcp.json. ' +
+            'Blocked: ~/.claude/{surface}/, .claude/{surface}/ (project), settings.json hooks, .mcp.json. ' +
             'NOT blocked: managed (policySettings) sources, plugin-provided customizations. ' +
             'Composes with strictKnownMarketplaces for end-to-end admin control — plugins gated by ' +
             'marketplace allowlist, everything else blocked here.',
@@ -609,7 +609,7 @@ export const SettingsSchema = lazySchema(() =>
         })
         .optional()
         .describe(
-          'Additional marketplaces to make available for this repository. Typically used in repository .kalt-code/settings.json to ensure team members have required plugin sources.',
+          'Additional marketplaces to make available for this repository. Typically used in repository .claude/settings.json to ensure team members have required plugin sources.',
         ),
       // Enterprise strict list of allowed marketplace sources (policy settings only)
       // When set, ONLY these exact sources can be added. Check happens BEFORE download.
@@ -841,7 +841,7 @@ export const SettingsSchema = lazySchema(() =>
               .enum(['disable'])
               .optional()
               .describe(
-                'Prevent kalt-code:// protocol handler registration with the OS',
+                'Prevent claude-cli:// protocol handler registration with the OS',
               ),
           }
         : {}),
@@ -856,11 +856,7 @@ export const SettingsSchema = lazySchema(() =>
         .optional()
         .describe(
           'Custom directory for plan files, relative to project root. ' +
-<<<<<<< HEAD
-            'If not set, defaults to ~/.kalt-code/plans/',
-=======
             'If not set, defaults to ~/.openclaude/plans/',
->>>>>>> upstream/main
         ),
       ...(process.env.USER_TYPE === 'ant'
         ? {
@@ -920,7 +916,7 @@ export const SettingsSchema = lazySchema(() =>
           }
         : {}),
       // Teams/Enterprise opt-IN for channel notifications. Default OFF.
-      // MCP servers that declare the kalt-code/channel capability can push
+      // MCP servers that declare the claude/channel capability can push
       // inbound messages into the conversation; for managed orgs this only
       // works when explicitly enabled. Which servers can connect at all is
       // still governed by allowedMcpServers/deniedMcpServers. Not
@@ -932,7 +928,7 @@ export const SettingsSchema = lazySchema(() =>
         .optional()
         .describe(
           'Teams/Enterprise opt-in for channel notifications (MCP servers with the ' +
-            'kalt-code/channel capability pushing inbound messages). Default off. ' +
+            'claude/channel capability pushing inbound messages). Default off. ' +
             'Set true to allow; users then select servers via --channels.',
         ),
       // Org-level channel plugin allowlist. When set, REPLACES the
@@ -979,7 +975,7 @@ export const SettingsSchema = lazySchema(() =>
         .string()
         .optional()
         .describe(
-          'Custom directory path for auto-memory storage. Supports ~/ prefix for home directory expansion. Ignored if set in projectSettings (checked-in .kalt-code/settings.json) for security. When unset, defaults to ~/.kalt-code/projects/<sanitized-cwd>/memory/.',
+          'Custom directory path for auto-memory storage. Supports ~/ prefix for home directory expansion. Ignored if set in projectSettings (checked-in .claude/settings.json) for security. When unset, defaults to ~/.claude/projects/<sanitized-cwd>/memory/.',
         ),
       autoDreamEnabled: z
         .boolean()
@@ -1074,7 +1070,7 @@ export const SettingsSchema = lazySchema(() =>
                 'Default working directory on the remote host. ' +
                   'Supports tilde expansion (e.g. ~/projects). ' +
                   'If not specified, defaults to the remote user home directory. ' +
-                  'Can be overridden by the [dir] positional argument in `kalt-code ssh <config> [dir]`.',
+                  'Can be overridden by the [dir] positional argument in `claude ssh <config> [dir]`.',
               ),
           }),
         )
@@ -1088,17 +1084,10 @@ export const SettingsSchema = lazySchema(() =>
         .array(z.string())
         .optional()
         .describe(
-<<<<<<< HEAD
-          'Glob patterns or absolute paths of KALT_CODE.md files to exclude from loading. ' +
-            'Patterns are matched against absolute file paths using picomatch. ' +
-            'Only applies to User, Project, and Local memory types (Managed/policy files cannot be excluded). ' +
-            'Examples: "/home/user/monorepo/KALT_CODE.md", "**/code/KALT_CODE.md", "**/some-dir/.kalt-code/rules/**"',
-=======
           'Glob patterns or absolute paths of AGENTS.md/CLAUDE.md files to exclude from loading. ' +
             'Patterns are matched against absolute file paths using picomatch. ' +
             'Only applies to User, Project, and Local memory types (Managed/policy files cannot be excluded). ' +
             'Examples: "/home/user/monorepo/AGENTS.md", "**/code/CLAUDE.md", "**/some-dir/.claude/rules/**"',
->>>>>>> upstream/main
         ),
       pluginTrustMessage: z
         .string()

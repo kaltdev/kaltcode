@@ -1,10 +1,5 @@
-import { expect, test } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 
-<<<<<<< HEAD
-test('githubModelsCredentials test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-})
-=======
 describe('readGithubModelsToken', () => {
   test('returns undefined in bare mode', async () => {
     const { readGithubModelsToken } = await import(
@@ -56,4 +51,3 @@ describe('saveGithubModelsToken / clearGithubModelsToken', () => {
   })
 })
 
->>>>>>> upstream/main

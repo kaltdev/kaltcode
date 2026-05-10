@@ -1,9 +1,5 @@
-import { expect, test } from 'bun:test'
+import { afterEach, describe, expect, mock, test } from 'bun:test'
 
-<<<<<<< HEAD
-test('user test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 const originalEnv = { ...process.env }
 
 async function importFreshUserModule() {
@@ -94,5 +90,4 @@ describe('user email fallbacks', () => {
     const result = getCoreUserData()
     expect(result.email).toBe('git@example.com')
   })
->>>>>>> upstream/main
 })

@@ -1,6 +1,6 @@
 /**
  * Shared bridge auth/URL resolution. Consolidates the internal-only
- * KALT_CODE_BRIDGE_* dev overrides that were previously copy-pasted across
+ * CLAUDE_BRIDGE_* dev overrides that were previously copy-pasted across
  * a dozen files — inboundAttachments, BriefTool/upload, bridgeMain,
  * initReplBridge, remoteBridgeCore, daemon workers, /rename,
  * /remote-control.
@@ -14,23 +14,6 @@
 import { getOauthConfig } from '../constants/oauth.js'
 import { getClaudeAIOAuthTokens } from '../utils/auth.js'
 
-<<<<<<< HEAD
-/** Ant-only dev override: KALT_CODE_BRIDGE_OAUTH_TOKEN, else undefined. */
-export function getBridgeTokenOverride(): string | undefined {
-  return (
-    (process.env.USER_TYPE === 'ant' &&
-      process.env.KALT_CODE_BRIDGE_OAUTH_TOKEN) ||
-    undefined
-  )
-}
-
-/** Ant-only dev override: KALT_CODE_BRIDGE_BASE_URL, else undefined. */
-export function getBridgeBaseUrlOverride(): string | undefined {
-  return (
-    (process.env.USER_TYPE === 'ant' && process.env.KALT_CODE_BRIDGE_BASE_URL) ||
-    undefined
-  )
-=======
 /** Dev override: CLAUDE_BRIDGE_OAUTH_TOKEN, else undefined. */
 export function getBridgeTokenOverride(): string | undefined {
   return process.env.CLAUDE_BRIDGE_OAUTH_TOKEN || undefined
@@ -39,7 +22,6 @@ export function getBridgeTokenOverride(): string | undefined {
 /** Dev override: CLAUDE_BRIDGE_BASE_URL, else undefined. */
 export function getBridgeBaseUrlOverride(): string | undefined {
   return process.env.CLAUDE_BRIDGE_BASE_URL || undefined
->>>>>>> upstream/main
 }
 
 /**

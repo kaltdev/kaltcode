@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-import { expect, test } from 'bun:test'
-
-test('withRetry test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { APIError } from '@anthropic-ai/sdk'
 
@@ -195,5 +189,4 @@ describe('getRateLimitResetDelayMs - providers without reset headers', () => {
     const error = makeError({})
     expect(getRateLimitResetDelayMs(error)).toBeNull()
   })
->>>>>>> upstream/main
 })

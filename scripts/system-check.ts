@@ -128,19 +128,14 @@ const MISTRAL_DEFAULT_BASE_URL = 'https://api.mistral.ai/v1'
 const GITHUB_COPILOT_BASE = 'https://api.githubcopilot.com'
 
 function currentBaseUrl(): string {
-  if (isTruthy(process.env.KALT_CODE_USE_GEMINI)) {
+  if (isTruthy(process.env.CLAUDE_CODE_USE_GEMINI)) {
     return process.env.GEMINI_BASE_URL ?? GEMINI_DEFAULT_BASE_URL
   }
-<<<<<<< HEAD
-  if (isTruthy(process.env.KALT_CODE_USE_GITHUB)) {
-    return process.env.OPENAI_BASE_URL ?? GITHUB_MODELS_DEFAULT_BASE
-=======
   if (isTruthy(process.env.CLAUDE_CODE_USE_MISTRAL)) {
     return process.env.MISTRAL_BASE_URL ?? MISTRAL_DEFAULT_BASE_URL
   }
   if (isTruthy(process.env.CLAUDE_CODE_USE_GITHUB)) {
     return process.env.OPENAI_BASE_URL ?? GITHUB_COPILOT_BASE
->>>>>>> upstream/main
   }
   return process.env.OPENAI_BASE_URL ?? 'https://api.openai.com/v1'
 }
@@ -224,16 +219,10 @@ function checkGithubEnv(): CheckResult[] {
 
 function checkOpenAIEnv(): CheckResult[] {
   const results: CheckResult[] = []
-<<<<<<< HEAD
-  const useGemini = isTruthy(process.env.KALT_CODE_USE_GEMINI)
-  const useGithub = isTruthy(process.env.KALT_CODE_USE_GITHUB)
-  const useOpenAI = isTruthy(process.env.KALT_CODE_USE_OPENAI)
-=======
   const useGemini = isTruthy(process.env.CLAUDE_CODE_USE_GEMINI)
   const useGithub = isTruthy(process.env.CLAUDE_CODE_USE_GITHUB)
   const useMistral = isTruthy(process.env.CLAUDE_CODE_USE_MISTRAL)
   const useOpenAI = isTruthy(process.env.CLAUDE_CODE_USE_OPENAI)
->>>>>>> upstream/main
 
   if (useGemini) {
     return checkGeminiEnv()
@@ -248,7 +237,7 @@ function checkOpenAIEnv(): CheckResult[] {
   }
 
   if (!useOpenAI) {
-    results.push(pass('Provider mode', 'Anthropic login flow enabled (KALT_CODE_USE_OPENAI is off).'))
+    results.push(pass('Provider mode', 'Anthropic login flow enabled (CLAUDE_CODE_USE_OPENAI is off).'))
     return results
   }
 
@@ -316,16 +305,10 @@ function checkOpenAIEnv(): CheckResult[] {
 }
 
 async function checkBaseUrlReachability(): Promise<CheckResult> {
-<<<<<<< HEAD
-  const useGemini = isTruthy(process.env.KALT_CODE_USE_GEMINI)
-  const useOpenAI = isTruthy(process.env.KALT_CODE_USE_OPENAI)
-  const useGithub = isTruthy(process.env.KALT_CODE_USE_GITHUB)
-=======
   const useGemini = isTruthy(process.env.CLAUDE_CODE_USE_GEMINI)
   const useOpenAI = isTruthy(process.env.CLAUDE_CODE_USE_OPENAI)
   const useGithub = isTruthy(process.env.CLAUDE_CODE_USE_GITHUB)
   const useMistral = isTruthy(process.env.CLAUDE_CODE_USE_MISTRAL)
->>>>>>> upstream/main
 
   if (!useGemini && !useOpenAI && !useGithub && !useMistral) {
     return pass('Provider reachability', 'Skipped (OpenAI-compatible mode disabled).')
@@ -368,7 +351,7 @@ async function checkBaseUrlReachability(): Promise<CheckResult> {
         headers['chatgpt-account-id'] = credentials.accountId
       }
       headers['Content-Type'] = 'application/json'
-      headers.originator = 'kalt-code'
+      headers.originator = 'openclaude'
       method = 'POST'
       body = JSON.stringify({
         model: request.resolvedModel,
@@ -523,16 +506,10 @@ function isAtomicChatUrl(baseUrl: string): boolean {
 
 function checkOllamaProcessorMode(): CheckResult {
   if (
-<<<<<<< HEAD
-    !isTruthy(process.env.KALT_CODE_USE_OPENAI) ||
-    isTruthy(process.env.KALT_CODE_USE_GEMINI) ||
-    isTruthy(process.env.KALT_CODE_USE_GITHUB)
-=======
     !isTruthy(process.env.CLAUDE_CODE_USE_OPENAI) ||
     isTruthy(process.env.CLAUDE_CODE_USE_GEMINI) ||
     isTruthy(process.env.CLAUDE_CODE_USE_GITHUB) ||
     isTruthy(process.env.CLAUDE_CODE_USE_MISTRAL)
->>>>>>> upstream/main
   ) {
     return pass('Ollama processor mode', 'Skipped (OpenAI-compatible mode disabled).')
   }
@@ -576,15 +553,10 @@ function checkOllamaProcessorMode(): CheckResult {
 }
 
 function serializeSafeEnvSummary(): Record<string, string | boolean> {
-  if (isTruthy(process.env.KALT_CODE_USE_GEMINI)) {
+  if (isTruthy(process.env.CLAUDE_CODE_USE_GEMINI)) {
     return {
-<<<<<<< HEAD
-      KALT_CODE_USE_GEMINI: true,
-      GEMINI_MODEL: process.env.GEMINI_MODEL ?? '(unset, default: gemini-2.0-flash)',
-=======
       CLAUDE_CODE_USE_GEMINI: true,
       GEMINI_MODEL: process.env.GEMINI_MODEL ?? `(unset, default: ${DEFAULT_GEMINI_MODEL})`,
->>>>>>> upstream/main
       GEMINI_BASE_URL: process.env.GEMINI_BASE_URL ?? 'https://generativelanguage.googleapis.com/v1beta/openai',
       GEMINI_API_KEY_SET: Boolean(process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY),
     }
@@ -598,11 +570,11 @@ function serializeSafeEnvSummary(): Record<string, string | boolean> {
     }
   }
   if (
-    isTruthy(process.env.KALT_CODE_USE_GITHUB) &&
-    !isTruthy(process.env.KALT_CODE_USE_OPENAI)
+    isTruthy(process.env.CLAUDE_CODE_USE_GITHUB) &&
+    !isTruthy(process.env.CLAUDE_CODE_USE_OPENAI)
   ) {
     return {
-      KALT_CODE_USE_GITHUB: true,
+      CLAUDE_CODE_USE_GITHUB: true,
       OPENAI_MODEL:
         process.env.OPENAI_MODEL ??
         '(unset, default: github:copilot → openai/gpt-4.1)',
@@ -618,7 +590,7 @@ function serializeSafeEnvSummary(): Record<string, string | boolean> {
     baseUrl: process.env.OPENAI_BASE_URL,
   })
   return {
-    KALT_CODE_USE_OPENAI: isTruthy(process.env.KALT_CODE_USE_OPENAI),
+    CLAUDE_CODE_USE_OPENAI: isTruthy(process.env.CLAUDE_CODE_USE_OPENAI),
     OPENAI_MODEL: process.env.OPENAI_MODEL ?? '(unset)',
     OPENAI_BASE_URL: request.baseUrl,
     OPENAI_API_KEY_SET: Boolean(process.env.OPENAI_API_KEY),

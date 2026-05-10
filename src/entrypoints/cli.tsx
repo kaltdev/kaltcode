@@ -8,9 +8,6 @@ import {
   validateProviderEnvForStartupOrExit,
 } from '../utils/providerValidation.js'
 
-<<<<<<< HEAD
-// Kalt Code: disable experimental API betas by default.
-=======
 // OpenClaude: polyfill globalThis.File for Node < 20.
 // undici v7 references `File` at module evaluation time (webidl type
 // assertions). Node 18 lacks the global, causing a ReferenceError inside
@@ -40,12 +37,11 @@ if (typeof globalThis.File === 'undefined') {
 }
 
 // OpenClaude: disable experimental API betas by default.
->>>>>>> upstream/main
 // Tool search (defer_loading), global cache scope, and context management
 // require internal API support not available to external accounts → 500.
-// Users can opt-in with KALT_CODE_DISABLE_EXPERIMENTAL_BETAS=false.
+// Users can opt-in with CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=false.
 // eslint-disable-next-line custom-rules/no-top-level-side-effects
-process.env.KALT_CODE_DISABLE_EXPERIMENTAL_BETAS ??= 'true'
+process.env.CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS ??= 'true'
 
 // Bugfix for corepack auto-pinning, which adds yarnpkg to peoples' package.jsons
 // eslint-disable-next-line custom-rules/no-top-level-side-effects
@@ -53,7 +49,7 @@ process.env.COREPACK_ENABLE_AUTO_PIN = '0';
 
 // Set max heap size for child processes in CCR environments (containers have 16GB)
 // eslint-disable-next-line custom-rules/no-top-level-side-effects, custom-rules/no-process-env-top-level, custom-rules/safe-env-boolean-check
-if (process.env.KALT_CODE_REMOTE === 'true') {
+if (process.env.CLAUDE_CODE_REMOTE === 'true') {
   // eslint-disable-next-line custom-rules/no-top-level-side-effects, custom-rules/no-process-env-top-level
   const existing = process.env.NODE_OPTIONS || '';
   // eslint-disable-next-line custom-rules/no-top-level-side-effects, custom-rules/no-process-env-top-level
@@ -65,8 +61,8 @@ if (process.env.KALT_CODE_REMOTE === 'true') {
 // module-level consts at import time — init() runs too late. feature() gate
 // DCEs this entire block from external builds.
 // eslint-disable-next-line custom-rules/no-top-level-side-effects, custom-rules/no-process-env-top-level
-if (feature('ABLATION_BASELINE') && process.env.KALT_CODE_ABLATION_BASELINE) {
-  for (const k of ['KALT_CODE_SIMPLE', 'KALT_CODE_DISABLE_THINKING', 'DISABLE_INTERLEAVED_THINKING', 'DISABLE_COMPACT', 'DISABLE_AUTO_COMPACT', 'KALT_CODE_DISABLE_AUTO_MEMORY', 'KALT_CODE_DISABLE_BACKGROUND_TASKS']) {
+if (feature('ABLATION_BASELINE') && process.env.CLAUDE_CODE_ABLATION_BASELINE) {
+  for (const k of ['CLAUDE_CODE_SIMPLE', 'CLAUDE_CODE_DISABLE_THINKING', 'DISABLE_INTERLEAVED_THINKING', 'DISABLE_COMPACT', 'DISABLE_AUTO_COMPACT', 'CLAUDE_CODE_DISABLE_AUTO_MEMORY', 'CLAUDE_CODE_DISABLE_BACKGROUND_TASKS']) {
     // eslint-disable-next-line custom-rules/no-top-level-side-effects, custom-rules/no-process-env-top-level
     process.env[k] ??= '1';
   }
@@ -84,11 +80,7 @@ async function main(): Promise<void> {
   if (args.length === 1 && (args[0] === '--version' || args[0] === '-v' || args[0] === '-V')) {
     // MACRO.VERSION is inlined at build time
     // biome-ignore lint/suspicious/noConsole:: intentional console output
-<<<<<<< HEAD
-    console.log(`${MACRO.DISPLAY_VERSION ?? MACRO.VERSION} (Kalt Code)`);
-=======
     console.log(`${MACRO.DISPLAY_VERSION ?? MACRO.VERSION} (OpenClaude)`);
->>>>>>> upstream/main
     return;
   }
 
@@ -221,7 +213,7 @@ async function main(): Promise<void> {
     return;
   }
 
-  // Fast-path for `kalt-code remote-control` (also accepts legacy `kalt-code remote` / `kalt-code sync` / `kalt-code bridge`):
+  // Fast-path for `claude remote-control` (also accepts legacy `claude remote` / `claude sync` / `claude bridge`):
   // serve local machine as bridge environment.
   // feature() must stay inline for build-time dead code elimination;
   // isBridgeEnabled() checks the runtime GrowthBook gate.
@@ -277,7 +269,7 @@ async function main(): Promise<void> {
     return;
   }
 
-  // Fast-path for `kalt-code daemon [subcommand]`: long-running supervisor.
+  // Fast-path for `claude daemon [subcommand]`: long-running supervisor.
   if (feature('DAEMON') && args[0] === 'daemon') {
     profileCheckpoint('cli_daemon_path');
     const {
@@ -295,8 +287,8 @@ async function main(): Promise<void> {
     return;
   }
 
-  // Fast-path for `kalt-code ps|logs|attach|kill` and `--bg`/`--background`.
-  // Session management against the ~/.kalt-code/sessions/ registry. Flag
+  // Fast-path for `claude ps|logs|attach|kill` and `--bg`/`--background`.
+  // Session management against the ~/.claude/sessions/ registry. Flag
   // literals are inlined so bg.js only loads when actually dispatching.
   if (feature('BG_SESSIONS') && (args[0] === 'ps' || args[0] === 'logs' || args[0] === 'attach' || args[0] === 'kill' || args.includes('--bg') || args.includes('--background'))) {
     profileCheckpoint('cli_bg_path');
@@ -337,7 +329,7 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
-  // Fast-path for `kalt-code environment-runner`: headless BYOC runner.
+  // Fast-path for `claude environment-runner`: headless BYOC runner.
   // feature() must stay inline for build-time dead code elimination.
   if (feature('BYOC_ENVIRONMENT_RUNNER') && args[0] === 'environment-runner') {
     profileCheckpoint('cli_environment_runner_path');
@@ -348,7 +340,7 @@ async function main(): Promise<void> {
     return;
   }
 
-  // Fast-path for `kalt-code self-hosted-runner`: headless self-hosted-runner
+  // Fast-path for `claude self-hosted-runner`: headless self-hosted-runner
   // targeting the SelfHostedRunnerWorkerService API (register + poll; poll IS
   // heartbeat). feature() must stay inline for build-time dead code elimination.
   if (feature('SELF_HOSTED_RUNNER') && args[0] === 'self-hosted-runner') {
@@ -397,11 +389,11 @@ async function main(): Promise<void> {
   // --bare: set SIMPLE early so gates fire during module eval / commander
   // option building (not just inside the action handler).
   if (args.includes('--bare')) {
-    process.env.KALT_CODE_SIMPLE = '1';
+    process.env.CLAUDE_CODE_SIMPLE = '1';
   }
 
   // No special flags detected, load and run the full CLI
-  if (process.env.KALT_CODE_DISABLE_EARLY_INPUT !== '1') {
+  if (process.env.OPENCLAUDE_DISABLE_EARLY_INPUT !== '1') {
     const {
       startCapturingEarlyInput
     } = await import('../utils/earlyInput.js');

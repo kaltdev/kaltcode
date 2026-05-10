@@ -570,18 +570,6 @@ function SetModelAndClose({
       }
 
       if (model && isOpus1mUnavailable(model)) {
-<<<<<<< HEAD
-        onDone(`Opus 4.6 with 1M context is not available for your account. Learn more: https://code.kalt-code.com/docs/en/model-config#extended-context-with-1m`, {
-          display: 'system'
-        });
-        return;
-      }
-      if (model && isSonnet1mUnavailable(model)) {
-        onDone(`Sonnet 4.6 with 1M context is not available for your account. Learn more: https://code.kalt-code.com/docs/en/model-config#extended-context-with-1m`, {
-          display: 'system'
-        });
-        return;
-=======
         onDone(
           'Opus 4.6 with 1M context is not available for your account. Learn more: https://code.claude.com/docs/en/model-config#extended-context-with-1m',
           {
@@ -598,7 +586,6 @@ function SetModelAndClose({
           },
         )
         return
->>>>>>> upstream/main
       }
 
       if (!model) {

@@ -1,4 +1,4 @@
-# Kalt Code Advanced Setup
+# OpenClaude Advanced Setup
 
 This guide is for users who want source builds, Bun workflows, provider profiles, diagnostics, or more control over runtime behavior.
 
@@ -7,7 +7,7 @@ This guide is for users who want source builds, Bun workflows, provider profiles
 ### Option A: npm
 
 ```bash
-npm install -g @kaltdev/kalt-code
+npm install -g @gitlawb/openclaude
 ```
 
 ### Option B: From source with Bun
@@ -15,13 +15,8 @@ npm install -g @kaltdev/kalt-code
 Use Bun `1.3.11` or newer for source builds on Windows. Older Bun versions can fail during `bun run build`.
 
 ```bash
-<<<<<<< HEAD
-git clone https://github.com/kaltdev/kalt-code.git
-cd kalt-code
-=======
 git clone https://github.com/Gitlawb/openclaude.git
 cd openclaude
->>>>>>> upstream/main
 
 bun install
 bun run build
@@ -31,13 +26,8 @@ npm link
 ### Option C: Run directly with Bun
 
 ```bash
-<<<<<<< HEAD
-git clone https://github.com/kaltdev/kalt-code.git
-cd kalt-code
-=======
 git clone https://github.com/Gitlawb/openclaude.git
 cd openclaude
->>>>>>> upstream/main
 
 bun install
 bun run dev
@@ -48,7 +38,7 @@ bun run dev
 ### OpenAI
 
 ```bash
-export KALT_CODE_USE_OPENAI=1
+export CLAUDE_CODE_USE_OPENAI=1
 export OPENAI_API_KEY=sk-...
 export OPENAI_MODEL=gpt-4o
 ```
@@ -58,33 +48,29 @@ export OPENAI_MODEL=gpt-4o
 `codexplan` maps to GPT-5.5 on the Codex backend with high reasoning.
 `codexspark` maps to GPT-5.3 Codex Spark for faster loops.
 
-<<<<<<< HEAD
-If you already use the Codex CLI, Kalt Code reads `~/.codex/auth.json` automatically. You can also point it elsewhere with `CODEX_AUTH_JSON_PATH` or override the token directly with `CODEX_API_KEY`.
-=======
 If you use the in-app provider wizard, choose `Codex OAuth` to open ChatGPT sign-in in your browser and let OpenClaude store Codex credentials securely.
 
 If you already use the Codex CLI, OpenClaude reads `~/.codex/auth.json` automatically. You can also point it elsewhere with `CODEX_AUTH_JSON_PATH` or override the token directly with `CODEX_API_KEY`.
->>>>>>> upstream/main
 
 If you set `CODEX_API_KEY` manually and are not relying on `auth.json` or stored
 Codex OAuth credentials, also set `CHATGPT_ACCOUNT_ID` (or
 `CODEX_ACCOUNT_ID`).
 
 ```bash
-export KALT_CODE_USE_OPENAI=1
+export CLAUDE_CODE_USE_OPENAI=1
 export OPENAI_MODEL=codexplan
 
 # optional if you do not already have ~/.codex/auth.json
 export CODEX_API_KEY=...
 export CHATGPT_ACCOUNT_ID=...
 
-kalt-code
+openclaude
 ```
 
 ### DeepSeek
 
 ```bash
-export KALT_CODE_USE_OPENAI=1
+export CLAUDE_CODE_USE_OPENAI=1
 export OPENAI_API_KEY=sk-...
 export OPENAI_BASE_URL=https://api.deepseek.com/v1
 export OPENAI_MODEL=deepseek-v4-flash
@@ -103,7 +89,7 @@ export GEMINI_MODEL=gemini-3-flash-preview
 ### Gemini via OpenRouter
 
 ```bash
-export KALT_CODE_USE_OPENAI=1
+export CLAUDE_CODE_USE_OPENAI=1
 export OPENAI_API_KEY=sk-or-...
 export OPENAI_BASE_URL=https://openrouter.ai/api/v1
 export OPENAI_MODEL=google/gemini-2.5-pro
@@ -126,7 +112,7 @@ Using environment variables manually:
 ```bash
 ollama pull llama3.3:70b
 
-export KALT_CODE_USE_OPENAI=1
+export CLAUDE_CODE_USE_OPENAI=1
 export OPENAI_BASE_URL=http://localhost:11434/v1
 export OPENAI_MODEL=llama3.3:70b
 ```
@@ -134,7 +120,7 @@ export OPENAI_MODEL=llama3.3:70b
 ### Atomic Chat (local, Apple Silicon)
 
 ```bash
-export KALT_CODE_USE_OPENAI=1
+export CLAUDE_CODE_USE_OPENAI=1
 export OPENAI_BASE_URL=http://127.0.0.1:1337/v1
 export OPENAI_MODEL=your-model-name
 ```
@@ -152,7 +138,7 @@ Download Atomic Chat from [atomic.chat](https://atomic.chat/). The app must be r
 ### LM Studio
 
 ```bash
-export KALT_CODE_USE_OPENAI=1
+export CLAUDE_CODE_USE_OPENAI=1
 export OPENAI_BASE_URL=http://localhost:1234/v1
 export OPENAI_MODEL=your-model-name
 ```
@@ -160,7 +146,7 @@ export OPENAI_MODEL=your-model-name
 ### Together AI
 
 ```bash
-export KALT_CODE_USE_OPENAI=1
+export CLAUDE_CODE_USE_OPENAI=1
 export OPENAI_API_KEY=...
 export OPENAI_BASE_URL=https://api.together.xyz/v1
 export OPENAI_MODEL=meta-llama/Llama-3.3-70B-Instruct-Turbo
@@ -169,13 +155,8 @@ export OPENAI_MODEL=meta-llama/Llama-3.3-70B-Instruct-Turbo
 ### Groq
 
 ```bash
-<<<<<<< HEAD
-export KALT_CODE_USE_OPENAI=1
-export OPENAI_API_KEY=gsk_...
-=======
 export CLAUDE_CODE_USE_OPENAI=1
 export GROQ_API_KEY=gsk_...
->>>>>>> upstream/main
 export OPENAI_BASE_URL=https://api.groq.com/openai/v1
 export OPENAI_MODEL=llama-3.3-70b-versatile
 ```
@@ -185,22 +166,15 @@ export OPENAI_MODEL=llama-3.3-70b-versatile
 ### Mistral
 
 ```bash
-<<<<<<< HEAD
-export KALT_CODE_USE_OPENAI=1
-export OPENAI_API_KEY=...
-export OPENAI_BASE_URL=https://api.mistral.ai/v1
-export OPENAI_MODEL=mistral-large-latest
-=======
 export CLAUDE_CODE_USE_MISTRAL=1
 export MISTRAL_API_KEY=...
 export MISTRAL_MODEL=devstral-latest
->>>>>>> upstream/main
 ```
 
 ### Azure OpenAI
 
 ```bash
-export KALT_CODE_USE_OPENAI=1
+export CLAUDE_CODE_USE_OPENAI=1
 export OPENAI_API_KEY=your-azure-key
 export OPENAI_BASE_URL=https://your-resource.openai.azure.com/openai/deployments/your-deployment/v1
 export OPENAI_MODEL=gpt-4o
@@ -210,15 +184,9 @@ export OPENAI_MODEL=gpt-4o
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-<<<<<<< HEAD
-| `KALT_CODE_USE_OPENAI` | Yes | Set to `1` to enable the OpenAI provider |
-| `OPENAI_API_KEY` | Yes* | Your API key (`*` not needed for local models like Ollama or Atomic Chat) |
-| `OPENAI_MODEL` | Yes | Model name such as `gpt-4o`, `deepseek-chat`, or `llama3.3:70b` |
-=======
 | `CLAUDE_CODE_USE_OPENAI` | OpenAI-compatible only | Set to `1` to enable the OpenAI-compatible provider path |
 | `OPENAI_API_KEY` | OpenAI-compatible cloud routes* | Your API key (`*` not needed for local models like Ollama, LM Studio, Atomic Chat, or other local OpenAI-compatible proxies) |
 | `OPENAI_MODEL` | OpenAI-compatible only | Model name such as `gpt-4o`, `deepseek-v4-flash`, or `llama3.3:70b` |
->>>>>>> upstream/main
 | `OPENAI_BASE_URL` | No | API endpoint, defaulting to `https://api.openai.com/v1` |
 | `OPENAI_API_BASE` | No | Compatibility alias for `OPENAI_BASE_URL` |
 | `CLAUDE_CODE_USE_GEMINI` | Gemini only | Set to `1` to enable the direct Gemini provider path |
@@ -233,12 +201,8 @@ export OPENAI_MODEL=gpt-4o
 | `CHATGPT_ACCOUNT_ID` / `CODEX_ACCOUNT_ID` | Codex only | Required for manual Codex env setup when the account id is not coming from `auth.json` or stored OAuth credentials |
 | `CODEX_AUTH_JSON_PATH` | Codex only | Path to a Codex CLI `auth.json` file |
 | `CODEX_HOME` | Codex only | Alternative Codex home directory |
-<<<<<<< HEAD
-| `KALT_CODE_DISABLE_CO_AUTHORED_BY` | No | Suppress the default `Co-Authored-By` trailer in generated git commits |
-=======
 | `OPENCLAUDE_DISABLE_CO_AUTHORED_BY` | No | Suppress the default `Co-Authored-By` trailer in generated git commits |
 | `OPENCLAUDE_LOG_TOKEN_USAGE` | No | When truthy (e.g. `verbose`), emits one JSON line on stderr per API request with input/output/cache tokens and the resolved provider. **User-facing debug output** — complements the REPL display controlled by `/config showCacheStats`. Distinct from `CLAUDE_CODE_ENABLE_TOKEN_USAGE_ATTACHMENT`, which is **model-facing** (injects context usage info into the prompt itself). Both can run together. |
->>>>>>> upstream/main
 
 Model env vars are provider-scoped: Anthropic-native sessions read
 `ANTHROPIC_MODEL`, OpenAI-compatible sessions read `OPENAI_MODEL`, Gemini reads
@@ -270,12 +234,8 @@ bun run hardening:strict
 
 Notes:
 
-<<<<<<< HEAD
-- `doctor:runtime` fails fast if `KALT_CODE_USE_OPENAI=1` with a placeholder key or a missing key for non-local providers.
-=======
 - `doctor:runtime` fails fast if `CLAUDE_CODE_USE_OPENAI=1` with a placeholder key or a missing key for non-local providers.
 - `doctor:runtime` also validates the dedicated Gemini and Mistral env paths when `CLAUDE_CODE_USE_GEMINI=1` or `CLAUDE_CODE_USE_MISTRAL=1`.
->>>>>>> upstream/main
 - Local providers such as `http://localhost:11434/v1`, `http://10.0.0.1:11434/v1`, and `http://127.0.0.1:1337/v1` can run without `OPENAI_API_KEY`.
 - Codex profiles validate `CODEX_API_KEY` or the Codex CLI auth file and probe `POST /responses` instead of `GET /models`.
 
@@ -314,11 +274,7 @@ bun run profile:init -- --provider atomic-chat
 # codex bootstrap with a fast model alias
 bun run profile:init -- --provider codex --model codexspark
 
-<<<<<<< HEAD
-# launch using persisted profile (.kalt-code-profile.json)
-=======
 # launch using persisted user-level provider profile
->>>>>>> upstream/main
 bun run dev:profile
 
 # codex profile (uses CODEX_API_KEY or ~/.codex/auth.json)

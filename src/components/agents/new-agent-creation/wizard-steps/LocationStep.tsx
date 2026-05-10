@@ -21,35 +21,17 @@ export function LocationStep() {
   let t0;
   if ($[0] === Symbol.for("react.memo_cache_sentinel")) {
     t0 = {
-<<<<<<< HEAD
-      label: "Project (.kalt-code/agents/)",
-=======
       label: "Project (.openclaude/agents/)",
->>>>>>> upstream/main
       value: "projectSettings" as SettingSource
     };
     $[0] = t0;
   } else {
     t0 = $[0];
   }
-<<<<<<< HEAD
-  let t1;
-  if ($[1] === Symbol.for("react.memo_cache_sentinel")) {
-    t1 = [t0, {
-      label: "Personal (~/.kalt-code/agents/)",
-      value: "userSettings" as SettingSource
-    }];
-    $[1] = t1;
-  } else {
-    t1 = $[1];
-  }
-  const locationOptions = t1;
-=======
   const locationOptions = [t0, {
     label: `Personal (${join(getClaudeConfigHomeDir(), 'agents')})`,
     value: "userSettings" as SettingSource
   }];
->>>>>>> upstream/main
   let t2;
   if ($[2] === Symbol.for("react.memo_cache_sentinel")) {
     t2 = <Byline><KeyboardShortcutHint shortcut={"\u2191\u2193"} action="navigate" /><KeyboardShortcutHint shortcut="Enter" action="select" /><ConfigurableShortcutHint action="confirm:no" context="Confirmation" fallback="Esc" description="cancel" /></Byline>;

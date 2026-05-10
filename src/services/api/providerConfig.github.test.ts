@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-import { expect, test } from 'bun:test'
-
-test('providerConfig.github test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 import { afterEach, beforeEach, expect, test } from 'bun:test'
 
 import {
@@ -79,5 +73,4 @@ test('resolveProviderRequest leaves model unchanged without GitHub flag', () => 
   delete process.env.CLAUDE_CODE_USE_GITHUB
   const r = resolveProviderRequest({ model: 'github:gpt-4o' })
   expect(r.resolvedModel).toBe('github:gpt-4o')
->>>>>>> upstream/main
 })

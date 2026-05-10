@@ -1,9 +1,13 @@
-import { expect, test } from 'bun:test'
+/**
+ * Hook-side-effect regression lives in a separate file with no static import of
+ * conversationRecovery so Bun's mock.module can replace sessionStart before
+ * that module is first loaded.
+ */
+import { afterEach, expect, mock, test } from 'bun:test'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
-<<<<<<< HEAD
-test('conversationRecovery.hooks test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 const tempDirs: string[] = []
 const originalEnv = { ...process.env }
 const sessionId = '00000000-0000-4000-8000-000000001999'
@@ -67,7 +71,6 @@ test('loadConversationForResume rejects oversized transcripts before resume hook
     ResumeTranscriptTooLargeError,
   )
   expect(hookSpy).not.toHaveBeenCalled()
->>>>>>> upstream/main
 })
 
 test('deserializeMessagesWithInterruptDetection strips thinking blocks only for OpenAI-compatible providers', async () => {

@@ -1,10 +1,4 @@
-import { expect, test } from 'bun:test'
 
-<<<<<<< HEAD
-test('platformStorage test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-})
-=======
 import { expect, test, mock, describe, beforeEach, afterEach } from "bun:test";
 import { linuxSecretStorage } from "./linuxSecretStorage.js";
 import { windowsCredentialStorage } from "./windowsCredentialStorage.js";
@@ -212,4 +206,3 @@ describe("Secure Storage Platform Implementations", () => {
     });
   });
 });
->>>>>>> upstream/main

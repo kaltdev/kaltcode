@@ -528,13 +528,9 @@ export function resolveProviderRequest(options?: {
   reasoningEffortOverride?: ReasoningEffort
   apiFormat?: OpenAICompatibleApiFormat | string
 }): ResolvedProviderRequest {
-<<<<<<< HEAD
-  const isGithubMode = isEnvTruthy(process.env.KALT_CODE_USE_GITHUB)
-=======
   const isGithubMode = isEnvTruthy(process.env.CLAUDE_CODE_USE_GITHUB)
   const isMistralMode = isEnvTruthy(process.env.CLAUDE_CODE_USE_MISTRAL)
   const isGeminiMode = isEnvTruthy(process.env.CLAUDE_CODE_USE_GEMINI)
->>>>>>> upstream/main
   const requestedModel =
     options?.model?.trim() ||
     (isMistralMode
@@ -549,13 +545,6 @@ export function resolveProviderRequest(options?: {
   const descriptor = parseModelDescriptor(requestedModel)
   const explicitBaseUrl = asEnvUrl(options?.baseUrl)
 
-<<<<<<< HEAD
-  const resolvedModel =
-    transport === 'chat_completions' &&
-    isEnvTruthy(process.env.KALT_CODE_USE_GITHUB)
-      ? normalizeGithubModelsApiModel(requestedModel)
-      : descriptor.baseModel
-=======
   const normalizedMistralEnvBaseUrl = asNamedEnvUrl(
     process.env.MISTRAL_BASE_URL,
     'MISTRAL_BASE_URL',
@@ -666,7 +655,6 @@ export function resolveProviderRequest(options?: {
     : (isGithubModels || isGithubCustom
       ? normalizeGithubModelsApiModel(descriptor.baseModel)
       : descriptor.baseModel)
->>>>>>> upstream/main
 
   const reasoning = options?.reasoningEffortOverride
     ? { effort: options.reasoningEffortOverride }
@@ -689,14 +677,6 @@ export function resolveProviderRequest(options?: {
 }
 
 export function getAdditionalModelOptionsCacheScope(): string | null {
-<<<<<<< HEAD
-  if (!isEnvTruthy(process.env.KALT_CODE_USE_OPENAI)) {
-    if (!isEnvTruthy(process.env.KALT_CODE_USE_GEMINI) &&
-        !isEnvTruthy(process.env.KALT_CODE_USE_GITHUB) &&
-        !isEnvTruthy(process.env.KALT_CODE_USE_BEDROCK) &&
-        !isEnvTruthy(process.env.KALT_CODE_USE_VERTEX) &&
-        !isEnvTruthy(process.env.KALT_CODE_USE_FOUNDRY)) {
-=======
   if (!isEnvTruthy(process.env.CLAUDE_CODE_USE_OPENAI)) {
     if (!isEnvTruthy(process.env.CLAUDE_CODE_USE_GEMINI) &&
         !isEnvTruthy(process.env.CLAUDE_CODE_USE_MISTRAL) &&
@@ -704,7 +684,6 @@ export function getAdditionalModelOptionsCacheScope(): string | null {
         !isEnvTruthy(process.env.CLAUDE_CODE_USE_BEDROCK) &&
         !isEnvTruthy(process.env.CLAUDE_CODE_USE_VERTEX) &&
         !isEnvTruthy(process.env.CLAUDE_CODE_USE_FOUNDRY)) {
->>>>>>> upstream/main
       return 'firstParty'
     }
     return null

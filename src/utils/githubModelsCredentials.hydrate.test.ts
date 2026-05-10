@@ -1,9 +1,10 @@
-import { expect, test } from 'bun:test'
+/**
+ * Hydrate tests live in a separate file with no static import of
+ * githubModelsCredentials so Bun's mock.module can replace secureStorage
+ * before that module is first loaded.
+ */
+import { afterEach, describe, expect, mock, test } from 'bun:test'
 
-<<<<<<< HEAD
-test('githubModelsCredentials.hydrate test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 describe('hydrateGithubModelsTokenFromSecureStorage', () => {
   const orig = {
     CLAUDE_CODE_USE_GITHUB: process.env.CLAUDE_CODE_USE_GITHUB,
@@ -67,5 +68,4 @@ describe('hydrateGithubModelsTokenFromSecureStorage', () => {
     expect(process.env.GITHUB_TOKEN).toBe('already')
     expect(process.env.CLAUDE_CODE_GITHUB_TOKEN_HYDRATED).toBeUndefined()
   })
->>>>>>> upstream/main
 })

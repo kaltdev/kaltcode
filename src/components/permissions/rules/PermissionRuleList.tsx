@@ -388,15 +388,9 @@ function PermissionRulesTab(t0) {
     let t8;
     if ($[10] === Symbol.for("react.memo_cache_sentinel")) {
       t8 = {
-<<<<<<< HEAD
-        allow: "Kalt Code won't ask before using allowed tools.",
-        ask: "Kalt Code will always ask for confirmation before using these tools.",
-        deny: "Kalt Code will always reject requests to use denied tools."
-=======
         allow: "OpenClaude won't ask before using allowed tools.",
         ask: "OpenClaude will always ask for confirmation before using these tools.",
         deny: "OpenClaude will always reject requests to use denied tools."
->>>>>>> upstream/main
       };
       $[10] = t8;
     } else {
@@ -1104,11 +1098,7 @@ export function PermissionRuleList(t0) {
   }
   let t28;
   if ($[89] === Symbol.for("react.memo_cache_sentinel")) {
-<<<<<<< HEAD
-    t28 = <Text>Kalt Code can read files in the workspace, and make edits when auto-accept edits is on.</Text>;
-=======
     t28 = <Text>OpenClaude can read files in the workspace, and make edits when auto-accept edits is on.</Text>;
->>>>>>> upstream/main
     $[89] = t28;
   } else {
     t28 = $[89];

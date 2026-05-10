@@ -1,9 +1,5 @@
-import { expect, test } from 'bun:test'
+import { afterEach, describe, expect, mock, test } from 'bun:test'
 
-<<<<<<< HEAD
-test('deviceFlow test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 import {
   DEFAULT_GITHUB_DEVICE_SCOPE,
   GitHubDeviceFlowError,
@@ -177,7 +173,6 @@ describe('pollAccessToken', () => {
       }),
     ).rejects.toThrow(/denied/)
   })
->>>>>>> upstream/main
 })
 
 describe('exchangeForCopilotToken', () => {

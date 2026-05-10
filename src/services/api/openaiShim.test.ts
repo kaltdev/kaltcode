@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-import { expect, test } from 'bun:test'
-
-test('openaiShim test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 import { afterEach, beforeEach, expect, test } from 'bun:test'
 import { registerGateway } from '../../integrations/index.ts'
 import { createOpenAIShimClient } from './openaiShim.ts'
@@ -3098,7 +3092,6 @@ test('coalesces consecutive assistant messages preserving tool_calls (issue #202
   const assistantMsgs = sentMessages?.filter(m => m.role === 'assistant')
   expect(assistantMsgs?.length).toBe(1)
   expect(assistantMsgs?.[0]?.tool_calls?.length).toBeGreaterThan(0)
->>>>>>> upstream/main
 })
 
 test('non-streaming: reasoning_content emitted as thinking block only when content is null', async () => {

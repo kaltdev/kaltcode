@@ -1,5 +1,5 @@
 /**
- * OpenAI-compatible API shim for Kalt Code.
+ * OpenAI-compatible API shim for Claude Code.
  *
  * Translates Anthropic SDK calls (anthropic.beta.messages.create) into
  * OpenAI-compatible chat completion requests and streams back events
@@ -9,7 +9,7 @@
  * Together, Groq, Fireworks, DeepSeek, Mistral, and any OpenAI-compatible API.
  *
  * Environment variables:
- *   KALT_CODE_USE_OPENAI=1          — enable this provider
+ *   CLAUDE_CODE_USE_OPENAI=1          — enable this provider
  *   OPENAI_API_KEY=sk-...             — API key (optional for local models)
  *   OPENAI_AUTH_HEADER=api-key        — optional custom auth header name
  *   OPENAI_AUTH_HEADER_VALUE=...      — optional custom auth header value
@@ -19,15 +19,9 @@
  *   OPENAI_MODEL=gpt-4o              — default model override
  *   CODEX_API_KEY / ~/.codex/auth.json — Codex auth for codexplan/codexspark
  *
-<<<<<<< HEAD
- * GitHub Models (models.github.ai), OpenAI-compatible:
- *   KALT_CODE_USE_GITHUB=1         — enable GitHub inference (no need for USE_OPENAI)
- *   GITHUB_TOKEN or GH_TOKEN         — PAT with models access (mapped to Bearer auth)
-=======
  * GitHub Copilot API (api.githubcopilot.com), OpenAI-compatible:
  *   CLAUDE_CODE_USE_GITHUB=1         — enable GitHub inference (no need for USE_OPENAI)
  *   GITHUB_TOKEN or GH_TOKEN         — Copilot API token (mapped to Bearer auth)
->>>>>>> upstream/main
  *   OPENAI_MODEL                     — optional; use github:copilot or openai/gpt-4.1 style IDs
  */
 
@@ -123,7 +117,7 @@ const SENSITIVE_URL_QUERY_PARAM_NAMES = [
 ]
 
 function isGithubModelsMode(): boolean {
-  return isEnvTruthy(process.env.KALT_CODE_USE_GITHUB)
+  return isEnvTruthy(process.env.CLAUDE_CODE_USE_GITHUB)
 }
 
 function filterAnthropicHeaders(
@@ -492,16 +486,11 @@ function convertMessages(
     result.push({ role: 'system', content: sysText })
   }
 
-<<<<<<< HEAD
-  for (const msg of messages) {
-    // Kalt Code wraps messages in { role, message: { role, content } }
-=======
   for (let i = 0; i < messages.length; i++) {
     const msg = messages[i]
     const isLastInHistory = i === messages.length - 1
 
     // Claude Code wraps messages in { role, message: { role, content } }
->>>>>>> upstream/main
     const inner = msg.message ?? msg
     const role = (inner as { role?: string }).role ?? msg.role
     const content = (inner as { content?: unknown }).content
@@ -826,11 +815,7 @@ function normalizeSchemaForOpenAI(
 function convertTools(
   tools: Array<{ name: string; description?: string; input_schema?: Record<string, unknown> }>,
 ): OpenAITool[] {
-<<<<<<< HEAD
-  const isGemini = isEnvTruthy(process.env.KALT_CODE_USE_GEMINI)
-=======
   const isGemini = isGeminiMode()
->>>>>>> upstream/main
 
   return tools
     .filter(t => t.name !== 'ToolSearchTool') // Not relevant for OpenAI
@@ -1758,9 +1743,6 @@ class OpenAIShimMessages {
       return responsesBody
     }
 
-<<<<<<< HEAD
-    const isGemini = isEnvTruthy(process.env.KALT_CODE_USE_GEMINI)
-=======
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...filterAnthropicHeaders(shimConfig.headers),
@@ -1774,7 +1756,6 @@ class OpenAIShimMessages {
       baseUrl: request.baseUrl,
       processEnv: process.env,
     })
->>>>>>> upstream/main
     const apiKey =
       this.providerOverride?.apiKey ??
       routeCredential ??
@@ -2327,30 +2308,7 @@ export function createOpenAIShimClient(options: {
 }): unknown {
   hydrateGeminiAccessTokenFromSecureStorage()
   hydrateGithubModelsTokenFromSecureStorage()
-<<<<<<< HEAD
-
-  // When Gemini provider is active, map Gemini env vars to OpenAI-compatible ones
-  // so the existing providerConfig.ts infrastructure picks them up correctly.
-  if (isEnvTruthy(process.env.KALT_CODE_USE_GEMINI)) {
-    process.env.OPENAI_BASE_URL ??=
-      process.env.GEMINI_BASE_URL ??
-      'https://generativelanguage.googleapis.com/v1beta/openai'
-    const geminiApiKey =
-      process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY
-    if (geminiApiKey && !process.env.OPENAI_API_KEY) {
-      process.env.OPENAI_API_KEY = geminiApiKey
-    }
-    if (process.env.GEMINI_MODEL && !process.env.OPENAI_MODEL) {
-      process.env.OPENAI_MODEL = process.env.GEMINI_MODEL
-    }
-  } else if (isEnvTruthy(process.env.KALT_CODE_USE_GITHUB)) {
-    process.env.OPENAI_BASE_URL ??= GITHUB_MODELS_DEFAULT_BASE
-    process.env.OPENAI_API_KEY ??=
-      process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN ?? ''
-  }
-=======
   hydrateOpenAIShimCompatibilityEnv()
->>>>>>> upstream/main
 
   const beta = new OpenAIShimBeta({
     ...(options.defaultHeaders ?? {}),

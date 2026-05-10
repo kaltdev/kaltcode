@@ -42,183 +42,6 @@ function getInsightsModel(): string {
 }
 
 // ============================================================================
-<<<<<<< HEAD
-// Homespace Data Collection
-// ============================================================================
-
-type RemoteHostInfo = {
-  name: string
-  sessionCount: number
-}
-
-/* eslint-disable custom-rules/no-process-env-top-level */
-const getRunningRemoteHosts: () => Promise<string[]> =
-  process.env.USER_TYPE === 'ant'
-    ? async () => {
-        const { stdout, code } = await execFileNoThrow(
-          'coder',
-          ['list', '-o', 'json'],
-          { timeout: 30000 },
-        )
-        if (code !== 0) return []
-        try {
-          const workspaces = jsonParse(stdout) as Array<{
-            name: string
-            latest_build?: { status?: string }
-          }>
-          return workspaces
-            .filter(w => w.latest_build?.status === 'running')
-            .map(w => w.name)
-        } catch {
-          return []
-        }
-      }
-    : async () => []
-
-const getRemoteHostSessionCount: (hs: string) => Promise<number> =
-  process.env.USER_TYPE === 'ant'
-    ? async (homespace: string) => {
-        const { stdout, code } = await execFileNoThrow(
-          'ssh',
-          [
-            `${homespace}.coder`,
-            'find /root/.kalt-code/projects -name "*.jsonl" 2>/dev/null | wc -l',
-          ],
-          { timeout: 30000 },
-        )
-        if (code !== 0) return 0
-        return parseInt(stdout.trim(), 10) || 0
-      }
-    : async () => 0
-
-const collectFromRemoteHost: (
-  hs: string,
-  destDir: string,
-) => Promise<{ copied: number; skipped: number }> =
-  process.env.USER_TYPE === 'ant'
-    ? async (homespace: string, destDir: string) => {
-        const result = { copied: 0, skipped: 0 }
-
-        // Create temp directory
-        const tempDir = await mkdtemp(join(tmpdir(), 'claude-hs-'))
-
-        try {
-          // SCP the projects folder
-          const scpResult = await execFileNoThrow(
-            'scp',
-            ['-rq', `${homespace}.coder:/root/.kalt-code/projects/`, tempDir],
-            { timeout: 300000 },
-          )
-          if (scpResult.code !== 0) {
-            // SCP failed
-            return result
-          }
-
-          const projectsDir = join(tempDir, 'projects')
-          let projectDirents: Awaited<ReturnType<typeof readdir>>
-          try {
-            projectDirents = await readdir(projectsDir, { withFileTypes: true })
-          } catch {
-            return result
-          }
-
-          // Merge into destination (parallel per project directory)
-          await Promise.all(
-            projectDirents.map(async dirent => {
-              const projectName = dirent.name
-              const projectPath = join(projectsDir, projectName)
-
-              // Skip if not a directory
-              if (!dirent.isDirectory()) return
-
-              const destProjectName = `${projectName}__${homespace}`
-              const destProjectPath = join(destDir, destProjectName)
-
-              try {
-                await mkdir(destProjectPath, { recursive: true })
-              } catch {
-                // Directory may already exist
-              }
-
-              // Copy session files (skip existing)
-              let files: Awaited<ReturnType<typeof readdir>>
-              try {
-                files = await readdir(projectPath, { withFileTypes: true })
-              } catch {
-                return
-              }
-              await Promise.all(
-                files.map(async fileDirent => {
-                  const fileName = fileDirent.name
-                  if (!fileName.endsWith('.jsonl')) return
-
-                  const srcFile = join(projectPath, fileName)
-                  const destFile = join(destProjectPath, fileName)
-
-                  try {
-                    await copyFile(srcFile, destFile, fsConstants.COPYFILE_EXCL)
-                    result.copied++
-                  } catch {
-                    // EEXIST from COPYFILE_EXCL means dest already exists
-                    result.skipped++
-                  }
-                }),
-              )
-            }),
-          )
-        } finally {
-          try {
-            await rm(tempDir, { recursive: true, force: true })
-          } catch {
-            // Ignore cleanup errors
-          }
-        }
-
-        return result
-      }
-    : async () => ({ copied: 0, skipped: 0 })
-
-const collectAllRemoteHostData: (destDir: string) => Promise<{
-  hosts: RemoteHostInfo[]
-  totalCopied: number
-  totalSkipped: number
-}> =
-  process.env.USER_TYPE === 'ant'
-    ? async (destDir: string) => {
-        const rHosts = await getRunningRemoteHosts()
-        const result: RemoteHostInfo[] = []
-        let totalCopied = 0
-        let totalSkipped = 0
-
-        // Collect from all hosts in parallel (SCP per host can take seconds)
-        const hostResults = await Promise.all(
-          rHosts.map(async hs => {
-            const sessionCount = await getRemoteHostSessionCount(hs)
-            if (sessionCount > 0) {
-              const { copied, skipped } = await collectFromRemoteHost(
-                hs,
-                destDir,
-              )
-              return { name: hs, sessionCount, copied, skipped }
-            }
-            return { name: hs, sessionCount, copied: 0, skipped: 0 }
-          }),
-        )
-
-        for (const hr of hostResults) {
-          result.push({ name: hr.name, sessionCount: hr.sessionCount })
-          totalCopied += hr.copied
-          totalSkipped += hr.skipped
-        }
-
-        return { hosts: result, totalCopied, totalSkipped }
-      }
-    : async () => ({ hosts: [], totalCopied: 0, totalSkipped: 0 })
-/* eslint-enable custom-rules/no-process-env-top-level */
-
-// ============================================================================
-=======
->>>>>>> upstream/main
 // Types
 // ============================================================================
 
@@ -413,7 +236,7 @@ const LABEL_MAP: Record<string, string> = {
 
 // Lazy getters: getClaudeConfigHomeDir() is memoized and reads process.env.
 // Calling it at module scope would populate the memoize cache before
-// entrypoints can set KALT_CODE_CONFIG_DIR, breaking all 150+ other callers.
+// entrypoints can set CLAUDE_CONFIG_DIR, breaking all 150+ other callers.
 function getDataDir(): string {
   return join(getClaudeConfigHomeDir(), 'usage-data')
 }
@@ -424,11 +247,7 @@ function getSessionMetaDir(): string {
   return join(getDataDir(), 'session-meta')
 }
 
-<<<<<<< HEAD
-const FACET_EXTRACTION_PROMPT = `Analyze this Kalt Code session and extract structured facets.
-=======
 const FACET_EXTRACTION_PROMPT = `Analyze this OpenClaude session and extract structured facets.
->>>>>>> upstream/main
 
 CRITICAL GUIDELINES:
 
@@ -868,11 +687,7 @@ function formatTranscriptForFacets(log: LogOption): string {
   return lines.join('\n')
 }
 
-<<<<<<< HEAD
-const SUMMARIZE_CHUNK_PROMPT = `Summarize this portion of a Kalt Code session transcript. Focus on:
-=======
 const SUMMARIZE_CHUNK_PROMPT = `Summarize this portion of a OpenClaude session transcript. Focus on:
->>>>>>> upstream/main
 1. What the user asked for
 2. What Claude did (tools used, files modified)
 3. Any friction or issues
@@ -1267,8 +1082,8 @@ function aggregateData(
       }
 
       // Helpfulness
-      result.helpfulness[sessionFacets.kalt-code_helpfulness] =
-        (result.helpfulness[sessionFacets.kalt-code_helpfulness] || 0) + 1
+      result.helpfulness[sessionFacets.claude_helpfulness] =
+        (result.helpfulness[sessionFacets.claude_helpfulness] || 0) + 1
 
       // Session types
       result.session_types[sessionFacets.session_type] =
@@ -1341,20 +1156,12 @@ type InsightSection = {
 const INSIGHT_SECTIONS: InsightSection[] = [
   {
     name: 'project_areas',
-<<<<<<< HEAD
-    prompt: `Analyze this Kalt Code usage data and identify project areas.
-=======
     prompt: `Analyze this OpenClaude usage data and identify project areas.
->>>>>>> upstream/main
 
 RESPOND WITH ONLY A VALID JSON OBJECT:
 {
   "areas": [
-<<<<<<< HEAD
-    {"name": "Area name", "session_count": N, "description": "2-3 sentences about what was worked on and how Kalt Code was used."}
-=======
     {"name": "Area name", "session_count": N, "description": "2-3 sentences about what was worked on and how OpenClaude was used."}
->>>>>>> upstream/main
   ]
 }
 
@@ -1363,30 +1170,18 @@ Include 4-5 areas. Skip internal CC operations.`,
   },
   {
     name: 'interaction_style',
-<<<<<<< HEAD
-    prompt: `Analyze this Kalt Code usage data and describe the user's interaction style.
-
-RESPOND WITH ONLY A VALID JSON OBJECT:
-{
-  "narrative": "2-3 paragraphs analyzing HOW the user interacts with Kalt Code. Use second person 'you'. Describe patterns: iterate quickly vs detailed upfront specs? Interrupt often or let Claude run? Include specific examples. Use **bold** for key insights.",
-=======
     prompt: `Analyze this OpenClaude usage data and describe the user's interaction style.
 
 RESPOND WITH ONLY A VALID JSON OBJECT:
 {
   "narrative": "2-3 paragraphs analyzing HOW the user interacts with OpenClaude. Use second person 'you'. Describe patterns: iterate quickly vs detailed upfront specs? Interrupt often or let Claude run? Include specific examples. Use **bold** for key insights.",
->>>>>>> upstream/main
   "key_pattern": "One sentence summary of most distinctive interaction style"
 }`,
     maxTokens: 8192,
   },
   {
     name: 'what_works',
-<<<<<<< HEAD
-    prompt: `Analyze this Kalt Code usage data and identify what's working well for this user. Use second person ("you").
-=======
     prompt: `Analyze this OpenClaude usage data and identify what's working well for this user. Use second person ("you").
->>>>>>> upstream/main
 
 RESPOND WITH ONLY A VALID JSON OBJECT:
 {
@@ -1401,11 +1196,7 @@ Include 3 impressive workflows.`,
   },
   {
     name: 'friction_analysis',
-<<<<<<< HEAD
-    prompt: `Analyze this Kalt Code usage data and identify friction points for this user. Use second person ("you").
-=======
     prompt: `Analyze this OpenClaude usage data and identify friction points for this user. Use second person ("you").
->>>>>>> upstream/main
 
 RESPOND WITH ONLY A VALID JSON OBJECT:
 {
@@ -1420,27 +1211,23 @@ Include 3 friction categories with 2 examples each.`,
   },
   {
     name: 'suggestions',
-<<<<<<< HEAD
-    prompt: `Analyze this Kalt Code usage data and suggest improvements.
-=======
     prompt: `Analyze this OpenClaude usage data and suggest improvements.
->>>>>>> upstream/main
 
 ## CC FEATURES REFERENCE (pick from these for features_to_try):
 1. **MCP Servers**: Connect Claude to external tools, databases, and APIs via Model Context Protocol.
-   - How to use: Run \`kalt-code mcp add <server-name> -- <command>\`
+   - How to use: Run \`claude mcp add <server-name> -- <command>\`
    - Good for: database queries, Slack integration, GitHub issue lookup, connecting to internal APIs
 
 2. **Custom Skills**: Reusable prompts you define as markdown files that run with a single /command.
-   - How to use: Create \`.kalt-code/skills/commit/SKILL.md\` with instructions. Then type \`/commit\` to run it.
+   - How to use: Create \`.claude/skills/commit/SKILL.md\` with instructions. Then type \`/commit\` to run it.
    - Good for: repetitive workflows - /commit, /review, /test, /deploy, /pr, or complex multi-step workflows
 
 3. **Hooks**: Shell commands that auto-run at specific lifecycle events.
-   - How to use: Add to \`.kalt-code/settings.json\` under "hooks" key.
+   - How to use: Add to \`.claude/settings.json\` under "hooks" key.
    - Good for: auto-formatting code, running type checks, enforcing conventions
 
 4. **Headless Mode**: Run Claude non-interactively from scripts and CI/CD.
-   - How to use: \`kalt-code -p "fix lint errors" --allowedTools "Edit,Read,Bash"\`
+   - How to use: \`claude -p "fix lint errors" --allowedTools "Edit,Read,Bash"\`
    - Good for: CI/CD integration, batch code fixes, automated reviews
 
 5. **Task Agents**: Claude spawns focused sub-agents for complex exploration or parallel work.
@@ -1450,7 +1237,7 @@ Include 3 friction categories with 2 examples each.`,
 RESPOND WITH ONLY A VALID JSON OBJECT:
 {
   "claude_md_additions": [
-    {"addition": "A specific line or block to add to KALT_CODE.md based on workflow patterns. E.g., 'Always run tests after modifying auth-related files'", "why": "1 sentence explaining why this would help based on actual sessions", "prompt_scaffold": "Instructions for where to add this in KALT_CODE.md. E.g., 'Add under ## Testing section'"}
+    {"addition": "A specific line or block to add to CLAUDE.md based on workflow patterns. E.g., 'Always run tests after modifying auth-related files'", "why": "1 sentence explaining why this would help based on actual sessions", "prompt_scaffold": "Instructions for where to add this in CLAUDE.md. E.g., 'Add under ## Testing section'"}
   ],
   "features_to_try": [
     {"feature": "Feature name from CC FEATURES REFERENCE above", "one_liner": "What it does", "why_for_you": "Why this would help YOU based on your sessions", "example_code": "Actual command or config to copy"}
@@ -1467,11 +1254,7 @@ IMPORTANT for features_to_try: Pick 2-3 from the CC FEATURES REFERENCE above. In
   },
   {
     name: 'on_the_horizon',
-<<<<<<< HEAD
-    prompt: `Analyze this Kalt Code usage data and identify future opportunities.
-=======
     prompt: `Analyze this OpenClaude usage data and identify future opportunities.
->>>>>>> upstream/main
 
 RESPOND WITH ONLY A VALID JSON OBJECT:
 {
@@ -1488,11 +1271,7 @@ Include 3 opportunities. Think BIG - autonomous workflows, parallel agents, iter
     ? [
         {
           name: 'cc_team_improvements',
-<<<<<<< HEAD
-          prompt: `Analyze this Kalt Code usage data and suggest product improvements for the CC team.
-=======
           prompt: `Analyze this OpenClaude usage data and suggest product improvements for the CC team.
->>>>>>> upstream/main
 
 RESPOND WITH ONLY A VALID JSON OBJECT:
 {
@@ -1506,11 +1285,7 @@ Include 2-3 improvements based on friction patterns observed.`,
         },
         {
           name: 'model_behavior_improvements',
-<<<<<<< HEAD
-          prompt: `Analyze this Kalt Code usage data and suggest model behavior improvements.
-=======
           prompt: `Analyze this OpenClaude usage data and suggest model behavior improvements.
->>>>>>> upstream/main
 
 RESPOND WITH ONLY A VALID JSON OBJECT:
 {
@@ -1526,11 +1301,7 @@ Include 2-3 improvements based on friction patterns observed.`,
     : []),
   {
     name: 'fun_ending',
-<<<<<<< HEAD
-    prompt: `Analyze this Kalt Code usage data and find a memorable moment.
-=======
     prompt: `Analyze this OpenClaude usage data and find a memorable moment.
->>>>>>> upstream/main
 
 RESPOND WITH ONLY A VALID JSON OBJECT:
 {
@@ -1665,7 +1436,7 @@ async function generateParallelInsights(
   // Build data context string
   const facetSummaries = Array.from(facets.values())
     .slice(0, 50)
-    .map(f => `- ${f.brief_summary} (${f.outcome}, ${f.kalt-code_helpfulness})`)
+    .map(f => `- ${f.brief_summary} (${f.outcome}, ${f.claude_helpfulness})`)
     .join('\n')
 
   const frictionDetails = Array.from(facets.values())
@@ -1784,11 +1555,7 @@ async function generateParallelInsights(
       .join('\n') || ''
 
   // Now generate "At a Glance" with access to other sections' outputs
-<<<<<<< HEAD
-  const atAGlancePrompt = `You're writing an "At a Glance" summary for a Kalt Code usage insights report for Kalt Code users. The goal is to help them understand their usage and improve how they can use Claude better, especially as models improve.
-=======
   const atAGlancePrompt = `You're writing an "At a Glance" summary for a OpenClaude usage insights report for OpenClaude users. The goal is to help them understand their usage and improve how they can use Claude better, especially as models improve.
->>>>>>> upstream/main
 
 Use this 4-part structure:
 
@@ -1796,11 +1563,7 @@ Use this 4-part structure:
 
 2. **What's hindering you** - Split into (a) Claude's fault (misunderstandings, wrong approaches, bugs) and (b) user-side friction (not providing enough context, environment issues -- ideally more general than just one project). Be honest but constructive.
 
-<<<<<<< HEAD
-3. **Quick wins to try** - Specific Kalt Code features they could try from the examples below, or a workflow technique if you think it's really compelling. (Avoid stuff like "Ask Claude to confirm before taking actions" or "Type out more context up front" which are less compelling.)
-=======
 3. **Quick wins to try** - Specific OpenClaude features they could try from the examples below, or a workflow technique if you think it's really compelling. (Avoid stuff like "Ask Claude to confirm before taking actions" or "Type out more context up front" which are less compelling.)
->>>>>>> upstream/main
 
 4. **Ambitious workflows for better models** - As we move to much more capable models over the next 3-6 months, what should they prepare for? What workflows that seem impossible now will become possible? Draw from the appropriate section below.
 
@@ -2063,11 +1826,7 @@ function generateHtmlReport(
   const interactionStyle = insights.interaction_style
   const interactionHtml = interactionStyle?.narrative
     ? `
-<<<<<<< HEAD
-    <h2 id="section-usage">How You Use Kalt Code</h2>
-=======
     <h2 id="section-usage">How You Use OpenClaude</h2>
->>>>>>> upstream/main
     <div class="narrative">
       ${markdownToHtml(interactionStyle.narrative)}
       ${interactionStyle.key_pattern ? `<div class="key-insight"><strong>Key pattern:</strong> ${escapeHtml(interactionStyle.key_pattern)}</div>` : ''}
@@ -2125,26 +1884,21 @@ function generateHtmlReport(
   const suggestionsHtml = suggestions
     ? `
     ${
-      suggestions.kalt-code_md_additions &&
-      suggestions.kalt-code_md_additions.length > 0
+      suggestions.claude_md_additions &&
+      suggestions.claude_md_additions.length > 0
         ? `
     <h2 id="section-features">Existing CC Features to Try</h2>
     <div class="claude-md-section">
-<<<<<<< HEAD
-      <h3>Suggested KALT_CODE.md Additions</h3>
-      <p style="font-size: 12px; color: #64748b; margin-bottom: 12px;">Just copy this into Kalt Code to add it to your KALT_CODE.md.</p>
-=======
       <h3>Suggested CLAUDE.md Additions</h3>
       <p style="font-size: 12px; color: #64748b; margin-bottom: 12px;">Just copy this into OpenClaude to add it to your CLAUDE.md.</p>
->>>>>>> upstream/main
       <div class="claude-md-actions">
         <button class="copy-all-btn" onclick="copyAllCheckedClaudeMd()">Copy All Checked</button>
       </div>
-      ${suggestions.kalt-code_md_additions
+      ${suggestions.claude_md_additions
         .map(
           (add, i) => `
         <div class="claude-md-item">
-          <input type="checkbox" id="cmd-${i}" class="cmd-checkbox" checked data-text="${escapeHtml(add.prompt_scaffold || add.where || 'Add to KALT_CODE.md')}\\n\\n${escapeHtml(add.addition)}">
+          <input type="checkbox" id="cmd-${i}" class="cmd-checkbox" checked data-text="${escapeHtml(add.prompt_scaffold || add.where || 'Add to CLAUDE.md')}\\n\\n${escapeHtml(add.addition)}">
           <label for="cmd-${i}">
             <code class="cmd-code">${escapeHtml(add.addition)}</code>
             <button class="copy-btn" onclick="copyCmdItem(${i})">Copy</button>
@@ -2161,11 +1915,7 @@ function generateHtmlReport(
     ${
       suggestions.features_to_try && suggestions.features_to_try.length > 0
         ? `
-<<<<<<< HEAD
-    <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">Just copy this into Kalt Code and it'll set it up for you.</p>
-=======
     <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">Just copy this into OpenClaude and it'll set it up for you.</p>
->>>>>>> upstream/main
     <div class="features-section">
       ${suggestions.features_to_try
         .map(
@@ -2199,13 +1949,8 @@ function generateHtmlReport(
     ${
       suggestions.usage_patterns && suggestions.usage_patterns.length > 0
         ? `
-<<<<<<< HEAD
-    <h2 id="section-patterns">New Ways to Use Kalt Code</h2>
-    <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">Just copy this into Kalt Code and it'll walk you through it.</p>
-=======
     <h2 id="section-patterns">New Ways to Use OpenClaude</h2>
     <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">Just copy this into OpenClaude and it'll walk you through it.</p>
->>>>>>> upstream/main
     <div class="patterns-section">
       ${suggestions.usage_patterns
         .map(
@@ -2218,11 +1963,7 @@ function generateHtmlReport(
             pat.copyable_prompt
               ? `
           <div class="copyable-prompt-section">
-<<<<<<< HEAD
-            <div class="prompt-label">Paste into Kalt Code:</div>
-=======
             <div class="prompt-label">Paste into OpenClaude:</div>
->>>>>>> upstream/main
             <div class="copyable-prompt-row">
               <code class="copyable-prompt">${escapeHtml(pat.copyable_prompt)}</code>
               <button class="copy-btn" onclick="copyText(this)">Copy</button>
@@ -2257,11 +1998,7 @@ function generateHtmlReport(
           <div class="horizon-title">${escapeHtml(opp.title || '')}</div>
           <div class="horizon-possible">${escapeHtml(opp.whats_possible || '')}</div>
           ${opp.how_to_try ? `<div class="horizon-tip"><strong>Getting started:</strong> ${escapeHtml(opp.how_to_try)}</div>` : ''}
-<<<<<<< HEAD
-          ${opp.copyable_prompt ? `<div class="pattern-prompt"><div class="prompt-label">Paste into Kalt Code:</div><code>${escapeHtml(opp.copyable_prompt)}</code><button class="copy-btn" onclick="copyText(this)">Copy</button></div>` : ''}
-=======
           ${opp.copyable_prompt ? `<div class="pattern-prompt"><div class="prompt-label">Paste into OpenClaude:</div><code>${escapeHtml(opp.copyable_prompt)}</code><button class="copy-btn" onclick="copyText(this)">Copy</button></div>` : ''}
->>>>>>> upstream/main
         </div>
       `,
         )
@@ -2393,14 +2130,14 @@ function generateHtmlReport(
     .friction-desc { font-size: 13px; color: #7f1d1d; margin-bottom: 10px; }
     .friction-examples { margin: 0 0 0 20px; font-size: 13px; color: #334155; }
     .friction-examples li { margin-bottom: 4px; }
-    .kalt-code-md-section { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
-    .kalt-code-md-section h3 { font-size: 14px; font-weight: 600; color: #1e40af; margin: 0 0 12px 0; }
-    .kalt-code-md-actions { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #dbeafe; }
+    .claude-md-section { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+    .claude-md-section h3 { font-size: 14px; font-weight: 600; color: #1e40af; margin: 0 0 12px 0; }
+    .claude-md-actions { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #dbeafe; }
     .copy-all-btn { background: #2563eb; color: white; border: none; border-radius: 4px; padding: 6px 12px; font-size: 12px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
     .copy-all-btn:hover { background: #1d4ed8; }
     .copy-all-btn.copied { background: #16a34a; }
-    .kalt-code-md-item { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; padding: 10px 0; border-bottom: 1px solid #dbeafe; }
-    .kalt-code-md-item:last-child { border-bottom: none; }
+    .claude-md-item { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; padding: 10px 0; border-bottom: 1px solid #dbeafe; }
+    .claude-md-item:last-child { border-bottom: none; }
     .cmd-checkbox { margin-top: 2px; }
     .cmd-code { background: white; padding: 8px 12px; border-radius: 4px; font-size: 12px; color: #1e40af; border: 1px solid #bfdbfe; font-family: monospace; display: block; white-space: pre-wrap; word-break: break-word; flex: 1; }
     .cmd-why { font-size: 12px; color: #64748b; width: 100%; padding-left: 24px; margin-top: 4px; }
@@ -2568,21 +2305,13 @@ function generateHtmlReport(
 <html>
 <head>
   <meta charset="utf-8">
-<<<<<<< HEAD
-  <title>Kalt Code Insights</title>
-=======
   <title>OpenClaude Insights</title>
->>>>>>> upstream/main
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>${css}</style>
 </head>
 <body>
   <div class="container">
-<<<<<<< HEAD
-    <h1>Kalt Code Insights</h1>
-=======
     <h1>OpenClaude Insights</h1>
->>>>>>> upstream/main
     <p class="subtitle">${data.total_messages.toLocaleString()} messages across ${data.total_sessions} sessions${data.total_sessions_scanned && data.total_sessions_scanned > data.total_sessions ? ` (${data.total_sessions_scanned.toLocaleString()} total)` : ''} | ${data.date_range.start} to ${data.date_range.end}</p>
 
     ${atAGlanceHtml}
@@ -2648,11 +2377,7 @@ function generateHtmlReport(
         data.multi_clauding.overlap_events === 0
           ? `
         <p style="font-size: 14px; color: #64748b; padding: 8px 0;">
-<<<<<<< HEAD
-          No parallel session usage detected. You typically work with one Kalt Code session at a time.
-=======
           No parallel session usage detected. You typically work with one OpenClaude session at a time.
->>>>>>> upstream/main
         </p>
       `
           : `
@@ -2671,11 +2396,7 @@ function generateHtmlReport(
           </div>
         </div>
         <p style="font-size: 13px; color: #475569; margin-top: 12px;">
-<<<<<<< HEAD
-          You run multiple Kalt Code sessions simultaneously. Multi-clauding is detected when sessions
-=======
           You run multiple OpenClaude sessions simultaneously. Multi-clauding is detected when sessions
->>>>>>> upstream/main
           overlap in time, suggesting parallel workflows.
         </p>
       `
@@ -3115,11 +2836,7 @@ function safeKeys(obj: Record<string, unknown> | undefined | null): string[] {
 const usageReport: Command = {
   type: 'prompt',
   name: 'insights',
-<<<<<<< HEAD
-  description: 'Generate a report analyzing your Kalt Code sessions',
-=======
   description: 'Generate a report analyzing your OpenClaude sessions',
->>>>>>> upstream/main
   contentLength: 0, // Dynamic content
   progressMessage: 'analyzing your sessions',
   source: 'builtin',
@@ -3157,11 +2874,7 @@ ${atAGlance.quick_wins ? `**Quick wins to try:** ${atAGlance.quick_wins} See _Fe
 ${atAGlance.ambitious_workflows ? `**Ambitious workflows:** ${atAGlance.ambitious_workflows} See _On the Horizon_.` : ''}`
       : '_No insights generated_'
 
-<<<<<<< HEAD
-    const header = `# Kalt Code Insights
-=======
     const header = `# OpenClaude Insights
->>>>>>> upstream/main
 
 ${stats}
 ${data.date_range.start} to ${data.date_range.end}
@@ -3175,11 +2888,7 @@ Your full shareable insights report is ready: ${reportUrl}${uploadHint}`
     return [
       {
         type: 'text',
-<<<<<<< HEAD
-        text: `The user just ran /insights to generate a usage report analyzing their Kalt Code sessions.
-=======
         text: `The user just ran /insights to generate a usage report analyzing their OpenClaude sessions.
->>>>>>> upstream/main
 
 Here is the full insights data:
 ${jsonStringify(insights, null, 2)}

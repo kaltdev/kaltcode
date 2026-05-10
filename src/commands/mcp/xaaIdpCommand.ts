@@ -1,5 +1,5 @@
 /**
- * `kalt-code mcp xaa` — manage the XAA (SEP-990) IdP connection.
+ * `claude mcp xaa` — manage the XAA (SEP-990) IdP connection.
  *
  * The IdP connection is user-level: configure once, all XAA-enabled MCP
  * servers reuse it. Lives in settings.xaaIdp (non-secret) + a keychain slot
@@ -32,7 +32,7 @@ export function registerMcpXaaIdpCommand(mcp: Command): void {
       'Configure the IdP connection (one-time setup for all XAA-enabled servers)',
     )
     .requiredOption('--issuer <url>', 'IdP issuer URL (OIDC discovery)')
-    .requiredOption('--client-id <id>', "Kalt Code's client_id at the IdP")
+    .requiredOption('--client-id <id>', "Claude Code's client_id at the IdP")
     .option(
       '--client-secret',
       'Read IdP client secret from MCP_XAA_IDP_CLIENT_SECRET env var',
@@ -170,11 +170,7 @@ export function registerMcpXaaIdpCommand(mcp: Command): void {
       const idp = getXaaIdpSettings()
       if (!idp) {
         return cliError(
-<<<<<<< HEAD
-          "Error: no XAA IdP connection. Run 'kalt-code mcp xaa setup' first.",
-=======
           "Error: no XAA IdP connection. Run 'openclaude mcp xaa setup' first.",
->>>>>>> upstream/main
         )
       }
 
@@ -239,11 +235,7 @@ export function registerMcpXaaIdpCommand(mcp: Command): void {
         `Client secret: ${hasSecret ? '(stored in keychain)' : '(not set — PKCE-only)'}\n`,
       )
       process.stdout.write(
-<<<<<<< HEAD
-        `Logged in:     ${hasIdToken ? 'yes (id_token cached)' : "no — run 'kalt-code mcp xaa login'"}\n`,
-=======
         `Logged in:     ${hasIdToken ? 'yes (id_token cached)' : "no — run 'openclaude mcp xaa login'"}\n`,
->>>>>>> upstream/main
       )
       cliOk()
     })

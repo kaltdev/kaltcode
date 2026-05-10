@@ -1,14 +1,27 @@
 import { expect, test } from 'bun:test'
-<<<<<<< HEAD
-=======
 import {
   shouldHandleInputAsPaste,
   supportsClipboardImageFallback,
 } from './usePasteHandler.ts'
->>>>>>> upstream/main
 
-test('usePasteHandler test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
+test('supports clipboard image fallback on Windows', () => {
+  expect(supportsClipboardImageFallback('windows')).toBe(true)
+})
+
+test('supports clipboard image fallback on macOS', () => {
+  expect(supportsClipboardImageFallback('macos')).toBe(true)
+})
+
+test('supports clipboard image fallback on Linux', () => {
+  expect(supportsClipboardImageFallback('linux')).toBe(true)
+})
+
+test('does not support clipboard image fallback on WSL', () => {
+  expect(supportsClipboardImageFallback('wsl')).toBe(false)
+})
+
+test('does not support clipboard image fallback on unknown platforms', () => {
+  expect(supportsClipboardImageFallback('unknown')).toBe(false)
 })
 
 test('does not treat a bracketed paste as pending when no paste handlers are provided', () => {

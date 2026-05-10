@@ -1,10 +1,6 @@
 import { expect, test } from 'bun:test'
 import path from 'path'
 
-<<<<<<< HEAD
-test('ripgrep test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 import { resolveRipgrepConfig, wrapRipgrepUnavailableError } from './ripgrep.js'
 
 const MOCK_BUILTIN_PATH = path.normalize(
@@ -116,5 +112,4 @@ test('wrapRipgrepUnavailableError explains missing system ripgrep', () => {
 
   expect(error.message).toContain('system ripgrep binary was not found on PATH')
   expect(error.message).toContain('apt install ripgrep')
->>>>>>> upstream/main
 })

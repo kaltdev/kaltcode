@@ -63,11 +63,6 @@ export type ProviderPresetDefaults = Omit<ProviderProfileInput, 'provider'> & {
   requiresApiKey: boolean
 }
 
-<<<<<<< HEAD
-const DEFAULT_OLLAMA_BASE_URL = 'http://localhost:11434/v1'
-const DEFAULT_OLLAMA_MODEL = 'llama3.1:8b'
-const PROFILE_ENV_APPLIED_FLAG = 'KALT_CODE_PROVIDER_PROFILE_ENV_APPLIED'
-=======
 const PROFILE_ENV_APPLIED_FLAG = 'CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED'
 const PROFILE_ENV_APPLIED_ID = 'CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED_ID'
 
@@ -107,7 +102,6 @@ function resolveProfileCompatibility(provider: string): {
 
   return { route, compatibilityMode: 'openai' }
 }
->>>>>>> upstream/main
 
 function trimValue(value: string | undefined): string {
   return value?.trim() ?? ''
@@ -313,14 +307,6 @@ function hasProviderSelectionFlags(
   processEnv: NodeJS.ProcessEnv = process.env,
 ): boolean {
   return (
-<<<<<<< HEAD
-    processEnv.KALT_CODE_USE_OPENAI !== undefined ||
-    processEnv.KALT_CODE_USE_GEMINI !== undefined ||
-    processEnv.KALT_CODE_USE_GITHUB !== undefined ||
-    processEnv.KALT_CODE_USE_BEDROCK !== undefined ||
-    processEnv.KALT_CODE_USE_VERTEX !== undefined ||
-    processEnv.KALT_CODE_USE_FOUNDRY !== undefined
-=======
     processEnv.CLAUDE_CODE_USE_OPENAI !== undefined ||
     processEnv.CLAUDE_CODE_USE_GEMINI !== undefined ||
     processEnv.CLAUDE_CODE_USE_MISTRAL !== undefined ||
@@ -328,7 +314,6 @@ function hasProviderSelectionFlags(
     processEnv.CLAUDE_CODE_USE_BEDROCK !== undefined ||
     processEnv.CLAUDE_CODE_USE_VERTEX !== undefined ||
     processEnv.CLAUDE_CODE_USE_FOUNDRY !== undefined
->>>>>>> upstream/main
   )
 }
 
@@ -515,14 +500,6 @@ function isProcessEnvAlignedWithProfile(
   }
 
   return (
-<<<<<<< HEAD
-    processEnv.KALT_CODE_USE_OPENAI !== undefined &&
-    processEnv.KALT_CODE_USE_GEMINI === undefined &&
-    processEnv.KALT_CODE_USE_GITHUB === undefined &&
-    processEnv.KALT_CODE_USE_BEDROCK === undefined &&
-    processEnv.KALT_CODE_USE_VERTEX === undefined &&
-    processEnv.KALT_CODE_USE_FOUNDRY === undefined &&
-=======
     processEnv.CLAUDE_CODE_USE_OPENAI !== undefined &&
     processEnv.CLAUDE_CODE_USE_GEMINI === undefined &&
     processEnv.CLAUDE_CODE_USE_MISTRAL === undefined &&
@@ -530,7 +507,6 @@ function isProcessEnvAlignedWithProfile(
     processEnv.CLAUDE_CODE_USE_BEDROCK === undefined &&
     processEnv.CLAUDE_CODE_USE_VERTEX === undefined &&
     processEnv.CLAUDE_CODE_USE_FOUNDRY === undefined &&
->>>>>>> upstream/main
     sameOptionalEnvValue(processEnv.OPENAI_BASE_URL, profile.baseUrl) &&
     sameOptionalEnvValue(processEnv.OPENAI_MODEL, getPrimaryModel(profile.model)) &&
     sameOptionalEnvValue(processEnv.OPENAI_API_FORMAT, profile.apiFormat) &&
@@ -565,25 +541,7 @@ export function getActiveProviderProfile(
 export function clearProviderProfileEnvFromProcessEnv(
   processEnv: NodeJS.ProcessEnv = process.env,
 ): void {
-<<<<<<< HEAD
-  delete processEnv.KALT_CODE_USE_OPENAI
-  delete processEnv.KALT_CODE_USE_GEMINI
-  delete processEnv.KALT_CODE_USE_GITHUB
-  delete processEnv.KALT_CODE_USE_BEDROCK
-  delete processEnv.KALT_CODE_USE_VERTEX
-  delete processEnv.KALT_CODE_USE_FOUNDRY
-
-  delete processEnv.OPENAI_BASE_URL
-  delete processEnv.OPENAI_API_BASE
-  delete processEnv.OPENAI_MODEL
-  delete processEnv.OPENAI_API_KEY
-
-  delete processEnv.ANTHROPIC_BASE_URL
-  delete processEnv.ANTHROPIC_MODEL
-  delete processEnv.ANTHROPIC_API_KEY
-=======
   clearManagedProfileEnv(processEnv)
->>>>>>> upstream/main
   delete processEnv[PROFILE_ENV_APPLIED_FLAG]
   delete processEnv[PROFILE_ENV_APPLIED_ID]
 }
@@ -687,13 +645,7 @@ export function applyProviderProfileToProcessEnv(profile: ProviderProfile): void
     profileEnv = openAIProfileEnv
   }
 
-<<<<<<< HEAD
-  process.env.KALT_CODE_USE_OPENAI = '1'
-  process.env.OPENAI_BASE_URL = profile.baseUrl
-  process.env.OPENAI_MODEL = profile.model
-=======
   profileEnv = applySupportedProfileCustomHeaders(profile, profileEnv)
->>>>>>> upstream/main
 
   const nextEnv = buildCompatibilityProcessEnv({
     processEnv: process.env,

@@ -1,9 +1,4 @@
 import { expect, test } from 'bun:test'
-<<<<<<< HEAD
-
-test('execFileNoThrow test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 import { mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -67,5 +62,4 @@ test('execFileNoThrowWithCwd preserves Windows .cmd compatibility', async () => 
 
   expect(result.code).toBe(0)
   expect(result.stdout).toContain('hello')
->>>>>>> upstream/main
 })

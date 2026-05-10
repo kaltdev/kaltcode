@@ -1,9 +1,5 @@
-import { expect, test } from 'bun:test'
+import { afterEach, expect, test } from 'bun:test'
 
-<<<<<<< HEAD
-test('promptIdentity test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 // MACRO is replaced at build time by Bun.define but not in test mode.
 // Define it globally so tests that import modules using MACRO don't crash.
 ;(globalThis as Record<string, unknown>).MACRO = {
@@ -113,5 +109,4 @@ test('built-in agent prompts describe OpenClaude instead of Claude Code', () => 
   expect(guidePrompt).toContain('**OpenClaude** (the CLI tool)')
   expect(guidePrompt).not.toContain('You are the Claude guide agent.')
   expect(guidePrompt).not.toContain('**Claude Code** (the CLI tool)')
->>>>>>> upstream/main
 })

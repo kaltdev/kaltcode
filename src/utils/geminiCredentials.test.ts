@@ -1,9 +1,5 @@
-import { expect, test } from 'bun:test'
+import { afterEach, beforeEach, expect, mock, test } from 'bun:test'
 
-<<<<<<< HEAD
-test('geminiCredentials test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 type MockStorageData = Record<string, unknown>
 
 const originalEnv = { ...process.env }
@@ -65,5 +61,4 @@ test('clearGeminiAccessToken removes the stored token', async () => {
   expect(saveGeminiAccessToken('token-123').success).toBe(true)
   expect(clearGeminiAccessToken().success).toBe(true)
   expect(readGeminiAccessToken()).toBeUndefined()
->>>>>>> upstream/main
 })

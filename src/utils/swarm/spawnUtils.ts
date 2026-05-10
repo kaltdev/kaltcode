@@ -96,14 +96,6 @@ export function buildInheritedCliFlags(options?: {
 const TEAMMATE_ENV_VARS = [
   // API provider selection — without these, teammates default to firstParty
   // and send requests to the wrong endpoint (GitHub issue #23561)
-<<<<<<< HEAD
-  'KALT_CODE_USE_BEDROCK',
-  'KALT_CODE_USE_VERTEX',
-  'KALT_CODE_USE_FOUNDRY',
-  'KALT_CODE_USE_GITHUB',
-  'KALT_CODE_USE_GEMINI',
-  'KALT_CODE_USE_OPENAI',
-=======
   'CLAUDE_CODE_USE_BEDROCK',
   'CLAUDE_CODE_USE_VERTEX',
   'CLAUDE_CODE_USE_FOUNDRY',
@@ -111,7 +103,6 @@ const TEAMMATE_ENV_VARS = [
   'CLAUDE_CODE_USE_GEMINI',
   'CLAUDE_CODE_USE_MISTRAL',
   'CLAUDE_CODE_USE_OPENAI',
->>>>>>> upstream/main
   'GITHUB_TOKEN',
   'GH_TOKEN',
   'OPENAI_API_KEY',
@@ -127,15 +118,15 @@ const TEAMMATE_ENV_VARS = [
   // Custom API endpoint
   'ANTHROPIC_BASE_URL',
   // Config directory override
-  'KALT_CODE_CONFIG_DIR',
+  'CLAUDE_CONFIG_DIR',
   // CCR marker — teammates need this for CCR-aware code paths. Auth finds
-  // its own way via /home/kalt-code/.kalt-code/remote/.oauth_token regardless;
+  // its own way via /home/claude/.claude/remote/.oauth_token regardless;
   // the FD env var wouldn't help (pipe FDs don't cross tmux).
-  'KALT_CODE_REMOTE',
+  'CLAUDE_CODE_REMOTE',
   // Auto-memory gate (memdir/paths.ts) checks REMOTE && !MEMORY_DIR to
   // disable memory on ephemeral CCR filesystems. Forwarding REMOTE alone
   // would flip teammates to memory-off when the parent has it on.
-  'KALT_CODE_REMOTE_MEMORY_DIR',
+  'CLAUDE_CODE_REMOTE_MEMORY_DIR',
   // Upstream proxy — the parent's MITM relay is reachable from teammates
   // (same container network). Forward the proxy vars so teammates route
   // customer-configured upstream traffic through the relay for credential
@@ -157,13 +148,10 @@ const TEAMMATE_ENV_VARS = [
 
 /**
  * Builds the `env KEY=VALUE ...` string for teammate spawn commands.
- * Always includes CLAUDECODE=1 and KALT_CODE_EXPERIMENTAL_AGENT_TEAMS=1,
+ * Always includes CLAUDECODE=1 and CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1,
  * plus any provider/config env vars that are set in the current process.
  */
 export function buildInheritedEnvVars(): string {
-<<<<<<< HEAD
-  const envVars = ['CLAUDECODE=1', 'KALT_CODE_EXPERIMENTAL_AGENT_TEAMS=1']
-=======
   const envVars = [
     'CLAUDECODE=1',
     'CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1',
@@ -171,7 +159,6 @@ export function buildInheritedEnvVars(): string {
     // replaying persisted ~/.claude or settings.env provider defaults.
     'CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST=1',
   ]
->>>>>>> upstream/main
 
   for (const key of TEAMMATE_ENV_VARS) {
     const value = process.env[key]

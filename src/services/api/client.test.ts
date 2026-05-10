@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-import { expect, test } from 'bun:test'
-test('client test file loads without entering Bun runtime crashes', () => {
-  expect(true).toBe(true)
-=======
 import { afterEach, beforeEach, expect, test } from 'bun:test'
 import { getAnthropicClient } from './client.js'
 
@@ -243,7 +238,6 @@ test('routes Gemini provider requests through the OpenAI-compatible shim', async
     role: 'assistant',
     model: 'gemini-2.0-flash',
   })
->>>>>>> upstream/main
 })
 
 test('routes env-only MiniMax requests through the OpenAI-compatible shim', async () => {

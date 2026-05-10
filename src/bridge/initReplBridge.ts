@@ -161,7 +161,7 @@ export async function initReplBridge(
     return null
   }
 
-  // When KALT_CODE_BRIDGE_OAUTH_TOKEN is set (internal-only local dev), the bridge
+  // When CLAUDE_BRIDGE_OAUTH_TOKEN is set (internal-only local dev), the bridge
   // uses that token directly via getBridgeAccessToken() — keychain state is
   // irrelevant. Skip 2b/2c to preserve that decoupling: an expired keychain
   // token shouldn't block a bridge connection that doesn't use it.
@@ -401,7 +401,7 @@ export async function initReplBridge(
   // on env-based.
   //
   // NAMING: "env-less" is distinct from "CCR v2" (the /worker/* transport).
-  // The env-based path below can ALSO use CCR v2 via KALT_CODE_USE_CCR_V2.
+  // The env-based path below can ALSO use CCR v2 via CLAUDE_CODE_USE_CCR_V2.
   // tengu_bridge_repl_v2 gates env-less (no poll loop), not transport version.
   //
   // perpetual (assistant-mode session continuity via bridge-pointer.json) is
@@ -415,11 +415,7 @@ export async function initReplBridge(
         `[bridge:repl] Skipping: ${versionError}`,
         true,
       )
-<<<<<<< HEAD
-      onStateChange?.('failed', 'run `kalt-code update` to upgrade')
-=======
       onStateChange?.('failed', 'run `openclaude update` to upgrade')
->>>>>>> upstream/main
       return null
     }
     logForDebugging(
@@ -460,11 +456,7 @@ export async function initReplBridge(
   const versionError = checkBridgeMinVersion()
   if (versionError) {
     logBridgeSkip('version_too_old', `[bridge:repl] Skipping: ${versionError}`)
-<<<<<<< HEAD
-    onStateChange?.('failed', 'run `kalt-code update` to upgrade')
-=======
     onStateChange?.('failed', 'run `openclaude update` to upgrade')
->>>>>>> upstream/main
     return null
   }
 
@@ -473,14 +465,7 @@ export async function initReplBridge(
   const branch = await getBranch()
   const gitRepoUrl = await getRemoteUrl()
   const sessionIngressUrl =
-<<<<<<< HEAD
-    process.env.USER_TYPE === 'ant' &&
-    process.env.KALT_CODE_BRIDGE_SESSION_INGRESS_URL
-      ? process.env.KALT_CODE_BRIDGE_SESSION_INGRESS_URL
-      : baseUrl
-=======
     process.env.CLAUDE_BRIDGE_SESSION_INGRESS_URL || baseUrl
->>>>>>> upstream/main
 
   // Assistant-mode sessions advertise a distinct worker_type so the web UI
   // can filter them into a dedicated picker. KAIROS guard keeps the

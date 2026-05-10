@@ -68,11 +68,7 @@ export function RemoveWorkspaceDirectory(t0) {
   }
   let t4;
   if ($[10] === Symbol.for("react.memo_cache_sentinel")) {
-<<<<<<< HEAD
-    t4 = <Text>Kalt Code will no longer have access to files in this directory.</Text>;
-=======
     t4 = <Text>OpenClaude will no longer have access to files in this directory.</Text>;
->>>>>>> upstream/main
     $[10] = t4;
   } else {
     t4 = $[10];

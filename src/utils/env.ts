@@ -21,10 +21,6 @@ export const getGlobalClaudeFile = memoize((): string => {
     return join(getClaudeConfigHomeDir(), '.config.json')
   }
 
-<<<<<<< HEAD
-  const filename = `.kalt-code${fileSuffixForOauthConfig()}.json`
-  return join(process.env.KALT_CODE_CONFIG_DIR || homedir(), filename)
-=======
   const oauthSuffix = fileSuffixForOauthConfig()
   const configDir = process.env.CLAUDE_CONFIG_DIR || homedir()
 
@@ -40,7 +36,6 @@ export const getGlobalClaudeFile = memoize((): string => {
     return join(configDir, legacyFilename)
   }
   return join(configDir, newFilename)
->>>>>>> upstream/main
 })
 
 const hasInternetAccess = memoize(async (): Promise<boolean> => {
@@ -352,12 +347,12 @@ export const env = {
 
 /**
  * Returns the host platform for analytics reporting.
- * If KALT_CODE_HOST_PLATFORM is set to a valid platform value, that overrides
+ * If CLAUDE_CODE_HOST_PLATFORM is set to a valid platform value, that overrides
  * the detected platform. This is useful for container/remote environments where
  * process.platform reports the container OS but the actual host platform differs.
  */
 export function getHostPlatformForAnalytics(): Platform {
-  const override = process.env.KALT_CODE_HOST_PLATFORM
+  const override = process.env.CLAUDE_CODE_HOST_PLATFORM
   if (override === 'win32' || override === 'darwin' || override === 'linux') {
     return override
   }
