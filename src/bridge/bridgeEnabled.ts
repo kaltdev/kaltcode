@@ -70,6 +70,7 @@ export async function isBridgeEnabledBlocking(): Promise<boolean> {
 export async function getBridgeDisabledReason(): Promise<string | null> {
   if (feature('BRIDGE_MODE')) {
     if (!isClaudeAISubscriber()) {
+<<<<<<< HEAD
       return 'Remote Control requires a claude.ai subscription. Run `kalt-code auth login` to sign in with your claude.ai account.'
     }
     if (!hasProfileScope()) {
@@ -77,6 +78,15 @@ export async function getBridgeDisabledReason(): Promise<string | null> {
     }
     if (!getOauthAccountInfo()?.organizationUuid) {
       return 'Unable to determine your organization for Remote Control eligibility. Run `kalt-code auth login` to refresh your account information.'
+=======
+      return 'Remote Control requires a claude.ai subscription. Run `openclaude auth login` to sign in with your claude.ai account.'
+    }
+    if (!hasProfileScope()) {
+      return 'Remote Control requires a full-scope login token. Long-lived tokens (from `openclaude setup-token` or CLAUDE_CODE_OAUTH_TOKEN) are limited to inference-only for security reasons. Run `openclaude auth login` to use Remote Control.'
+    }
+    if (!getOauthAccountInfo()?.organizationUuid) {
+      return 'Unable to determine your organization for Remote Control eligibility. Run `openclaude auth login` to refresh your account information.'
+>>>>>>> upstream/main
     }
     if (!(await checkGate_CACHED_OR_BLOCKING('tengu_ccr_bridge'))) {
       return 'Remote Control is not yet enabled for your account.'
@@ -166,7 +176,11 @@ export function checkBridgeMinVersion(): string | null {
       minVersion: string
     }>('tengu_bridge_min_version', { minVersion: '0.0.0' })
     if (config.minVersion && lt(MACRO.VERSION, config.minVersion)) {
+<<<<<<< HEAD
       return `Your version of Kalt Code (${MACRO.VERSION}) is too old for Remote Control.\nVersion ${config.minVersion} or higher is required. Run \`kalt-code update\` to update.`
+=======
+      return `Your version of OpenClaude (${MACRO.VERSION}) is too old for Remote Control.\nVersion ${config.minVersion} or higher is required. Run \`openclaude update\` to update.`
+>>>>>>> upstream/main
     }
   }
   return null

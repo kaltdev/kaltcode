@@ -2,6 +2,7 @@
  * OSC (Operating System Command) Types and Parser
  */
 
+<<<<<<< HEAD
 import { Buffer } from "buffer";
 import { unlink, writeFile } from "node:fs/promises";
 import { env } from "../../utils/env.js";
@@ -9,6 +10,15 @@ import { execFileNoThrow } from "../../utils/execFileNoThrow.js";
 import { generateTempFilePath } from "../../utils/tempfile.js";
 import { BEL, ESC, ESC_TYPE, SEP } from "./ansi.js";
 import type { Action, Color, TabStatusAction } from "./types.js";
+=======
+import { Buffer } from 'buffer'
+import { unlink, writeFile } from 'node:fs/promises'
+import { env } from '../../utils/env.js'
+import { execFileNoThrow } from '../../utils/execFileNoThrow.js'
+import { generateTempFilePath } from '../../utils/tempfile.js'
+import { BEL, ESC, ESC_TYPE, SEP } from './ansi.js'
+import type { Action, Color, TabStatusAction } from './types.js'
+>>>>>>> upstream/main
 
 export const OSC_PREFIX = ESC + String.fromCharCode(ESC_TYPE.OSC);
 
@@ -252,6 +262,38 @@ function copyNative(text: string): void {
             })().catch(() => {});
             return;
     }
+<<<<<<< HEAD
+=======
+    case 'win32':
+      // Avoid piping non-ASCII text through the Windows stdin/codepage
+      // boundary. Write UTF-8 text to a temp file and let PowerShell read it
+      // directly as UTF-8 before calling Set-Clipboard.
+      void (async () => {
+        const tempPath = generateTempFilePath('openclaude-clipboard', '.txt')
+        const escapedTempPath = tempPath.replace(/'/g, "''")
+        try {
+          await writeFile(tempPath, text, { encoding: 'utf8' })
+          await execFileNoThrow(
+            'powershell',
+            [
+              '-NoProfile',
+              '-NonInteractive',
+              '-Command',
+              `$text = [System.IO.File]::ReadAllText('${escapedTempPath}', [System.Text.Encoding]::UTF8); Set-Clipboard -Value $text`,
+            ],
+            {
+              useCwd: false,
+              timeout: opts.timeout,
+              stdin: 'ignore',
+            },
+          )
+        } finally {
+          await unlink(tempPath).catch(() => {})
+        }
+      })().catch(() => {})
+      return
+  }
+>>>>>>> upstream/main
 }
 
 /** @internal test-only */
@@ -493,16 +535,20 @@ export const CLEAR_TAB_STATUS = osc(
 );
 
 /**
- * Gate for emitting OSC 21337 (tab-status indicator). Ant-only while the
- * spec is unstable. Terminals that don't recognize it discard silently, so
- * emission is safe unconditionally — we don't gate on terminal detection
+ * Gate for emitting OSC 21337 (tab-status indicator). Currently disabled
+ * (spec is unstable). Terminals that don't recognize it discard silently,
+ * so emission is safe unconditionally — we don't gate on terminal detection
  * since support is expected across several terminals.
  *
  * Callers must wrap output with wrapForMultiplexer() so tmux/screen
  * DCS-passthrough carries the sequence to the outer terminal.
  */
 export function supportsTabStatus(): boolean {
+<<<<<<< HEAD
     return process.env.USER_TYPE === "ant";
+=======
+  return false
+>>>>>>> upstream/main
 }
 
 /**

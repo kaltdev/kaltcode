@@ -113,12 +113,22 @@ export function isAnthropicAuthEnabled(): boolean {
   }
 
   const is3P =
+<<<<<<< HEAD
     isEnvTruthy(process.env.KALT_CODE_USE_BEDROCK) ||
     isEnvTruthy(process.env.KALT_CODE_USE_VERTEX) ||
     isEnvTruthy(process.env.KALT_CODE_USE_FOUNDRY) ||
     isEnvTruthy(process.env.KALT_CODE_USE_OPENAI) ||
     isEnvTruthy(process.env.KALT_CODE_USE_GEMINI) ||
     isEnvTruthy(process.env.KALT_CODE_USE_GITHUB)
+=======
+    isEnvTruthy(process.env.CLAUDE_CODE_USE_BEDROCK) ||
+    isEnvTruthy(process.env.CLAUDE_CODE_USE_VERTEX) ||
+    isEnvTruthy(process.env.CLAUDE_CODE_USE_FOUNDRY) ||
+    isEnvTruthy(process.env.CLAUDE_CODE_USE_OPENAI) ||
+    isEnvTruthy(process.env.CLAUDE_CODE_USE_GEMINI) ||
+    isEnvTruthy(process.env.CLAUDE_CODE_USE_MISTRAL) ||
+    isEnvTruthy(process.env.CLAUDE_CODE_USE_GITHUB)
+>>>>>>> upstream/main
 
   // Check if user has configured an external API key source
   // This allows externally-provided API keys to work (without requiring proxy configuration)
@@ -129,10 +139,18 @@ export function isAnthropicAuthEnabled(): boolean {
     apiKeyHelper ||
     process.env.KALT_CODE_API_KEY_FILE_DESCRIPTOR
 
-  // Check if API key is from an external source (not managed by /login)
-  const { source: apiKeySource } = getAnthropicApiKeyWithSource({
-    skipRetrievingKeyFromApiKeyHelper: true,
-  })
+  // Check if API key is from an external source (not managed by /login).
+  // Predicate must not throw: getAnthropicApiKeyWithSource throws under
+  // CI/NODE_ENV=test when no key is configured, but here we just want to
+  // know the source — "no key" is a valid answer.
+  let apiKeySource: ApiKeySource
+  try {
+    ;({ source: apiKeySource } = getAnthropicApiKeyWithSource({
+      skipRetrievingKeyFromApiKeyHelper: true,
+    }))
+  } catch {
+    apiKeySource = 'none'
+  }
   const hasExternalApiKey =
     apiKeySource === 'ANTHROPIC_API_KEY' || apiKeySource === 'apiKeyHelper'
 
@@ -220,10 +238,17 @@ export function getAnthropicApiKey(): null | string {
 }
 
 export function hasAnthropicApiKeyAuth(): boolean {
-  const { key, source } = getAnthropicApiKeyWithSource({
-    skipRetrievingKeyFromApiKeyHelper: true,
-  })
-  return key !== null && source !== 'none'
+  // Predicate: never throw. getAnthropicApiKeyWithSource throws under
+  // CI/NODE_ENV=test when no key is configured — but "do we have auth?" is
+  // exactly the question that has to answer cleanly in that state.
+  try {
+    const { key, source } = getAnthropicApiKeyWithSource({
+      skipRetrievingKeyFromApiKeyHelper: true,
+    })
+    return key !== null && source !== 'none'
+  } catch {
+    return false
+  }
 }
 
 export function getAnthropicApiKeyWithSource(
@@ -692,7 +717,11 @@ export function refreshAwsAuth(awsAuthRefresh: string): Promise<boolean> {
               'AWS auth refresh timed out after 3 minutes. Run your auth command manually in a separate terminal.',
             )
           : chalk.red(
+<<<<<<< HEAD
               'Error running awsAuthRefresh (in settings or ~/.kalt-code.json):',
+=======
+              'Error running awsAuthRefresh (in settings or ~/.openclaude.json):',
+>>>>>>> upstream/main
             )
         // biome-ignore lint/suspicious/noConsole:: intentional console output
         console.error(message)
@@ -770,7 +799,11 @@ async function getAwsCredsFromCredentialExport(): Promise<{
       }
     } catch (e) {
       const message = chalk.red(
+<<<<<<< HEAD
         'Error getting AWS credentials from awsCredentialExport (in settings or ~/.kalt-code.json):',
+=======
+        'Error getting AWS credentials from awsCredentialExport (in settings or ~/.openclaude.json):',
+>>>>>>> upstream/main
       )
       if (e instanceof Error) {
         // biome-ignore lint/suspicious/noConsole:: intentional console output
@@ -960,7 +993,11 @@ export function refreshGcpAuth(gcpAuthRefresh: string): Promise<boolean> {
               'GCP auth refresh timed out after 3 minutes. Run your auth command manually in a separate terminal.',
             )
           : chalk.red(
+<<<<<<< HEAD
               'Error running gcpAuthRefresh (in settings or ~/.kalt-code.json):',
+=======
+              'Error running gcpAuthRefresh (in settings or ~/.openclaude.json):',
+>>>>>>> upstream/main
             )
         // biome-ignore lint/suspicious/noConsole:: intentional console output
         console.error(message)
@@ -1736,12 +1773,22 @@ export function getSubscriptionName(): string {
 /** Check if using third-party services (Bedrock or Vertex or Foundry or OpenAI-compatible or Gemini or GitHub Models) */
 export function isUsing3PServices(): boolean {
   return !!(
+<<<<<<< HEAD
     isEnvTruthy(process.env.KALT_CODE_USE_BEDROCK) ||
     isEnvTruthy(process.env.KALT_CODE_USE_VERTEX) ||
     isEnvTruthy(process.env.KALT_CODE_USE_FOUNDRY) ||
     isEnvTruthy(process.env.KALT_CODE_USE_OPENAI) ||
     isEnvTruthy(process.env.KALT_CODE_USE_GEMINI) ||
     isEnvTruthy(process.env.KALT_CODE_USE_GITHUB)
+=======
+    isEnvTruthy(process.env.CLAUDE_CODE_USE_BEDROCK) ||
+    isEnvTruthy(process.env.CLAUDE_CODE_USE_VERTEX) ||
+    isEnvTruthy(process.env.CLAUDE_CODE_USE_FOUNDRY) ||
+    isEnvTruthy(process.env.CLAUDE_CODE_USE_OPENAI) ||
+    isEnvTruthy(process.env.CLAUDE_CODE_USE_GEMINI) ||
+    isEnvTruthy(process.env.CLAUDE_CODE_USE_MISTRAL) ||
+    isEnvTruthy(process.env.CLAUDE_CODE_USE_GITHUB)
+>>>>>>> upstream/main
   )
 }
 
@@ -1957,7 +2004,11 @@ export async function validateForceLoginOrg(): Promise<OrgValidationResult> {
 
   // Always fetch the authoritative org UUID from the profile endpoint.
   // Even keychain-sourced tokens verify server-side: the cached org UUID
+<<<<<<< HEAD
   // in ~/.kalt-code.json is user-writable and cannot be trusted.
+=======
+  // in ~/.openclaude.json is user-writable and cannot be trusted.
+>>>>>>> upstream/main
   const { source } = getAuthTokenSource()
   const isEnvVarToken =
     source === 'KALT_CODE_OAUTH_TOKEN' ||
@@ -1972,8 +2023,13 @@ export async function validateForceLoginOrg(): Promise<OrgValidationResult> {
         `Unable to verify organization for the current authentication token.\n` +
         `This machine requires organization ${requiredOrgUuid} but the profile could not be fetched.\n` +
         `This may be a network error, or the token may lack the user:profile scope required for\n` +
+<<<<<<< HEAD
         `verification (tokens from 'kalt-code setup-token' do not include this scope).\n` +
         `Try again, or obtain a full-scope token via 'kalt-code auth login'.`,
+=======
+        `verification (tokens from 'openclaude setup-token' do not include this scope).\n` +
+        `Try again, or obtain a full-scope token via 'openclaude auth login'.`,
+>>>>>>> upstream/main
     }
   }
 
@@ -2003,7 +2059,11 @@ export async function validateForceLoginOrg(): Promise<OrgValidationResult> {
     message:
       `Your authentication token belongs to organization ${tokenOrgUuid},\n` +
       `but this machine requires organization ${requiredOrgUuid}.\n\n` +
+<<<<<<< HEAD
       `Please log in with the correct organization: kalt-code auth login`,
+=======
+      `Please log in with the correct organization: openclaude auth login`,
+>>>>>>> upstream/main
   }
 }
 

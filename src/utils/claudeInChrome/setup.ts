@@ -355,7 +355,11 @@ exec ${command}
  *
  * Only positive detections are persisted. A negative result from the
  * filesystem scan is not cached, because it may come from a machine that
+<<<<<<< HEAD
  * shares ~/.kalt-code.json but has no local Chrome (e.g. a remote dev
+=======
+ * shares ~/.openclaude.json but has no local Chrome (e.g. a remote dev
+>>>>>>> upstream/main
  * environment using the bridge), and caching it would permanently poison
  * auto-enable for every session on every machine that reads that config.
  */

@@ -35,7 +35,11 @@ export async function sendNotification(
   })
 }
 
+<<<<<<< HEAD
 const DEFAULT_TITLE = 'Kalt Code'
+=======
+const DEFAULT_TITLE = 'OpenClaude'
+>>>>>>> upstream/main
 
 async function sendToChannel(
   channel: string,

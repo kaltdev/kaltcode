@@ -70,7 +70,11 @@ export function IdeOnboardingDialog(t0) {
   }
   let t6;
   if ($[8] !== ideName) {
+<<<<<<< HEAD
     t6 = <>{t5}<Text>Welcome to Kalt Code for {ideName}</Text></>;
+=======
+    t6 = <>{t5}<Text>Welcome to OpenClaude for {ideName}</Text></>;
+>>>>>>> upstream/main
     $[8] = ideName;
     $[9] = t6;
   } else {

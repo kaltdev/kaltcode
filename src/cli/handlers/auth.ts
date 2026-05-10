@@ -287,7 +287,11 @@ export async function authStatus(opts: {
     }
     if (!loggedIn) {
       process.stdout.write(
+<<<<<<< HEAD
         'Not logged in. Run kalt-code auth login to authenticate.\n',
+=======
+        'Not logged in. Run openclaude auth login to authenticate.\n',
+>>>>>>> upstream/main
       )
     }
   } else {

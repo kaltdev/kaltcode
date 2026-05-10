@@ -3,6 +3,7 @@
  */
 
 import { access, chmod, writeFile } from 'fs/promises'
+import { homedir } from 'os'
 import { join } from 'path'
 import { type ReleaseChannel, saveGlobalConfig } from './config.js'
 import { getClaudeConfigHomeDir } from './envUtils.js'
@@ -19,16 +20,56 @@ import { jsonStringify } from './slowOperations.js'
 function getLocalInstallDir(): string {
   return join(getClaudeConfigHomeDir(), 'local')
 }
+<<<<<<< HEAD
 export function getLocalKaltCodePath(): string {
   return join(getLocalInstallDir(), 'kalt-code')
+=======
+
+function getLegacyLocalInstallDir(homeDir = homedir()): string {
+  return join(homeDir, '.claude', 'local')
+}
+
+export function getCandidateLocalInstallDirs(options?: {
+  configHomeDir?: string
+  homeDir?: string
+}): string[] {
+  const homeDir = options?.homeDir ?? homedir()
+  const configHomeDir = options?.configHomeDir ?? getClaudeConfigHomeDir()
+  return Array.from(
+    new Set([join(configHomeDir, 'local'), getLegacyLocalInstallDir(homeDir)]),
+  )
+}
+
+function getCandidateLocalBinaryPaths(localInstallDir: string): string[] {
+  return [
+    join(localInstallDir, 'node_modules', '.bin', 'openclaude'),
+    join(localInstallDir, 'node_modules', '.bin', 'claude'),
+  ]
+}
+
+export function isManagedLocalInstallationPath(execPath: string): boolean {
+  const normalizedExecPath = execPath.replace(/\\+/g, '/')
+  return (
+    normalizedExecPath.includes('/.openclaude/local/node_modules/') ||
+    normalizedExecPath.includes('/.claude/local/node_modules/')
+  )
+}
+
+export function getLocalClaudePath(): string {
+  return join(getLocalInstallDir(), 'openclaude')
+>>>>>>> upstream/main
 }
 
 /**
  * Check if we're running from our managed local installation
  */
 export function isRunningFromLocalInstallation(): boolean {
+<<<<<<< HEAD
   const execPath = process.argv[1] || ''
   return execPath.includes('/.kalt-code/local/node_modules/')
+=======
+  return isManagedLocalInstallationPath(process.argv[1] || '')
+>>>>>>> upstream/main
 }
 
 /**
@@ -64,17 +105,28 @@ export async function ensureLocalPackageEnvironment(): Promise<boolean> {
     await writeIfMissing(
       join(localInstallDir, 'package.json'),
       jsonStringify(
+<<<<<<< HEAD
         { name: 'kalt-code-local', version: '0.0.1', private: true },
+=======
+        { name: 'openclaude-local', version: '0.0.1', private: true },
+>>>>>>> upstream/main
         null,
         2,
       ),
     )
 
     // Create the wrapper script if it doesn't exist
+<<<<<<< HEAD
     const wrapperPath = join(localInstallDir, 'kalt-code')
     const created = await writeIfMissing(
       wrapperPath,
       `#!/bin/sh\nexec "${localInstallDir}/node_modules/.bin/kalt-code" "$@"`,
+=======
+    const wrapperPath = getLocalClaudePath()
+    const created = await writeIfMissing(
+      wrapperPath,
+      `#!/bin/sh\nexec "${localInstallDir}/node_modules/.bin/openclaude" "$@"`,
+>>>>>>> upstream/main
       0o755,
     )
     if (created) {
@@ -142,12 +194,39 @@ export async function installOrUpdateClaudePackage(
  * Pure existence probe — callers use this to choose update path / UI hints.
  */
 export async function localInstallationExists(): Promise<boolean> {
+<<<<<<< HEAD
   try {
     await access(join(getLocalInstallDir(), 'node_modules', '.bin', 'kalt-code'))
     return true
   } catch {
     return false
+=======
+  for (const localInstallDir of getCandidateLocalInstallDirs()) {
+    for (const binaryPath of getCandidateLocalBinaryPaths(localInstallDir)) {
+      try {
+        await access(binaryPath)
+        return true
+      } catch {
+        // Try next candidate
+      }
+    }
+>>>>>>> upstream/main
   }
+  return false
+}
+
+export async function getDetectedLocalInstallDir(): Promise<string | null> {
+  for (const localInstallDir of getCandidateLocalInstallDirs()) {
+    for (const binaryPath of getCandidateLocalBinaryPaths(localInstallDir)) {
+      try {
+        await access(binaryPath)
+        return localInstallDir
+      } catch {
+        // Try next candidate
+      }
+    }
+  }
+  return null
 }
 
 /**

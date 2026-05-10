@@ -7,6 +7,7 @@ import { formatCreditAmount, getCachedReferrerReward } from '../../services/api/
 import type { LogOption } from '../../types/logs.js';
 import { getCwd } from '../../utils/cwd.js';
 import { formatRelativeTimeAgo } from '../../utils/format.js';
+import { getReleaseSectionHeaderTitle, isReleaseSectionHeader } from '../../utils/releaseNotes.js';
 import type { FeedConfig, FeedLine } from './Feed.js';
 export function createRecentActivityFeed(activities: LogOption[]): FeedConfig {
   const lines: FeedLine[] = activities.map(log => {
@@ -35,13 +36,22 @@ export function createWhatsNewFeed(releaseNotes: string[]): FeedConfig {
         };
       }
     }
+    if (isReleaseSectionHeader(note)) {
+      return {
+        text: `${getReleaseSectionHeaderTitle(note)}:`
+      };
+    }
     return {
       text: note
     };
   });
   const emptyMessage = "external" === 'ant' ? 'Unable to fetch latest kalt-code-internal commits' : 'Check /release-notes for recent updates';
   return {
+<<<<<<< HEAD
     title: "external" === 'ant' ? "Kalt Code Updates [internal-only: Latest CC commits]" : "Kalt Code Updates",
+=======
+    title: "external" === 'ant' ? "OpenClaude Updates [internal-only: Latest CC commits]" : "OpenClaude Updates",
+>>>>>>> upstream/main
     lines,
     footer: lines.length > 0 ? '/release-notes for more' : undefined,
     emptyMessage
@@ -60,7 +70,11 @@ export function createProjectOnboardingFeed(steps: Step[]): FeedConfig {
       text: `${checkmark}${text}`
     };
   });
+<<<<<<< HEAD
   const warningText = getCwd() === homedir() ? 'Note: You have launched kalt-code in your home directory. For the best experience, launch it in a project directory instead.' : undefined;
+=======
+  const warningText = getCwd() === homedir() ? 'Note: You have launched openclaude in your home directory. For the best experience, launch it in a project directory instead.' : undefined;
+>>>>>>> upstream/main
   if (warningText) {
     lines.push({
       text: warningText
@@ -73,7 +87,11 @@ export function createProjectOnboardingFeed(steps: Step[]): FeedConfig {
 }
 export function createGuestPassesFeed(): FeedConfig {
   const reward = getCachedReferrerReward();
+<<<<<<< HEAD
   const subtitle = reward ? `Share Kalt Code and earn ${formatCreditAmount(reward)} of extra usage` : 'Share Kalt Code with friends';
+=======
+  const subtitle = reward ? `Share OpenClaude and earn ${formatCreditAmount(reward)} of extra usage` : 'Share OpenClaude with friends';
+>>>>>>> upstream/main
   return {
     title: '3 guest passes',
     lines: [],

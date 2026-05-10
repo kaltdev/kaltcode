@@ -37,6 +37,8 @@ export const KALT_CODE_CONFIG_DIRECTORIES = [
 
 export type ClaudeConfigDirectory = (typeof KALT_CODE_CONFIG_DIRECTORIES)[number]
 
+const PROJECT_CONFIG_DIR_NAMES = ['.claude', '.openclaude'] as const
+
 export type MarkdownFile = {
   filePath: string
   baseDir: string
@@ -250,6 +252,7 @@ export function getProjectDirsUpToHome(
       break
     }
 
+<<<<<<< HEAD
     const claudeSubdir = join(current, '.kalt-code', subdir)
     // Filter to existing dirs. This is a perf filter (avoids spawning
     // ripgrep on non-existent dirs downstream) and the worktree fallback
@@ -262,6 +265,22 @@ export function getProjectDirsUpToHome(
       dirs.push(claudeSubdir)
     } catch (e: unknown) {
       if (!isFsInaccessible(e)) throw e
+=======
+    for (const configDirName of PROJECT_CONFIG_DIR_NAMES) {
+      const configSubdir = join(current, configDirName, subdir)
+      // Filter to existing dirs. This is a perf filter (avoids spawning
+      // ripgrep on non-existent dirs downstream) and the worktree fallback
+      // in loadMarkdownFilesForSubdir relies on it. statSync + explicit error
+      // handling instead of existsSync — re-throws unexpected errors rather
+      // than silently swallowing them. Downstream loadMarkdownFiles handles
+      // the TOCTOU window (dir disappearing before read) gracefully.
+      try {
+        statSync(configSubdir)
+        dirs.push(configSubdir)
+      } catch (e: unknown) {
+        if (!isFsInaccessible(e)) throw e
+      }
+>>>>>>> upstream/main
     }
 
     // Stop after processing the git root directory - this prevents commands from parent
@@ -320,16 +339,29 @@ export const loadMarkdownFilesForSubdir = memoize(
     const gitRoot = findGitRoot(cwd)
     const canonicalRoot = findCanonicalGitRoot(cwd)
     if (gitRoot && canonicalRoot && canonicalRoot !== gitRoot) {
+<<<<<<< HEAD
       const worktreeSubdir = normalizePathForComparison(
         join(gitRoot, '.kalt-code', subdir),
+=======
+      const worktreeSubdirs = PROJECT_CONFIG_DIR_NAMES.map(configDirName =>
+        normalizePathForComparison(join(gitRoot, configDirName, subdir)),
+>>>>>>> upstream/main
       )
-      const worktreeHasSubdir = projectDirs.some(
-        dir => normalizePathForComparison(dir) === worktreeSubdir,
+      const worktreeHasSubdir = projectDirs.some(dir =>
+        worktreeSubdirs.includes(normalizePathForComparison(dir)),
       )
       if (!worktreeHasSubdir) {
+<<<<<<< HEAD
         const mainClaudeSubdir = join(canonicalRoot, '.kalt-code', subdir)
         if (!projectDirs.includes(mainClaudeSubdir)) {
           projectDirs.push(mainClaudeSubdir)
+=======
+        for (const configDirName of PROJECT_CONFIG_DIR_NAMES) {
+          const mainConfigSubdir = join(canonicalRoot, configDirName, subdir)
+          if (!projectDirs.includes(mainConfigSubdir)) {
+            projectDirs.push(mainConfigSubdir)
+          }
+>>>>>>> upstream/main
         }
       }
     }

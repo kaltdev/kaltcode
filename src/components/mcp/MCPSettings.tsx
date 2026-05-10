@@ -147,7 +147,11 @@ export function MCPSettings(t0) {
         return;
       }
       if (servers.length === 0 && agentMcpServers.length === 0) {
+<<<<<<< HEAD
         onComplete("No MCP servers configured. Please run /doctor if this is unexpected. Otherwise, run `kalt-code mcp --help` or visit https://code.kalt-code.com/docs/en/mcp to learn more.");
+=======
+        onComplete("No MCP servers configured. Please run /doctor if this is unexpected. Otherwise, run `openclaude mcp --help` or visit https://github.com/Gitlawb/openclaude to learn more.");
+>>>>>>> upstream/main
       }
     };
     t8 = [servers.length, filteredClients.length, agentMcpServers.length, onComplete];

@@ -64,7 +64,12 @@ export const DANGEROUS_FILES = [
   '.profile',
   '.ripgreprc',
   '.mcp.json',
+<<<<<<< HEAD
   '.kalt-code.json',
+=======
+  '.openclaude.json',
+  '.claude.json',
+>>>>>>> upstream/main
 ] as const
 
 /**
@@ -75,7 +80,12 @@ export const DANGEROUS_DIRECTORIES = [
   '.git',
   '.vscode',
   '.idea',
+<<<<<<< HEAD
   '.kalt-code',
+=======
+  '.claude',
+  '.openclaude',
+>>>>>>> upstream/main
 ] as const
 
 /**
@@ -208,8 +218,15 @@ export function isClaudeSettingsPath(filePath: string): boolean {
 
   // Use platform separator so endsWith checks work on both Unix (/) and Windows (\)
   if (
+<<<<<<< HEAD
     normalizedPath.endsWith(`${sep}.kalt-code${sep}settings.json`) ||
     normalizedPath.endsWith(`${sep}.kalt-code${sep}settings.local.json`)
+=======
+    normalizedPath.endsWith(`${sep}.openclaude${sep}settings.json`) ||
+    normalizedPath.endsWith(`${sep}.openclaude${sep}settings.local.json`) ||
+    normalizedPath.endsWith(`${sep}.claude${sep}settings.json`) ||
+    normalizedPath.endsWith(`${sep}.claude${sep}settings.local.json`)
+>>>>>>> upstream/main
   ) {
     // Include .kalt-code/settings.json even for other projects
     return true
@@ -230,14 +247,26 @@ function isClaudeConfigFilePath(filePath: string): boolean {
   // Check if file is within .kalt-code/commands or .kalt-code/agents directories
   // using proper path segment validation (not string matching with includes())
   // pathInWorkingPath now handles case-insensitive comparison to prevent bypasses
+<<<<<<< HEAD
   const commandsDir = join(getOriginalCwd(), '.kalt-code', 'commands')
   const agentsDir = join(getOriginalCwd(), '.kalt-code', 'agents')
   const skillsDir = join(getOriginalCwd(), '.kalt-code', 'skills')
+=======
+  const commandsDir = join(getOriginalCwd(), '.claude', 'commands')
+  const agentsDir = join(getOriginalCwd(), '.claude', 'agents')
+  const skillsDir = join(getOriginalCwd(), '.claude', 'skills')
+  const openCommandsDir = join(getOriginalCwd(), '.openclaude', 'commands')
+  const openAgentsDir = join(getOriginalCwd(), '.openclaude', 'agents')
+  const openSkillsDir = join(getOriginalCwd(), '.openclaude', 'skills')
+>>>>>>> upstream/main
 
   return (
     pathInWorkingPath(filePath, commandsDir) ||
     pathInWorkingPath(filePath, agentsDir) ||
-    pathInWorkingPath(filePath, skillsDir)
+    pathInWorkingPath(filePath, skillsDir) ||
+    pathInWorkingPath(filePath, openCommandsDir) ||
+    pathInWorkingPath(filePath, openAgentsDir) ||
+    pathInWorkingPath(filePath, openSkillsDir)
   )
 }
 

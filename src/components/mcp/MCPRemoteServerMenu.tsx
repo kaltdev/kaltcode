@@ -102,9 +102,15 @@ export function MCPRemoteServerMenu({
       if (success) {
         onComplete?.(`Authentication successful. Connected to ${server.name}.`);
       } else if (result.client.type === 'needs-auth') {
+<<<<<<< HEAD
         onComplete?.('Authentication successful, but server still requires authentication. You may need to manually restart Kalt Code.');
       } else {
         onComplete?.('Authentication successful, but server reconnection failed. You may need to manually restart Kalt Code for the changes to take effect.');
+=======
+        onComplete?.('Authentication successful, but server still requires authentication. You may need to manually restart OpenClaude.');
+      } else {
+        onComplete?.('Authentication successful, but server reconnection failed. You may need to manually restart OpenClaude for the changes to take effect.');
+>>>>>>> upstream/main
       }
     } catch (err) {
       logEvent('tengu_claudeai_mcp_auth_completed', {
@@ -281,11 +287,19 @@ export function MCPRemoteServerMenu({
           const message = isEffectivelyAuthenticated ? `Authentication successful. Reconnected to ${server.name}.` : `Authentication successful. Connected to ${server.name}.`;
           onComplete?.(message);
         } else if (result_0.client.type === 'needs-auth') {
+<<<<<<< HEAD
           onComplete?.('Authentication successful, but server still requires authentication. You may need to manually restart Kalt Code.');
         } else {
           // result.client.type === 'failed'
           logMCPDebug(server.name, `Reconnection failed after authentication`);
           onComplete?.('Authentication successful, but server reconnection failed. You may need to manually restart Kalt Code for the changes to take effect.');
+=======
+          onComplete?.('Authentication successful, but server still requires authentication. You may need to manually restart OpenClaude.');
+        } else {
+          // result.client.type === 'failed'
+          logMCPDebug(server.name, `Reconnection failed after authentication`);
+          onComplete?.('Authentication successful, but server reconnection failed. You may need to manually restart OpenClaude for the changes to take effect.');
+>>>>>>> upstream/main
         }
       }
     } catch (err_1) {

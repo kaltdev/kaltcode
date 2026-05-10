@@ -94,7 +94,11 @@ export function Stats(t0) {
   const allTimePromise = t1;
   let t2;
   if ($[1] === Symbol.for("react.memo_cache_sentinel")) {
+<<<<<<< HEAD
     t2 = <Box marginTop={1}><Spinner /><Text> Loading your Kalt Code stats…</Text></Box>;
+=======
+    t2 = <Box marginTop={1}><Spinner /><Text> Loading your OpenClaude stats…</Text></Box>;
+>>>>>>> upstream/main
     $[1] = t2;
   } else {
     t2 = $[1];
@@ -242,7 +246,11 @@ function StatsContent(t0) {
   if (allTimeResult.type === "empty") {
     let t7;
     if ($[15] === Symbol.for("react.memo_cache_sentinel")) {
+<<<<<<< HEAD
       t7 = <Box marginTop={1}><Text color="warning">No stats available yet. Start using Kalt Code!</Text></Box>;
+=======
+      t7 = <Box marginTop={1}><Text color="warning">No stats available yet. Start using OpenClaude!</Text></Box>;
+>>>>>>> upstream/main
       $[15] = t7;
     } else {
       t7 = $[15];

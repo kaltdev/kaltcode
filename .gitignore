@@ -1,12 +1,24 @@
 node_modules/
 dist/
 *.tsbuildinfo
+web/dist/
+web/*.tsbuildinfo
 .env
 .env.*
 !.env.example
+<<<<<<< HEAD
 .kalt-code-profile.json
 reports/
 GEMINI.md
+=======
+.openclaude-profile.json
+.openclaude/
+reports/
+GEMINI.md
+CLAUDE.md
+>>>>>>> upstream/main
 package-lock.json
 /.claude
 coverage/
+agent.log
+plan/

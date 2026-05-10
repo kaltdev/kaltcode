@@ -9,7 +9,11 @@ export function WelcomeV2() {
   if (env.terminal === "Apple_Terminal") {
     let t0;
     if ($[0] !== theme) {
+<<<<<<< HEAD
       t0 = <AppleTerminalWelcomeV2 theme={theme} welcomeMessage="Welcome to Kalt Code" />;
+=======
+      t0 = <AppleTerminalWelcomeV2 theme={theme} welcomeMessage="Welcome to OpenClaude" />;
+>>>>>>> upstream/main
       $[0] = theme;
       $[1] = t0;
     } else {
@@ -28,7 +32,11 @@ export function WelcomeV2() {
     let t7;
     let t8;
     if ($[2] === Symbol.for("react.memo_cache_sentinel")) {
+<<<<<<< HEAD
       t0 = <Text><Text color="claude">{"Welcome to Kalt Code"} </Text><Text dimColor={true}>v{MACRO.DISPLAY_VERSION ?? MACRO.VERSION} </Text></Text>;
+=======
+      t0 = <Text><Text color="claude">{"Welcome to OpenClaude"} </Text><Text dimColor={true}>v{MACRO.DISPLAY_VERSION ?? MACRO.VERSION} </Text></Text>;
+>>>>>>> upstream/main
       t1 = <Text>{"\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026"}</Text>;
       t2 = <Text>{"                                                          "}</Text>;
       t3 = <Text>{"                                                          "}</Text>;
@@ -113,7 +121,11 @@ export function WelcomeV2() {
   let t5;
   let t6;
   if ($[18] === Symbol.for("react.memo_cache_sentinel")) {
+<<<<<<< HEAD
     t0 = <Text><Text color="claude">{"Welcome to Kalt Code"} </Text><Text dimColor={true}>v{MACRO.DISPLAY_VERSION ?? MACRO.VERSION} </Text></Text>;
+=======
+    t0 = <Text><Text color="claude">{"Welcome to OpenClaude"} </Text><Text dimColor={true}>v{MACRO.DISPLAY_VERSION ?? MACRO.VERSION} </Text></Text>;
+>>>>>>> upstream/main
     t1 = <Text>{"\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026\u2026"}</Text>;
     t2 = <Text>{"                                                          "}</Text>;
     t3 = <Text>{"     *                                       \u2588\u2588\u2588\u2588\u2588\u2593\u2593\u2591     "}</Text>;

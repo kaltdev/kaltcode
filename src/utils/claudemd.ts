@@ -1,9 +1,15 @@
 /**
  * Files are loaded in the following order:
  *
+<<<<<<< HEAD
  * 1. Managed memory (eg. /etc/kalt-code/KALT_CODE.md) - Global instructions for all users
  * 2. User memory (~/.kalt-code/KALT_CODE.md) - Private global instructions for all projects
  * 3. Project memory (KALT_CODE.md, .kalt-code/KALT_CODE.md, and .kalt-code/rules/*.md in project roots) - Instructions checked into the codebase
+=======
+ * 1. Managed memory (eg. /etc/claude-code/CLAUDE.md) - Global instructions for all users
+ * 2. User memory (~/.claude/CLAUDE.md) - Private global instructions for all projects
+ * 3. Project memory (AGENTS.md or fallback CLAUDE.md, plus .claude/CLAUDE.md and .claude/rules/*.md in project roots) - Instructions checked into the codebase
+>>>>>>> upstream/main
  * 4. Local memory (CLAUDE.local.md in project roots) - Private project-specific instructions
  *
  * Files are loaded in reverse order of priority, i.e. the latest files are highest priority
@@ -13,7 +19,12 @@
  * - User memory is loaded from the user's home directory
  * - Project and Local files are discovered by traversing from the current directory up to root
  * - Files closer to the current directory have higher priority (loaded later)
+<<<<<<< HEAD
  * - KALT_CODE.md, .kalt-code/KALT_CODE.md, and all .md files in .kalt-code/rules/ are checked in each directory for Project memory
+=======
+ * - AGENTS.md is preferred for root project instructions; CLAUDE.md is only used when AGENTS.md is absent
+ * - .claude/CLAUDE.md and all .md files in .claude/rules/ are checked in each directory for Project memory
+>>>>>>> upstream/main
  *
  * Memory @include directive:
  * - Memory files can include other files using @ notation
@@ -75,6 +86,10 @@ import {
 import type { MemoryType } from './memory/types.js'
 import { expandPath } from './path.js'
 import { pathInWorkingPath } from './permissions/filesystem.js'
+import {
+  getProjectInstructionFilePath,
+  isProjectInstructionFileName,
+} from './projectInstructions.js'
 import { isSettingSourceEnabled } from './settings/constants.js'
 import { getInitialSettings } from './settings/settings.js'
 
@@ -868,7 +883,11 @@ export const getMemoryFiles = memoize(
     // When running from a git worktree nested inside its main repo (e.g.,
     // .kalt-code/worktrees/<name>/ from `kalt-code -w`), the upward walk passes
     // through both the worktree root and the main repo root. Both contain
+<<<<<<< HEAD
     // checked-in files like KALT_CODE.md and .kalt-code/rules/*.md, so the same
+=======
+    // checked-in files like AGENTS.md/CLAUDE.md and .claude/rules/*.md, so the same
+>>>>>>> upstream/main
     // content gets loaded twice. Skip Project-type (checked-in) files from
     // directories above the worktree but within the main repo — the worktree
     // already has its own checkout. CLAUDE.local.md is gitignored so it only
@@ -892,9 +911,18 @@ export const getMemoryFiles = memoize(
         pathInWorkingPath(dir, canonicalRoot) &&
         !pathInWorkingPath(dir, gitRoot)
 
+<<<<<<< HEAD
       // Try reading KALT_CODE.md (Project) - only if projectSettings is enabled
       if (isSettingSourceEnabled('projectSettings') && !skipProject) {
         const projectPath = join(dir, 'KALT_CODE.md')
+=======
+      // Try reading the root project instruction file (AGENTS.md first, otherwise CLAUDE.md)
+      if (isSettingSourceEnabled('projectSettings') && !skipProject) {
+        const projectPath = getProjectInstructionFilePath(
+          dir,
+          getFsImplementation().existsSync,
+        )
+>>>>>>> upstream/main
         result.push(
           ...(await processMemoryFile(
             projectPath,
@@ -942,15 +970,28 @@ export const getMemoryFiles = memoize(
       }
     }
 
+<<<<<<< HEAD
     // Process KALT_CODE.md from additional directories (--add-dir) if env var is enabled
     // This is controlled by KALT_CODE_ADDITIONAL_DIRECTORIES_KALT_CODE_MD and defaults to off
+=======
+    // Process root project instruction files from additional directories (--add-dir) if env var is enabled
+    // This is controlled by CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD and defaults to off
+>>>>>>> upstream/main
     // Note: we don't check isSettingSourceEnabled('projectSettings') here because --add-dir
     // is an explicit user action and the SDK defaults settingSources to [] when not specified
     if (isEnvTruthy(process.env.KALT_CODE_ADDITIONAL_DIRECTORIES_KALT_CODE_MD)) {
       const additionalDirs = getAdditionalDirectoriesForClaudeMd()
       for (const dir of additionalDirs) {
+<<<<<<< HEAD
         // Try reading KALT_CODE.md from the additional directory
         const projectPath = join(dir, 'KALT_CODE.md')
+=======
+        // Try reading the root project instruction file from the additional directory
+        const projectPath = getProjectInstructionFilePath(
+          dir,
+          getFsImplementation().existsSync,
+        )
+>>>>>>> upstream/main
         result.push(
           ...(await processMemoryFile(
             projectPath,
@@ -1248,7 +1289,11 @@ export async function getManagedAndUserConditionalRules(
 
 /**
  * Gets memory files for a single nested directory (between CWD and target).
+<<<<<<< HEAD
  * Loads KALT_CODE.md, unconditional rules, and conditional rules for that directory.
+=======
+ * Loads the root project instruction file, unconditional rules, and conditional rules for that directory.
+>>>>>>> upstream/main
  *
  * @param dir The directory to process
  * @param targetPath The target file path (for conditional rule matching)
@@ -1262,9 +1307,18 @@ export async function getMemoryFilesForNestedDirectory(
 ): Promise<MemoryFileInfo[]> {
   const result: MemoryFileInfo[] = []
 
+<<<<<<< HEAD
   // Process project memory files (KALT_CODE.md and .kalt-code/KALT_CODE.md)
   if (isSettingSourceEnabled('projectSettings')) {
     const projectPath = join(dir, 'KALT_CODE.md')
+=======
+  // Process project memory files (AGENTS.md first, otherwise CLAUDE.md, plus .claude/CLAUDE.md)
+  if (isSettingSourceEnabled('projectSettings')) {
+    const projectPath = getProjectInstructionFilePath(
+      dir,
+      getFsImplementation().existsSync,
+    )
+>>>>>>> upstream/main
     result.push(
       ...(await processMemoryFile(
         projectPath,
@@ -1439,13 +1493,22 @@ export async function shouldShowClaudeMdExternalIncludesWarning(): Promise<boole
 }
 
 /**
+<<<<<<< HEAD
  * Check if a file path is a memory file (KALT_CODE.md, CLAUDE.local.md, or .kalt-code/rules/*.md)
+=======
+ * Check if a file path is a memory file (AGENTS.md, CLAUDE.md, CLAUDE.local.md, or .claude/rules/*.md)
+>>>>>>> upstream/main
  */
 export function isMemoryFilePath(filePath: string): boolean {
   const name = basename(filePath)
 
+<<<<<<< HEAD
   // KALT_CODE.md or CLAUDE.local.md anywhere
   if (name === 'KALT_CODE.md' || name === 'CLAUDE.local.md') {
+=======
+  // Root instruction files or CLAUDE.local.md anywhere
+  if (isProjectInstructionFileName(name) || name === 'CLAUDE.local.md') {
+>>>>>>> upstream/main
     return true
   }
 

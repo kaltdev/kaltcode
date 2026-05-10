@@ -170,7 +170,11 @@ export function registerMcpXaaIdpCommand(mcp: Command): void {
       const idp = getXaaIdpSettings()
       if (!idp) {
         return cliError(
+<<<<<<< HEAD
           "Error: no XAA IdP connection. Run 'kalt-code mcp xaa setup' first.",
+=======
+          "Error: no XAA IdP connection. Run 'openclaude mcp xaa setup' first.",
+>>>>>>> upstream/main
         )
       }
 
@@ -235,7 +239,11 @@ export function registerMcpXaaIdpCommand(mcp: Command): void {
         `Client secret: ${hasSecret ? '(stored in keychain)' : '(not set — PKCE-only)'}\n`,
       )
       process.stdout.write(
+<<<<<<< HEAD
         `Logged in:     ${hasIdToken ? 'yes (id_token cached)' : "no — run 'kalt-code mcp xaa login'"}\n`,
+=======
+        `Logged in:     ${hasIdToken ? 'yes (id_token cached)' : "no — run 'openclaude mcp xaa login'"}\n`,
+>>>>>>> upstream/main
       )
       cliOk()
     })

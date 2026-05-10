@@ -41,10 +41,12 @@ kalt-code
 $env:KALT_CODE_USE_OPENAI="1"
 $env:OPENAI_API_KEY="sk-your-key-here"
 $env:OPENAI_BASE_URL="https://api.deepseek.com/v1"
-$env:OPENAI_MODEL="deepseek-chat"
+$env:OPENAI_MODEL="deepseek-v4-flash"
 
 kalt-code
 ```
+
+Use `deepseek-v4-pro` when you want the stronger model. `deepseek-chat` and `deepseek-reasoner` still work as DeepSeek's legacy API aliases.
 
 ### Option C: Ollama
 
@@ -141,3 +143,4 @@ npm uninstall -g @kaltdev/kalt-code
 Use:
 
 - [Advanced Setup](advanced-setup.md)
+  For Codex, Gemini, Mistral, LiteLLM, provider profiles, and runtime diagnostics.

@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 import { feature } from "bun:bundle";
 import { getAPIProvider } from "./model/providers.js";
 import type { BetaUsage as Usage } from "@anthropic-ai/sdk/resources/beta/messages/messages.mjs";
+=======
+import { feature } from 'bun:bundle'
+import { getAPIProvider } from './model/providers.js'
+import type { BetaUsage as Usage } from '@anthropic-ai/sdk/resources/beta/messages/messages.mjs'
+>>>>>>> upstream/main
 import type {
     ContentBlock,
     ContentBlockParam,
@@ -40,6 +46,7 @@ import {
 import type { AnyObject, Progress } from "../Tool.js";
 import { isConnectorTextBlock } from "../types/connectorText.js";
 import type {
+<<<<<<< HEAD
     AssistantMessage,
     AttachmentMessage,
     Message,
@@ -75,6 +82,44 @@ import type {
 import { isAdvisorBlock } from "./advisor.js";
 import { isAgentSwarmsEnabled } from "./agentSwarmsEnabled.js";
 import { count } from "./array.js";
+=======
+  AssistantMessage,
+  AttachmentMessage,
+  Message,
+  MessageOrigin,
+  NormalizedAssistantMessage,
+  NormalizedMessage,
+  NormalizedUserMessage,
+  PartialCompactDirection,
+  ProgressMessage,
+  RequestStartEvent,
+  StopHookInfo,
+  StreamEvent,
+  SystemAgentsKilledMessage,
+  SystemAPIErrorMessage,
+  SystemApiMetricsMessage,
+  SystemAwaySummaryMessage,
+  SystemBridgeStatusMessage,
+  SystemCompactBoundaryMessage,
+  SystemInformationalMessage,
+  SystemLocalCommandMessage,
+  SystemMemorySavedMessage,
+  SystemMessage,
+  SystemMessageLevel,
+  SystemMicrocompactBoundaryMessage,
+  SystemPermissionRetryMessage,
+  SystemScheduledTaskFireMessage,
+  SystemStopHookSummaryMessage,
+  SystemTurnDurationMessage,
+  TombstoneMessage,
+  ToolUseSummaryMessage,
+  UserMessage,
+} from '../types/message.js'
+import { isAdvisorBlock } from './advisor.js'
+import { isAgentSwarmsEnabled } from './agentSwarmsEnabled.js'
+import { count } from './array.js'
+import { isEnvTruthy } from './envUtils.js'
+>>>>>>> upstream/main
 import {
     type Attachment,
     type HookAttachment,
@@ -1793,6 +1838,7 @@ export function stripCallerFieldFromAssistantMessage(
         return message;
     }
 
+<<<<<<< HEAD
     return {
         ...message,
         message: {
@@ -1815,6 +1861,27 @@ export function stripCallerFieldFromAssistantMessage(
             }),
         },
     };
+=======
+  return {
+    ...message,
+    message: {
+      ...message.message,
+      content: message.message.content.map(block => {
+        if (block.type !== 'tool_use') {
+          return block
+        }
+        // Explicitly construct with only standard API fields
+        return {
+          type: 'tool_use' as const,
+          id: block.id,
+          name: block.name,
+          input: block.input,
+          ...(getAPIProvider() === 'gemini' && (block as any).extra_content ? { extra_content: (block as any).extra_content } : {})
+        }
+      }),
+    },
+  }
+>>>>>>> upstream/main
 }
 
 /**
@@ -2080,6 +2147,7 @@ export function normalizeMessagesForAPI(
         if (!blockTypesToStrip) {
             continue;
         }
+<<<<<<< HEAD
         // Walk backward to find the nearest preceding isMeta user message
         for (let j = i - 1; j >= 0; j--) {
             const candidate = reorderedMessages[j]!;
@@ -2094,6 +2162,157 @@ export function normalizeMessagesForAPI(
                         candidate.uuid,
                         new Set(blockTypesToStrip),
                     );
+=======
+        case 'user': {
+          // Merge consecutive user messages because Bedrock doesn't support
+          // multiple user messages in a row; 1P API does and merges them
+          // into a single user turn
+
+          // When tool search is NOT enabled, strip all tool_reference blocks from
+          // tool_result content, as these are only valid with the tool search beta.
+          // When tool search IS enabled, strip only tool_reference blocks for
+          // tools that no longer exist (e.g., MCP server was disconnected).
+          let normalizedMessage = message
+          if (!isToolSearchEnabledOptimistic()) {
+            normalizedMessage = stripToolReferenceBlocksFromUserMessage(message)
+          } else {
+            normalizedMessage = stripUnavailableToolReferencesFromUserMessage(
+              message,
+              availableToolNames,
+            )
+          }
+
+          // Strip document/image blocks from the specific meta user message that
+          // preceded a PDF/image/request-too-large error, to prevent re-sending
+          // the problematic content on every subsequent API call.
+          const typesToStrip = stripTargets.get(normalizedMessage.uuid)
+          if (typesToStrip && normalizedMessage.isMeta) {
+            const content = normalizedMessage.message.content
+            if (Array.isArray(content)) {
+              const filtered = content.filter(
+                block => !typesToStrip.has(block.type),
+              )
+              if (filtered.length === 0) {
+                // All content blocks were stripped; skip this message entirely
+                return
+              }
+              if (filtered.length < content.length) {
+                normalizedMessage = {
+                  ...normalizedMessage,
+                  message: {
+                    ...normalizedMessage.message,
+                    content: filtered,
+                  },
+                }
+              }
+            }
+          }
+
+          // Server renders tool_reference expansion as <functions>...</functions>
+          // (same tags as the system prompt's tool block). When this is at the
+          // prompt tail, capybara models sample the stop sequence at ~10% (A/B:
+          // 21/200 vs 0/200 on v3-prod). A sibling text block inserts a clean
+          // "\n\nHuman: ..." turn boundary. Injected here (API-prep) rather than
+          // stored in the message so it never renders in the REPL, and is
+          // auto-skipped when strip* above removes all tool_reference content.
+          // Must be a sibling, NOT inside tool_result.content — mixing text with
+          // tool_reference inside the block is a server ValueError.
+          // Idempotent: query.ts calls this per-tool-result; the output flows
+          // back through here via claude.ts on the next API request. The first
+          // pass's sibling gets a \n[id:xxx] suffix from appendMessageTag below,
+          // so startsWith matches both bare and tagged forms.
+          //
+          // Gated OFF when tengu_toolref_defer_j8m is active — that gate
+          // enables relocateToolReferenceSiblings in post-processing below,
+          // which moves existing siblings to a later non-ref message instead
+          // of adding one here. This injection is itself one of the patterns
+          // that gets relocated, so skipping it saves a scan. When gate is
+          // off, this is the fallback (same as pre-#21049 main).
+          if (
+            !checkStatsigFeatureGate_CACHED_MAY_BE_STALE(
+              'tengu_toolref_defer_j8m',
+            )
+          ) {
+            const contentAfterStrip = normalizedMessage.message.content
+            if (
+              Array.isArray(contentAfterStrip) &&
+              !contentAfterStrip.some(
+                b =>
+                  b.type === 'text' &&
+                  b.text.startsWith(TOOL_REFERENCE_TURN_BOUNDARY),
+              ) &&
+              contentHasToolReference(contentAfterStrip)
+            ) {
+              normalizedMessage = {
+                ...normalizedMessage,
+                message: {
+                  ...normalizedMessage.message,
+                  content: [
+                    ...contentAfterStrip,
+                    { type: 'text', text: TOOL_REFERENCE_TURN_BOUNDARY },
+                  ],
+                },
+              }
+            }
+          }
+
+          // If the last message is also a user message, merge them
+          const lastMessage = last(result)
+          if (lastMessage?.type === 'user') {
+            result[result.length - 1] = mergeUserMessages(
+              lastMessage,
+              normalizedMessage,
+            )
+            return
+          }
+
+          // Otherwise, add the message normally
+          result.push(normalizedMessage)
+          return
+        }
+        case 'assistant': {
+          // Normalize tool inputs for API (strip fields like plan from ExitPlanModeV2)
+          // When tool search is NOT enabled, we must strip tool_search-specific fields
+          // like 'caller' from tool_use blocks, as these are only valid with the
+          // tool search beta header
+          const toolSearchEnabled = isToolSearchEnabledOptimistic()
+          const normalizedMessage: AssistantMessage = {
+            ...message,
+            message: {
+              ...message.message,
+              content: message.message.content.map(block => {
+                if (block.type === 'tool_use') {
+                  const tool = tools.find(t => toolMatchesName(t, block.name))
+                  const normalizedInput = tool
+                    ? normalizeToolInputForAPI(
+                        tool,
+                        block.input as Record<string, unknown>,
+                      )
+                    : block.input
+                  const canonicalName = tool?.name ?? block.name
+
+                  // When tool search is enabled, preserve all fields including 'caller'
+                  if (toolSearchEnabled) {
+                    const { extra_content, ...restBlock } = block as any
+                    return {
+                      ...restBlock,
+                      name: canonicalName,
+                      input: normalizedInput,
+                      ...(getAPIProvider() === 'gemini' && extra_content ? { extra_content } : {})
+                    }
+                  }
+
+                  // When tool search is NOT enabled, explicitly construct tool_use
+                  // block with only standard API fields to avoid sending fields like
+                  // 'caller' that may be stored in sessions from tool search runs
+                    return {
+                    type: 'tool_use' as const,
+                    id: block.id,
+                    name: canonicalName,
+                    input: normalizedInput,
+                    ...(getAPIProvider() === 'gemini' && (block as any).extra_content ? { extra_content: (block as any).extra_content } : {})
+                  }
+>>>>>>> upstream/main
                 }
                 break;
             }
@@ -3766,6 +3985,7 @@ Read the team config to discover your teammates' names. Check the task list peri
                 )
                 .join("\n\n---\n\n");
 
+<<<<<<< HEAD
             return wrapMessagesInSystemReminder([
                 createUserMessage({
                     content: `The following skills were invoked in this session. Continue to follow these guidelines:\n\n${skillsContent}`,
@@ -3780,12 +4000,29 @@ Read the team config to discover your teammates' names. Check the task list peri
                         `${index + 1}. [${todo.status}] ${todo.content}`,
                 )
                 .join("\n");
+=======
+      return wrapMessagesInSystemReminder([
+        createUserMessage({
+          content: `The following skills were invoked in this session. Continue to follow these guidelines:\n\n${skillsContent}`,
+          isMeta: true,
+        }),
+      ])
+    }
+    case 'todo_reminder': {
+      if (isEnvTruthy(process.env.OPENCLAUDE_DISABLE_TOOL_REMINDERS)) {
+        return []
+      }
+      const todoItems = attachment.content
+        .map((todo, index) => `${index + 1}. [${todo.status}] ${todo.content}`)
+        .join('\n')
+>>>>>>> upstream/main
 
             let message = `The TodoWrite tool hasn't been used recently. If you're working on tasks that would benefit from tracking progress, consider using the TodoWrite tool to track progress. Also consider cleaning up the todo list if has become stale and no longer matches what you are working on. Only use it if it's relevant to the current work. This is just a gentle reminder - ignore if not applicable. Make sure that you NEVER mention this reminder to the user\n`;
             if (todoItems.length > 0) {
                 message += `\n\nHere are the existing contents of your todo list:\n\n[${todoItems}]`;
             }
 
+<<<<<<< HEAD
             return wrapMessagesInSystemReminder([
                 createUserMessage({
                     content: message,
@@ -3800,6 +4037,25 @@ Read the team config to discover your teammates' names. Check the task list peri
             const taskItems = attachment.content
                 .map((task) => `#${task.id}. [${task.status}] ${task.subject}`)
                 .join("\n");
+=======
+      return wrapMessagesInSystemReminder([
+        createUserMessage({
+          content: message,
+          isMeta: true,
+        }),
+      ])
+    }
+    case 'task_reminder': {
+      if (!isTodoV2Enabled()) {
+        return []
+      }
+      if (isEnvTruthy(process.env.OPENCLAUDE_DISABLE_TOOL_REMINDERS)) {
+        return []
+      }
+      const taskItems = attachment.content
+        .map(task => `#${task.id}. [${task.status}] ${task.subject}`)
+        .join('\n')
+>>>>>>> upstream/main
 
             let message = `The task tools haven't been used recently. If you're working on tasks that would benefit from tracking progress, consider using ${TASK_CREATE_TOOL_NAME} to add new tasks and ${TASK_UPDATE_TOOL_NAME} to update task status (set to in_progress when starting, completed when done). Also consider cleaning up the task list if it has become stale. Only use these if relevant to the current work. This is just a gentle reminder - ignore if not applicable. Make sure that you NEVER mention this reminder to the user\n`;
             if (taskItems.length > 0) {

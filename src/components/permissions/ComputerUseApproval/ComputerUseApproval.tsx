@@ -161,7 +161,11 @@ function ComputerUseTccPanel(t0) {
   }
   let t7;
   if ($[15] === Symbol.for("react.memo_cache_sentinel")) {
+<<<<<<< HEAD
     t7 = <Text dimColor={true}>Grant the missing permissions in System Settings, then select "Try again". macOS may require you to restart Kalt Code after granting Screen Recording.</Text>;
+=======
+    t7 = <Text dimColor={true}>Grant the missing permissions in System Settings, then select "Try again". macOS may require you to restart OpenClaude after granting Screen Recording.</Text>;
+>>>>>>> upstream/main
     $[15] = t7;
   } else {
     t7 = $[15];

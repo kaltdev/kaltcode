@@ -57,7 +57,11 @@ function SessionInfo(t0) {
   if (!remoteSessionUrl) {
     let t4;
     if ($[4] === Symbol.for("react.memo_cache_sentinel")) {
+<<<<<<< HEAD
       t4 = <Pane><Text color="warning">Not in remote mode. Start with `kalt-code --remote` to use this command.</Text><Text dimColor={true}>(press esc to close)</Text></Pane>;
+=======
+      t4 = <Pane><Text color="warning">Not in remote mode. Start with `openclaude --remote` to use this command.</Text><Text dimColor={true}>(press esc to close)</Text></Pane>;
+>>>>>>> upstream/main
       $[4] = t4;
     } else {
       t4 = $[4];

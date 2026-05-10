@@ -9,11 +9,6 @@
  * sdk/controlTypes.ts directly.
  */
 
-import type {
-  CallToolResult,
-  ToolAnnotations,
-} from '@modelcontextprotocol/sdk/types.js'
-
 // Control protocol types for SDK builders (bridge subpath consumers)
 /** @alpha */
 export type {
@@ -31,16 +26,28 @@ export type { Settings } from './sdk/settingsTypes.generated.js'
 export * from './sdk/toolTypes.js'
 
 // ============================================================================
-// Functions
+// Functions — re-exported from the real SDK implementation
 // ============================================================================
 
-import type {
-  SDKMessage,
-  SDKResultMessage,
-  SDKSessionInfo,
-  SDKUserMessage,
-} from './sdk/coreTypes.js'
-// Import types needed for function signatures
+// Re-export function implementations from ./sdk.js
+export {
+  AbortError,
+  tool,
+  createSdkMcpServer,
+  query,
+  unstable_v2_createSession,
+  unstable_v2_resumeSession,
+  unstable_v2_prompt,
+  getSessionMessages,
+  listSessions,
+  getSessionInfo,
+  renameSession,
+  tagSession,
+  forkSession,
+  deleteSession,
+} from './sdk/index.js'
+
+// Import types needed for @internal function signatures kept below
 import type {
   AnyZodRawShape,
   ForkSessionOptions,
@@ -51,7 +58,6 @@ import type {
   InternalOptions,
   InternalQuery,
   ListSessionsOptions,
-  McpSdkServerConfigWithInstance,
   Options,
   Query,
   SDKSession,
@@ -60,6 +66,13 @@ import type {
   SessionMessage,
   SessionMutationOptions,
 } from './sdk/runtimeTypes.js'
+
+import type {
+  SDKMessage,
+  SDKResultMessage,
+  SDKSessionInfo,
+  SDKUserMessage,
+} from './sdk/coreTypes.js'
 
 export type {
   ListSessionsOptions,
@@ -70,6 +83,7 @@ export type {
   SDKSessionInfo,
 }
 
+<<<<<<< HEAD
 export function tool<Schema extends AnyZodRawShape>(
   _name: string,
   _description: string,
@@ -272,6 +286,8 @@ export async function forkSession(
   throw new Error('forkSession is not implemented in the SDK')
 }
 
+=======
+>>>>>>> upstream/main
 // ============================================================================
 // Assistant daemon primitives (internal)
 // ============================================================================
@@ -356,15 +372,6 @@ export function watchScheduledTasks(_opts: {
 }
 
 /**
- * Format missed one-shot tasks into a prompt that asks the model to confirm
- * with the user (via AskUserQuestion) before executing.
- * @internal
- */
-export function buildMissedTaskNotification(_missed: CronTask[]): string {
-  throw new Error('not implemented')
-}
-
-/**
  * A user message typed on claude.ai, extracted from the bridge WS.
  * @internal
  */
@@ -442,7 +449,11 @@ export async function connectRemoteControl(
   throw new Error('not implemented')
 }
 
-// add exit reason types for removing the error within gracefulShutdown file 
-export type ExitReason = {
-  
-}
+// add exit reason types for removing the error within gracefulShutdown file
+export type ExitReason =
+  | 'clear'
+  | 'resume'
+  | 'logout'
+  | 'prompt_input_exit'
+  | 'other'
+  | 'bypass_permissions_disabled'

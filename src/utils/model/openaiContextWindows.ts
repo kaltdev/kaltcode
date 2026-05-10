@@ -1,36 +1,25 @@
 /**
- * openaiContextWindows.ts
- * Context window sizes for OpenAI-compatible models used via the shim.
- * Fixes: auto-compact and warnings using wrong 200k default for OpenAI models.
+ * Runtime overrides for OpenAI-compatible model limits.
  *
+<<<<<<< HEAD
  * When KALT_CODE_USE_OPENAI=1, getContextWindowForModel() falls through to
  * MODEL_CONTEXT_WINDOW_DEFAULT (200k). This causes the warning and blocking
  * thresholds to be set at 200k even for models like gpt-4o (128k) or llama3 (8k),
  * meaning users get no warning before hitting a hard API error.
  *
  * Prices in tokens as of April 2026 — update as needed.
+=======
+ * Built-in model limits, including legacy aliases, live in
+ * src/integrations/models. These helpers only preserve the documented JSON env
+ * override path for custom/private deployments.
+>>>>>>> upstream/main
  */
 
-const OPENAI_CONTEXT_WINDOWS: Record<string, number> = {
-  // OpenAI
-  'gpt-5.4':               1_050_000,
-  'gpt-5.4-mini':            400_000,
-  'gpt-5.4-nano':            400_000,
-  'gpt-4o':                   128_000,
-  'gpt-4o-mini':              128_000,
-  'gpt-4.1':                  1_047_576,
-  'gpt-4.1-mini':             1_047_576,
-  'gpt-4.1-nano':             1_047_576,
-  'gpt-4-turbo':              128_000,
-  'gpt-4':                     8_192,
-  'o1':                       200_000,
-  'o1-mini':                  128_000,
-  'o1-preview':               128_000,
-  'o1-pro':                   200_000,
-  'o3':                       200_000,
-  'o3-mini':                  200_000,
-  'o4-mini':                  200_000,
+type LimitEnvVar =
+  | 'CLAUDE_CODE_OPENAI_CONTEXT_WINDOWS'
+  | 'CLAUDE_CODE_OPENAI_MAX_OUTPUT_TOKENS'
 
+<<<<<<< HEAD
   // DeepSeek (V3: 128k context per official docs)
   'deepseek-chat':            128_000,
   'deepseek-reasoner':        128_000,
@@ -144,25 +133,130 @@ function lookupByModel<T>(table: Record<string, T>, model: string): T | undefine
   const sortedKeys = Object.keys(table).sort((a, b) => b.length - a.length)
   for (const key of sortedKeys) {
     if (model.startsWith(key)) return table[key]
+=======
+function readExternalLimits(
+  envVarName: LimitEnvVar,
+  processEnv: NodeJS.ProcessEnv,
+): Record<string, number> {
+  const raw = processEnv[envVarName]
+  if (!raw) {
+    return {}
   }
-  return undefined
+
+  try {
+    const parsed = JSON.parse(raw) as unknown
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return {}
+    }
+
+    return Object.fromEntries(
+      Object.entries(parsed)
+        .filter(
+          (entry): entry is [string, number] =>
+            typeof entry[0] === 'string' &&
+            typeof entry[1] === 'number' &&
+            Number.isFinite(entry[1]) &&
+            entry[1] > 0,
+        )
+        .map(([key, value]) => [key.trim(), value])
+        .filter(([key]) => key.length > 0),
+    )
+  } catch {
+    return {}
+>>>>>>> upstream/main
+  }
 }
 
-/**
- * Look up the context window for an OpenAI-compatible model.
- * Returns undefined if the model is not in the table.
- *
- * Falls back to prefix matching so dated variants like
- * "gpt-4o-2024-11-20" resolve to the base "gpt-4o" entry.
- */
-export function getOpenAIContextWindow(model: string): number | undefined {
-  return lookupByModel(OPENAI_CONTEXT_WINDOWS, model)
+function lookupExactByKey(
+  entries: Record<string, number>,
+  key: string | undefined,
+): number | undefined {
+  const normalizedKey = key?.trim()
+  if (!normalizedKey) {
+    return undefined
+  }
+
+  return entries[normalizedKey] ?? entries[normalizedKey.toLowerCase()]
 }
 
-/**
- * Look up the max output tokens for an OpenAI-compatible model.
- * Returns undefined if the model is not in the table.
- */
-export function getOpenAIMaxOutputTokens(model: string): number | undefined {
-  return lookupByModel(OPENAI_MAX_OUTPUT_TOKENS, model)
+function lookupPrefixByKey(
+  entries: Record<string, number>,
+  key: string | undefined,
+): number | undefined {
+  const normalizedKey = key?.trim()
+  if (!normalizedKey) {
+    return undefined
+  }
+
+  const prefixKey = Object.keys(entries)
+    .sort((left, right) => right.length - left.length)
+    .find(entryKey => normalizedKey.startsWith(entryKey))
+
+  return prefixKey ? entries[prefixKey] : undefined
+}
+
+function getOpenAIBaseUrlHost(processEnv: NodeJS.ProcessEnv): string | undefined {
+  const baseUrl =
+    processEnv.OPENAI_BASE_URL?.trim() || processEnv.OPENAI_API_BASE?.trim()
+  if (!baseUrl) {
+    return undefined
+  }
+
+  try {
+    return new URL(baseUrl).host
+  } catch {
+    return undefined
+  }
+}
+
+function lookupByModel(
+  entries: Record<string, number>,
+  model: string | undefined,
+  processEnv: NodeJS.ProcessEnv,
+): number | undefined {
+  const modelName = model?.trim() || processEnv.OPENAI_MODEL?.trim()
+  const baseUrlHost = getOpenAIBaseUrlHost(processEnv)
+  const hostQualifiedModel =
+    baseUrlHost && modelName ? `${baseUrlHost}:${modelName}` : undefined
+
+  return (
+    lookupExactByKey(entries, hostQualifiedModel) ??
+    lookupExactByKey(entries, modelName) ??
+    lookupPrefixByKey(entries, hostQualifiedModel) ??
+    lookupPrefixByKey(entries, modelName)
+  )
+}
+
+function lookupExternalLimit(
+  envVarName: LimitEnvVar,
+  model: string | undefined,
+  processEnv: NodeJS.ProcessEnv,
+): number | undefined {
+  return lookupByModel(
+    readExternalLimits(envVarName, processEnv),
+    model,
+    processEnv,
+  )
+}
+
+export function getOpenAIContextWindow(
+  model: string | undefined,
+  processEnv: NodeJS.ProcessEnv = process.env,
+): number | undefined {
+  return lookupExternalLimit(
+    'CLAUDE_CODE_OPENAI_CONTEXT_WINDOWS',
+    model,
+    processEnv,
+  )
+}
+
+export function getOpenAIMaxOutputTokens(
+  model: string | undefined,
+  processEnv: NodeJS.ProcessEnv = process.env,
+): number | undefined {
+  return lookupExternalLimit(
+    'CLAUDE_CODE_OPENAI_MAX_OUTPUT_TOKENS',
+    model,
+    processEnv,
+  )
 }

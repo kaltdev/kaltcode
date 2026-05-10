@@ -48,7 +48,11 @@ export function createMovedToPluginCommand({
             text: `This command has been moved to a plugin. Tell the user:
 
 1. To install the plugin, run:
+<<<<<<< HEAD
    kalt-code plugin install ${pluginName}@kalt-code-marketplace
+=======
+   openclaude plugin install ${pluginName}@claude-code-marketplace
+>>>>>>> upstream/main
 
 2. After installation, use /${pluginName}:${pluginCommand} to run this command
 

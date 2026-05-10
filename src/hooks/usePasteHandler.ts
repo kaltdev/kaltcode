@@ -35,6 +35,24 @@ type PasteHandlerProps = {
     ) => void;
 };
 
+export function shouldHandleInputAsPaste(options: {
+  hasTextPasteHandler: boolean
+  hasImagePasteHandler: boolean
+  inputLength: number
+  pastePending: boolean
+  hasImageFilePath: boolean
+  isFromPaste: boolean
+}): boolean {
+  return (
+    (options.hasTextPasteHandler &&
+      (options.inputLength > PASTE_THRESHOLD ||
+        options.pastePending ||
+        options.hasImageFilePath ||
+        options.isFromPaste)) ||
+    (options.hasImagePasteHandler && options.hasImageFilePath)
+  )
+}
+
 export function usePasteHandler({
     onPaste,
     onInput,
@@ -248,9 +266,63 @@ export function usePasteHandler({
         // The keypress parser sets isPasted=true for content within bracketed paste.
         const isFromPaste = event.keypress.isPasted;
 
+<<<<<<< HEAD
         // If this is pasted content, set isPasting state for UI feedback
         if (isFromPaste) {
             setIsPasting(true);
+=======
+    // Handle large pastes (>PASTE_THRESHOLD chars)
+    // Usually we get one or two input characters at a time. If we
+    // get more than the threshold, the user has probably pasted.
+    // Unfortunately node batches long pastes, so it's possible
+    // that we would see e.g. 1024 characters and then just a few
+    // more in the next frame that belong with the original paste.
+    // This batching number is not consistent.
+
+    // Handle potential image filenames (even if they're shorter than paste threshold)
+    // When dragging multiple images, they may come as newline-separated or
+    // space-separated paths. Split on spaces preceding absolute paths:
+    // - Unix: ` /` - Windows: ` C:\` etc.
+    const hasImageFilePath = input
+      .split(/ (?=\/|[A-Za-z]:\\)/)
+      .flatMap(part => part.split('\n'))
+      .some(line => isImageFilePath(line.trim()))
+
+    // Handle empty paste (clipboard image on macOS)
+    // When the user pastes an image with Cmd+V, the terminal sends an empty
+    // bracketed paste sequence. The keypress parser emits this as isPasted=true
+    // with empty input.
+    if (
+      isFromPaste &&
+      input.length === 0 &&
+      canFallbackToClipboardImage &&
+      onImagePaste
+    ) {
+      setIsPasting(true)
+      checkClipboardForImage()
+      // Reset isPasting since there's no text content to process
+      setIsPasting(false)
+      return
+    }
+
+    // Check if we should handle as paste (from bracketed paste, large input, or continuation)
+    const shouldHandleAsPaste = shouldHandleInputAsPaste({
+      hasTextPasteHandler: Boolean(onPaste),
+      hasImagePasteHandler: Boolean(onImagePaste),
+      inputLength: input.length,
+      pastePending: pastePendingRef.current,
+      hasImageFilePath,
+      isFromPaste,
+    })
+
+    if (shouldHandleAsPaste) {
+      setIsPasting(true)
+      pastePendingRef.current = true
+      setPasteState(({ chunks, timeoutId }) => {
+        return {
+          chunks: [...chunks, input],
+          timeoutId: resetPasteTimeout(timeoutId),
+>>>>>>> upstream/main
         }
 
         // Handle large pastes (>PASTE_THRESHOLD chars)

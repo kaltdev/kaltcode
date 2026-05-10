@@ -83,7 +83,11 @@ export async function autoModeCritiqueHandler(options: {
     process.stdout.write(
       'No custom auto mode rules found.\n\n' +
         'Add rules to your settings file under autoMode.{allow, soft_deny, environment}.\n' +
+<<<<<<< HEAD
         'Run `kalt-code auto-mode defaults` to see the default rules for reference.\n',
+=======
+        'Run `openclaude auto-mode defaults` to see the default rules for reference.\n',
+>>>>>>> upstream/main
     )
     return
   }

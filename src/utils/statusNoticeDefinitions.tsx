@@ -90,7 +90,11 @@ const apiKeyConflictNotice: StatusNoticeDefinition = {
         <Text color="warning">{figures.warning}</Text>
         <Text color="warning">
           Auth conflict: Using {apiKeySource} instead of Anthropic Console key.
+<<<<<<< HEAD
           Either unset {apiKeySource}, or run `kalt-code /logout`.
+=======
+          Either unset {apiKeySource}, or run `openclaude /logout`.
+>>>>>>> upstream/main
         </Text>
       </Box>;
   }

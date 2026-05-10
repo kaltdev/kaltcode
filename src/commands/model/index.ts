@@ -6,7 +6,11 @@ export default {
   type: 'local-jsx',
   name: 'model',
   get description() {
+<<<<<<< HEAD
     return `Set the AI model for Kalt Code (currently ${renderModelName(getMainLoopModel())})`
+=======
+    return `Set the AI model for OpenClaude (currently ${renderModelName(getMainLoopModel())})`
+>>>>>>> upstream/main
   },
   argumentHint: '[model]',
   get immediate() {

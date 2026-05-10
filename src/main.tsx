@@ -35,6 +35,7 @@ import type { Root } from './ink.js';
 import { launchRepl } from './replLauncher.js';
 import { hasGrowthBookEnvOverride, initializeGrowthBook, refreshGrowthBookAfterAuthChange } from './services/analytics/growthbook.js';
 import { fetchBootstrapData } from './services/api/bootstrap.js';
+import { refreshStartupDiscoveryForActiveRoute } from './integrations/discoveryService.js';
 import { prefetchOllamaModels } from './utils/model/ollamaModels.js';
 import { type DownloadResult, downloadSessionFiles, type FilesApiConfig, parseFileSpecs } from './services/api/filesApi.js';
 import { prefetchPassesEligibility } from './services/api/referral.js';
@@ -158,6 +159,7 @@ import { getCwd } from 'src/utils/cwd.js';
 import { logForDebugging, setHasFormattedOutput } from 'src/utils/debug.js';
 import { errorMessage, getErrnoCode, isENOENT, TeleportOperationError, toError } from 'src/utils/errors.js';
 import { getFsImplementation, safeResolvePath } from 'src/utils/fsOperations.js';
+import { isInteractiveSession } from 'src/utils/interactivity.js';
 import { gracefulShutdown, gracefulShutdownSync } from 'src/utils/gracefulShutdown.js';
 import { setAllHookEventsEnabled } from 'src/utils/hooks/hookEvents.js';
 import { refreshModelCapabilities } from 'src/utils/model/modelCapabilities.js';
@@ -583,6 +585,7 @@ const _pendingSSH: PendingSSH | undefined = feature('SSH_REMOTE') ? {
   local: false,
   extraCliArgs: []
 } : undefined;
+
 export async function main() {
   profileCheckpoint('main_function_start');
 
@@ -785,7 +788,11 @@ export async function main() {
       // Headless (-p) mode is not supported with SSH in v1 — reject early
       // so the flag doesn't silently cause local execution.
       if (rest.includes('-p') || rest.includes('--print')) {
+<<<<<<< HEAD
         process.stderr.write('Error: headless (-p/--print) mode is not supported with kalt-code ssh\n');
+=======
+        process.stderr.write('Error: headless (-p/--print) mode is not supported with openclaude ssh\n');
+>>>>>>> upstream/main
         gracefulShutdownSync(1);
         return;
       }
@@ -795,13 +802,14 @@ export async function main() {
     }
   }
 
-  // Check for -p/--print and --init-only flags early to set isInteractiveSession before init()
+  // Check for interactivity early to set isInteractiveSession before init()
   // This is needed because telemetry initialization calls auth functions that need this flag
-  const cliArgs = process.argv.slice(2);
-  const hasPrintFlag = cliArgs.includes('-p') || cliArgs.includes('--print');
-  const hasInitOnlyFlag = cliArgs.includes('--init-only');
-  const hasSdkUrl = cliArgs.some(arg => arg.startsWith('--sdk-url'));
-  const isNonInteractive = hasPrintFlag || hasInitOnlyFlag || hasSdkUrl || !process.stdout.isTTY;
+  const isInteractive = isInteractiveSession({
+    stdoutIsTTY: process.stdout.isTTY,
+    args: process.argv.slice(2),
+    env: process.env,
+  });
+  const isNonInteractive = !isInteractive;
 
   // Stop capturing early input for non-interactive modes
   if (isNonInteractive) {
@@ -809,7 +817,6 @@ export async function main() {
   }
 
   // Set simplified tracking fields
-  const isInteractive = !isNonInteractive;
   setIsInteractive(isInteractive);
 
   // Initialize entrypoint based on mode - needs to be set before any event is logged
@@ -959,7 +966,11 @@ async function run(): Promise<CommanderCommand> {
     }
     profileCheckpoint('preAction_after_settings_sync');
   });
+<<<<<<< HEAD
   program.name('kalt-code').description(`Kalt Code - starts an interactive session by default, use -p/--print for non-interactive output`).argument('[prompt]', 'Your prompt', String)
+=======
+  program.name('openclaude').description(`OpenClaude - starts an interactive session by default, use -p/--print for non-interactive output`).argument('[prompt]', 'Your prompt', String)
+>>>>>>> upstream/main
   // Subcommands inherit helpOption via commander's copyInheritedSettings —
   // setting it once here covers mcp, plugin, auth, and all other subcommands.
   .helpOption('-h, --help', 'Display help for command').option('-d, --debug [filter]', 'Enable debug mode with optional category filtering (e.g., "api,hooks" or "!1p,!file")', (_value: string | true) => {
@@ -1013,7 +1024,11 @@ async function run(): Promise<CommanderCommand> {
     if (prompt === 'code') {
       logEvent('tengu_code_prompt_ignored', {});
       // biome-ignore lint/suspicious/noConsole:: intentional console output
+<<<<<<< HEAD
       console.warn(chalk.yellow('Tip: You can launch Kalt Code with just `kalt-code`'));
+=======
+      console.warn(chalk.yellow('Tip: You can launch OpenClaude with just `openclaude`'));
+>>>>>>> upstream/main
       prompt = undefined;
     }
 
@@ -2335,6 +2350,7 @@ async function run(): Promise<CommanderCommand> {
     const skipStartupPrefetches = isBareMode() || bgRefreshThrottleMs > 0 && Date.now() - lastPrefetched < bgRefreshThrottleMs;
     // Always prefetch Ollama models (not gated by throttle — local server, fast & cheap)
     prefetchOllamaModels();
+    void refreshStartupDiscoveryForActiveRoute();
 
     if (!skipStartupPrefetches) {
       const lastPrefetchedInfo = lastPrefetched > 0 ? ` last ran ${Math.round((Date.now() - lastPrefetched) / 1000)}s ago` : '';
@@ -3275,7 +3291,11 @@ async function run(): Promise<CommanderCommand> {
           }
           // The daemon needs a few seconds to spin up its worker and
           // establish a bridge session before discovery will find it.
+<<<<<<< HEAD
           return await exitWithMessage(root, `Assistant installed in ${installedDir}. The daemon is starting up — run \`kalt-code assistant\` again in a few seconds to connect.`, {
+=======
+          return await exitWithMessage(root, `Assistant installed in ${installedDir}. The daemon is starting up — run \`openclaude assistant\` again in a few seconds to connect.`, {
+>>>>>>> upstream/main
             exitCode: 0,
             beforeExit: () => gracefulShutdown(0)
           });
@@ -3401,7 +3421,11 @@ async function run(): Promise<CommanderCommand> {
         // Check if TUI mode is enabled - description is only optional in TUI mode
         const isRemoteTuiEnabled = getFeatureValue_CACHED_MAY_BE_STALE('tengu_remote_backend', false);
         if (!isRemoteTuiEnabled && !hasInitialPrompt) {
+<<<<<<< HEAD
           return await exitWithError(root, 'Error: --remote requires a description.\nUsage: kalt-code --remote "your task description"', () => gracefulShutdown(1));
+=======
+          return await exitWithError(root, 'Error: --remote requires a description.\nUsage: openclaude --remote "your task description"', () => gracefulShutdown(1));
+>>>>>>> upstream/main
         }
         logEvent('tengu_remote_create_session', {
           has_initial_prompt: String(hasInitialPrompt) as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS
@@ -3425,7 +3449,11 @@ async function run(): Promise<CommanderCommand> {
           // Original behavior: print session info and exit
           process.stdout.write(`Created remote session: ${createdSession.title}\n`);
           process.stdout.write(`View: ${getRemoteSessionUrl(createdSession.id)}?m=0\n`);
+<<<<<<< HEAD
           process.stdout.write(`Resume with: kalt-code --teleport ${createdSession.id}\n`);
+=======
+          process.stdout.write(`Resume with: openclaude --teleport ${createdSession.id}\n`);
+>>>>>>> upstream/main
           await gracefulShutdown(0);
           process.exit(0);
         }
@@ -3537,7 +3565,11 @@ async function run(): Promise<CommanderCommand> {
                   }
                 } else {
                   // No known paths - show original error
+<<<<<<< HEAD
                   throw new TeleportOperationError(`You must run kalt-code --teleport ${teleport} from a checkout of ${sessionRepo}.`, chalk.red(`You must run kalt-code --teleport ${teleport} from a checkout of ${chalk.bold(sessionRepo)}.\n`));
+=======
+                  throw new TeleportOperationError(`You must run openclaude --teleport ${teleport} from a checkout of ${sessionRepo}.`, chalk.red(`You must run openclaude --teleport ${teleport} from a checkout of ${chalk.bold(sessionRepo)}.\n`));
+>>>>>>> upstream/main
                 }
               }
             } else if (repoValidation.status === 'error') {
@@ -3789,7 +3821,11 @@ async function run(): Promise<CommanderCommand> {
         pendingHookMessages
       }, renderAndRun);
     }
+<<<<<<< HEAD
   }).version(`${MACRO.DISPLAY_VERSION ?? MACRO.VERSION} (Kalt Code)`, '-v, --version', 'Output the version number');
+=======
+  }).version(`${MACRO.DISPLAY_VERSION ?? MACRO.VERSION} (OpenClaude)`, '-v, --version', 'Output the version number');
+>>>>>>> upstream/main
 
   // Worktree flags
   program.option('-w, --worktree [name]', 'Create a new git worktree for this session (optionally specify a name)');
@@ -3876,7 +3912,11 @@ async function run(): Promise<CommanderCommand> {
   // kalt-code mcp
 
   const mcp = program.command('mcp').description('Configure and manage MCP servers').configureHelp(createSortedHelpConfig()).enablePositionalOptions();
+<<<<<<< HEAD
   mcp.command('serve').description(`Start the Kalt Code MCP server`).option('-d, --debug', 'Enable debug mode', () => true).option('--verbose', 'Override verbose mode setting from config', () => true).action(async ({
+=======
+  mcp.command('serve').description(`Start the OpenClaude MCP server`).option('-d, --debug', 'Enable debug mode', () => true).option('--verbose', 'Override verbose mode setting from config', () => true).action(async ({
+>>>>>>> upstream/main
     debug,
     verbose
   }: {
@@ -3944,7 +3984,11 @@ async function run(): Promise<CommanderCommand> {
 
   // kalt-code server
   if (feature('DIRECT_CONNECT')) {
+<<<<<<< HEAD
     program.command('server').description('Start a Kalt Code session server').option('--port <number>', 'HTTP port', '0').option('--host <string>', 'Bind address', '0.0.0.0').option('--auth-token <token>', 'Bearer token for auth').option('--unix <path>', 'Listen on a unix domain socket').option('--workspace <dir>', 'Default working directory for sessions that do not specify cwd').option('--idle-timeout <ms>', 'Idle timeout for detached sessions in ms (0 = never expire)', '600000').option('--max-sessions <n>', 'Maximum concurrent sessions (0 = unlimited)', '32').action(async (opts: {
+=======
+    program.command('server').description('Start an OpenClaude session server').option('--port <number>', 'HTTP port', '0').option('--host <string>', 'Bind address', '0.0.0.0').option('--auth-token <token>', 'Bearer token for auth').option('--unix <path>', 'Listen on a unix domain socket').option('--workspace <dir>', 'Default working directory for sessions that do not specify cwd').option('--idle-timeout <ms>', 'Idle timeout for detached sessions in ms (0 = never expire)', '600000').option('--max-sessions <n>', 'Maximum concurrent sessions (0 = unlimited)', '32').action(async (opts: {
+>>>>>>> upstream/main
       port: string;
       host: string;
       authToken?: string;
@@ -3978,7 +4022,11 @@ async function run(): Promise<CommanderCommand> {
       } = await import('./server/lockfile.js');
       const existing = await probeRunningServer();
       if (existing) {
+<<<<<<< HEAD
         process.stderr.write(`A kalt-code server is already running (pid ${existing.pid}) at ${existing.httpUrl}\n`);
+=======
+        process.stderr.write(`An OpenClaude server is already running (pid ${existing.pid}) at ${existing.httpUrl}\n`);
+>>>>>>> upstream/main
         process.exit(1);
       }
       const authToken = opts.authToken ?? `sk-ant-cc-${randomBytes(16).toString('base64url')}`;
@@ -4028,11 +4076,19 @@ async function run(): Promise<CommanderCommand> {
   // this action it means the argv rewrite didn't fire (e.g. user ran
   // `kalt-code ssh` with no host) — just print usage.
   if (feature('SSH_REMOTE')) {
+<<<<<<< HEAD
     program.command('ssh <host> [dir]').description('Run Kalt Code on a remote host over SSH. Deploys the binary and ' + 'tunnels API auth back through your local machine — no remote setup needed.').option('--permission-mode <mode>', 'Permission mode for the remote session').option('--dangerously-skip-permissions', 'Skip all permission prompts on the remote (dangerous)').option('--local', 'e2e test mode — spawn the child CLI locally (skip ssh/deploy). ' + 'Exercises the auth proxy and unix-socket plumbing without a remote host.').action(async () => {
       // Argv rewriting in main() should have consumed `ssh <host>` before
       // commander runs. Reaching here means host was missing or the
       // rewrite predicate didn't match.
       process.stderr.write('Usage: kalt-code ssh <user@host | ssh-config-alias> [dir]\n\n' + "Runs Kalt Code on a remote Linux host. You don't need to install\n" + 'anything on the remote or run `kalt-code auth login` there — the binary is\n' + 'deployed over SSH and API auth tunnels back through your local machine.\n');
+=======
+    program.command('ssh <host> [dir]').description('Run OpenClaude on a remote host over SSH. Deploys the binary and ' + 'tunnels API auth back through your local machine — no remote setup needed.').option('--permission-mode <mode>', 'Permission mode for the remote session').option('--dangerously-skip-permissions', 'Skip all permission prompts on the remote (dangerous)').option('--local', 'e2e test mode — spawn the child CLI locally (skip ssh/deploy). ' + 'Exercises the auth proxy and unix-socket plumbing without a remote host.').action(async () => {
+      // Argv rewriting in main() should have consumed `ssh <host>` before
+      // commander runs. Reaching here means host was missing or the
+      // rewrite predicate didn't match.
+      process.stderr.write('Usage: openclaude ssh <user@host | ssh-config-alias> [dir]\n\n' + "Runs OpenClaude on a remote Linux host. You don't need to install\n" + 'anything on the remote or run `openclaude auth login` there — the binary is\n' + 'deployed over SSH and API auth tunnels back through your local machine.\n');
+>>>>>>> upstream/main
       process.exit(1);
     });
   }
@@ -4041,7 +4097,11 @@ async function run(): Promise<CommanderCommand> {
   // Interactive mode (without -p) is handled by early argv rewriting in main()
   // which redirects to the main command with full TUI support.
   if (feature('DIRECT_CONNECT')) {
+<<<<<<< HEAD
     program.command('open <cc-url>').description('Connect to a Kalt Code server (internal — use cc:// URLs)').option('-p, --print [prompt]', 'Print mode (headless)').option('--output-format <format>', 'Output format: text, json, stream-json', 'text').action(async (ccUrl: string, opts: {
+=======
+    program.command('open <cc-url>').description('Connect to an OpenClaude server (internal — use cc:// URLs)').option('-p, --print [prompt]', 'Print mode (headless)').option('--output-format <format>', 'Output format: text, json, stream-json', 'text').action(async (ccUrl: string, opts: {
+>>>>>>> upstream/main
       print?: string | boolean;
       outputFormat: string;
     }) => {
@@ -4130,7 +4190,11 @@ async function run(): Promise<CommanderCommand> {
   const coworkOption = () => new Option('--cowork', 'Use cowork_plugins directory').hideHelp();
 
   // Plugin validate command
+<<<<<<< HEAD
   const pluginCmd = program.command('plugin').alias('plugins').description('Manage Kalt Code plugins').configureHelp(createSortedHelpConfig());
+=======
+  const pluginCmd = program.command('plugin').alias('plugins').description('Manage OpenClaude plugins').configureHelp(createSortedHelpConfig());
+>>>>>>> upstream/main
   pluginCmd.command('validate <path>').description('Validate a plugin or marketplace manifest').addOption(coworkOption()).action(async (manifestPath: string, options: {
     cowork?: boolean;
   }) => {
@@ -4153,8 +4217,13 @@ async function run(): Promise<CommanderCommand> {
   });
 
   // Marketplace subcommands
+<<<<<<< HEAD
   const marketplaceCmd = pluginCmd.command('marketplace').description('Manage Kalt Code marketplaces').configureHelp(createSortedHelpConfig());
   marketplaceCmd.command('add <source>').description('Add a marketplace from a URL, path, or GitHub repo').addOption(coworkOption()).option('--sparse <paths...>', 'Limit checkout to specific directories via git sparse-checkout (for monorepos). Example: --sparse .kalt-code-plugin plugins').option('--scope <scope>', 'Where to declare the marketplace: user (default), project, or local').action(async (source: string, options: {
+=======
+  const marketplaceCmd = pluginCmd.command('marketplace').description('Manage OpenClaude marketplaces').configureHelp(createSortedHelpConfig());
+  marketplaceCmd.command('add <source>').description('Add a marketplace from a URL, path, or GitHub repo').addOption(coworkOption()).option('--sparse <paths...>', 'Limit checkout to specific directories via git sparse-checkout (for monorepos). Example: --sparse .claude-plugin plugins').option('--scope <scope>', 'Where to declare the marketplace: user (default), project, or local').action(async (source: string, options: {
+>>>>>>> upstream/main
     cowork?: boolean;
     sparse?: string[];
     scope?: string;
@@ -4322,13 +4391,21 @@ async function run(): Promise<CommanderCommand> {
       // before commander runs. Reaching here means a root flag came first
       // (e.g. `--debug assistant`) and the position-0 predicate
       // didn't match. Print usage like the ssh stub does.
+<<<<<<< HEAD
       process.stderr.write('Usage: kalt-code assistant [sessionId]\n\n' + 'Attach the REPL as a viewer client to a running bridge session.\n' + 'Omit sessionId to discover and pick from available sessions.\n');
+=======
+      process.stderr.write('Usage: openclaude assistant [sessionId]\n\n' + 'Attach the REPL as a viewer client to a running bridge session.\n' + 'Omit sessionId to discover and pick from available sessions.\n');
+>>>>>>> upstream/main
       process.exit(1);
     });
   }
 
   // Doctor command - check installation health
+<<<<<<< HEAD
   program.command('doctor').description('Check the health of your Kalt Code auto-updater. Note: The workspace trust dialog is skipped and stdio servers from .mcp.json are spawned for health checks. Only use this command in directories you trust.').action(async () => {
+=======
+  program.command('doctor').description('Check the health of your OpenClaude auto-updater. Note: The workspace trust dialog is skipped and stdio servers from .mcp.json are spawned for health checks. Only use this command in directories you trust.').action(async () => {
+>>>>>>> upstream/main
     const [{
       doctorHandler
     }, {
@@ -4376,8 +4453,13 @@ async function run(): Promise<CommanderCommand> {
     });
   }
 
+<<<<<<< HEAD
   // kalt-code install
   program.command('install [target]').description('Install Kalt Code native build. Use [target] to specify version (stable, latest, or specific version)').option('--force', 'Force installation even if already installed').action(async (target: string | undefined, options: {
+=======
+  // claude install
+  program.command('install [target]').description('Install OpenClaude native build. Use [target] to specify version (stable, latest, or specific version)').option('--force', 'Force installation even if already installed').action(async (target: string | undefined, options: {
+>>>>>>> upstream/main
     force?: boolean;
   }) => {
     const {

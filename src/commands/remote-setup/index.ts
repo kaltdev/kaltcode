@@ -6,7 +6,11 @@ const web = {
   type: 'local-jsx',
   name: 'web-setup',
   description:
+<<<<<<< HEAD
     'Setup Kalt Code on the web (requires connecting your GitHub account)',
+=======
+    'Setup OpenClaude on the web (requires connecting your GitHub account)',
+>>>>>>> upstream/main
   availability: ['claude-ai'],
   isEnabled: () =>
     getFeatureValue_CACHED_MAY_BE_STALE('tengu_cobalt_lantern', false) &&

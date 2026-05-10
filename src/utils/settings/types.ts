@@ -27,6 +27,7 @@ export {
 
 // Also import for use within this file
 import { type HookCommand, HooksSchema } from '../../schemas/hooks.js'
+import { AutoFixConfigSchema } from '../../services/autoFix/autoFixConfig.js'
 import { count } from '../array.js'
 
 /**
@@ -68,6 +69,12 @@ export const PermissionsSchema = lazySchema(() =>
         .enum(['disable'])
         .optional()
         .describe('Disable the ability to bypass permission prompts'),
+      allowBypassPermissionsMode: z
+        .boolean()
+        .optional()
+        .describe(
+          'Allow bypass permissions mode to appear in the mode list without requiring the CLI flag',
+        ),
       ...(feature('TRANSCRIPT_CLASSIFIER')
         ? {
             disableAutoMode: z
@@ -435,6 +442,12 @@ export const SettingsSchema = lazySchema(() =>
       hooks: HooksSchema()
         .optional()
         .describe('Custom commands to run before/after tool executions'),
+      autoFix: AutoFixConfigSchema
+        .optional()
+        .describe(
+          'Auto-fix configuration: automatically run lint/test after AI file edits ' +
+          'and feed errors back for self-repair.',
+        ),
       worktree: z
         .object({
           symlinkDirectories: z
@@ -701,11 +714,7 @@ export const SettingsSchema = lazySchema(() =>
             'enabled automatically for supported models.',
         ),
       effortLevel: z
-        .enum(
-          process.env.USER_TYPE === 'ant'
-            ? ['low', 'medium', 'high', 'max']
-            : ['low', 'medium', 'high'],
-        )
+        .enum(['low', 'medium', 'high', 'max'])
         .optional()
         .catch(undefined)
         .describe('Persisted effort level for supported models.'),
@@ -847,7 +856,11 @@ export const SettingsSchema = lazySchema(() =>
         .optional()
         .describe(
           'Custom directory for plan files, relative to project root. ' +
+<<<<<<< HEAD
             'If not set, defaults to ~/.kalt-code/plans/',
+=======
+            'If not set, defaults to ~/.openclaude/plans/',
+>>>>>>> upstream/main
         ),
       ...(process.env.USER_TYPE === 'ant'
         ? {
@@ -1075,10 +1088,17 @@ export const SettingsSchema = lazySchema(() =>
         .array(z.string())
         .optional()
         .describe(
+<<<<<<< HEAD
           'Glob patterns or absolute paths of KALT_CODE.md files to exclude from loading. ' +
             'Patterns are matched against absolute file paths using picomatch. ' +
             'Only applies to User, Project, and Local memory types (Managed/policy files cannot be excluded). ' +
             'Examples: "/home/user/monorepo/KALT_CODE.md", "**/code/KALT_CODE.md", "**/some-dir/.kalt-code/rules/**"',
+=======
+          'Glob patterns or absolute paths of AGENTS.md/CLAUDE.md files to exclude from loading. ' +
+            'Patterns are matched against absolute file paths using picomatch. ' +
+            'Only applies to User, Project, and Local memory types (Managed/policy files cannot be excluded). ' +
+            'Examples: "/home/user/monorepo/AGENTS.md", "**/code/CLAUDE.md", "**/some-dir/.claude/rules/**"',
+>>>>>>> upstream/main
         ),
       pluginTrustMessage: z
         .string()

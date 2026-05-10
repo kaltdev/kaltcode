@@ -31,6 +31,7 @@ import { normalizePathForConfigKey } from './path.js'
 import { getEssentialTrafficOnlyReason } from './privacyLevel.js'
 import { getManagedFilePath } from './settings/managedPath.js'
 import type { ThemeSetting } from './theme.js'
+import { PRIMARY_PROJECT_INSTRUCTION_FILE } from './projectInstructions.js'
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const teamMemPaths = feature('TEAMMEM')
@@ -178,15 +179,27 @@ export type EditorMode = 'emacs' | (typeof EDITOR_MODES)[number]
 
 export type DiffTool = 'terminal' | 'auto'
 
+export type ShowCacheStatsMode = 'off' | 'compact' | 'full'
+export const SHOW_CACHE_STATS_MODES = ['off', 'compact', 'full'] as const satisfies readonly ShowCacheStatsMode[]
+
 export type OutputStyle = string
+
+export type Providers = string
+export type OpenAICompatibleApiFormat = 'chat_completions' | 'responses'
+export type OpenAICompatibleAuthScheme = 'bearer' | 'raw'
 
 export type ProviderProfile = {
   id: string
   name: string
-  provider: 'openai' | 'anthropic'
+  provider: Providers
   baseUrl: string
   model: string
   apiKey?: string
+  apiFormat?: OpenAICompatibleApiFormat
+  authHeader?: string
+  authScheme?: OpenAICompatibleAuthScheme
+  authHeaderValue?: string
+  customHeaders?: Record<string, string>
 }
 
 export type GlobalConfig = {
@@ -241,7 +254,13 @@ export type GlobalConfig = {
   bypassPermissionsModeAccepted?: boolean
   hasUsedBackslashReturn?: boolean
   autoCompactEnabled: boolean // Controls whether auto-compact is enabled
+  toolHistoryCompressionEnabled: boolean // Compress old tool_result content for small-context providers
   showTurnDuration: boolean // Controls whether to show turn duration message (e.g., "Cooked for 1m 6s")
+  // Controls whether to show per-query cache hit/miss stats at the end of each turn.
+  // 'off'     — no display
+  // 'compact' — one-line summary (e.g. "[Cache: 1.2k read • hit 12%]")
+  // 'full'    — breakdown (read / created / hit-rate) per query
+  showCacheStats: ShowCacheStatsMode
   /**
    * @deprecated Use settings.env instead.
    */
@@ -602,6 +621,15 @@ export type GlobalConfig = {
   // CURRENT_MIGRATION_VERSION, runMigrations() skips all sync migrations
   // (avoiding 11× saveGlobalConfig lock+re-read on every startup).
   migrationVersion?: number
+
+  // Knowledge Graph configuration
+  knowledgeGraphEnabled: boolean
+
+  // Startup splash logo color scheme — set via /logo. See
+  // src/components/StartupScreen.palettes.ts for valid values. Stored as a
+  // plain string (validated on read) to avoid pulling a UI module into the
+  // config layer. Falls back to 'sunset' if missing or unrecognized.
+  logoColor?: string
 }
 
 /**
@@ -610,7 +638,7 @@ export type GlobalConfig = {
  * a factory gives fresh refs at zero clone cost.
  */
 function createDefaultGlobalConfig(): GlobalConfig {
-  return {
+  const config: GlobalConfig = {
     numStartups: 0,
     installMethod: undefined,
     autoUpdates: undefined,
@@ -619,7 +647,9 @@ function createDefaultGlobalConfig(): GlobalConfig {
     verbose: false,
     editorMode: 'normal',
     autoCompactEnabled: true,
+    toolHistoryCompressionEnabled: true,
     showTurnDuration: true,
+    showCacheStats: 'compact',
     hasSeenTasksHint: false,
     hasUsedStash: false,
     hasUsedBackgroundTask: false,
@@ -648,7 +678,9 @@ function createDefaultGlobalConfig(): GlobalConfig {
     copyFullResponse: false,
     providerProfiles: [],
     openaiAdditionalModelOptionsCacheByProfile: {},
+    knowledgeGraphEnabled: true,
   }
+  return config
 }
 
 export const DEFAULT_GLOBAL_CONFIG: GlobalConfig = createDefaultGlobalConfig()
@@ -665,7 +697,9 @@ export const GLOBAL_CONFIG_KEYS = [
   'editorMode',
   'hasUsedBackslashReturn',
   'autoCompactEnabled',
+  'toolHistoryCompressionEnabled',
   'showTurnDuration',
+  'showCacheStats',
   'diffTool',
   'env',
   'tipsHistory',
@@ -693,6 +727,8 @@ export const GLOBAL_CONFIG_KEYS = [
   'prStatusFooterEnabled',
   'remoteControlAtStartup',
   'remoteDialogSeen',
+  'knowledgeGraphEnabled',
+  'logoColor',
 ] as const
 
 export type GlobalConfigKey = (typeof GLOBAL_CONFIG_KEYS)[number]
@@ -794,6 +830,7 @@ export function isPathTrusted(dir: string): boolean {
 const TEST_GLOBAL_CONFIG_FOR_TESTING: GlobalConfig = {
   ...DEFAULT_GLOBAL_CONFIG,
   autoUpdates: false,
+  knowledgeGraphEnabled: true,
 }
 const TEST_PROJECT_CONFIG_FOR_TESTING: ProjectConfig = {
   ...DEFAULT_PROJECT_CONFIG,
@@ -915,7 +952,11 @@ let configCacheHits = 0
 let configCacheMisses = 0
 // Session-total count of actual disk writes to the global config file.
 // Exposed for internal-only dev diagnostics (see inc-4552) so anomalous write
+<<<<<<< HEAD
 // rates surface in the UI before they corrupt ~/.kalt-code.json.
+=======
+// rates surface in the UI before they corrupt ~/.openclaude.json.
+>>>>>>> upstream/main
 let globalConfigWriteCount = 0
 
 export function getGlobalConfigWriteCount(): number {
@@ -1254,7 +1295,11 @@ function saveConfigWithLock<A extends object>(
     const currentConfig = getConfig(file, createDefault)
     if (file === getGlobalClaudeFile() && wouldLoseAuthState(currentConfig)) {
       logForDebugging(
+<<<<<<< HEAD
         'saveConfigWithLock: re-read config is missing auth that cache has; refusing to write to avoid wiping ~/.kalt-code.json. See GH #3117.',
+=======
+        'saveConfigWithLock: re-read config is missing auth that cache has; refusing to write to avoid wiping ~/.openclaude.json. See GH #3117.',
+>>>>>>> upstream/main
         { level: 'error' },
       )
       logEvent('tengu_config_auth_loss_prevented', {})
@@ -1823,7 +1868,11 @@ export function getMemoryPath(memoryType: MemoryType): string {
     case 'Local':
       return join(cwd, 'CLAUDE.local.md')
     case 'Project':
+<<<<<<< HEAD
       return join(cwd, 'KALT_CODE.md')
+=======
+      return join(cwd, PRIMARY_PROJECT_INSTRUCTION_FILE)
+>>>>>>> upstream/main
     case 'Managed':
       return join(getManagedFilePath(), 'KALT_CODE.md')
     case 'AutoMem':

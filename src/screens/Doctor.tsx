@@ -222,7 +222,11 @@ export function Doctor(t0) {
   let t7;
   if ($[11] !== onDone) {
     t7 = () => {
+<<<<<<< HEAD
       onDone("Kalt Code diagnostics dismissed", {
+=======
+      onDone("OpenClaude diagnostics dismissed", {
+>>>>>>> upstream/main
         display: "system"
       });
     };

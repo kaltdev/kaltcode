@@ -1,9 +1,9 @@
 import memoize from 'lodash-es/memoize.js'
-import { join } from 'path'
 import {
   getCurrentProjectConfig,
   saveCurrentProjectConfig,
 } from './utils/config.js'
+<<<<<<< HEAD
 import { getCwd } from './utils/cwd.js'
 import { isDirEmpty } from './utils/file.js'
 import { getFsImplementation } from './utils/fsOperations.js'
@@ -45,6 +45,14 @@ export function isProjectOnboardingComplete(): boolean {
     .filter(({ isCompletable, isEnabled }) => isCompletable && isEnabled)
     .every(({ isComplete }) => isComplete)
 }
+=======
+export {
+  getSteps,
+  isProjectOnboardingComplete,
+  type Step,
+} from './projectOnboardingSteps.js'
+import { isProjectOnboardingComplete } from './projectOnboardingSteps.js'
+>>>>>>> upstream/main
 
 export function maybeMarkProjectOnboardingComplete(): void {
   // Short-circuit on cached config — isProjectOnboardingComplete() hits

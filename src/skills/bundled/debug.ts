@@ -63,7 +63,11 @@ export function registerDebugSkill(): void {
 
 Debug logging was OFF for this session until now. Nothing prior to this /debug invocation was captured.
 
+<<<<<<< HEAD
 Tell the user that debug logging is now active at \`${debugLogPath}\`, ask them to reproduce the issue, then re-read the log. If they can't reproduce, they can also restart with \`kalt-code --debug\` to capture logs from startup.
+=======
+Tell the user that debug logging is now active at \`${debugLogPath}\`, ask them to reproduce the issue, then re-read the log. If they can't reproduce, they can also restart with \`openclaude --debug\` to capture logs from startup.
+>>>>>>> upstream/main
 `
 
       const prompt = `# Debug Skill

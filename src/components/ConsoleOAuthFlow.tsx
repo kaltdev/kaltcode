@@ -12,7 +12,7 @@ import { OAuthService } from '../services/oauth/index.js';
 import { getOauthAccountInfo, validateForceLoginOrg } from '../utils/auth.js';
 import { logError } from '../utils/log.js';
 import { getSettings_DEPRECATED } from '../utils/settings/settings.js';
-import { ProviderWizard } from '../commands/provider/provider.js';
+import { ProviderManager } from './ProviderManager.js';
 import { Select } from './CustomSelect/select.js';
 import { KeyboardShortcutHint } from './design-system/KeyboardShortcutHint.js';
 import { Spinner } from './Spinner.js';
@@ -262,7 +262,11 @@ export function ConsoleOAuthFlow({
           state: 'success'
         });
         void sendNotification({
+<<<<<<< HEAD
           message: 'Kalt Code login successful',
+=======
+          message: 'OpenClaude login successful',
+>>>>>>> upstream/main
           notificationType: 'auth_success'
         }, terminal);
       }
@@ -384,7 +388,11 @@ function OAuthStatusMessage({
     case 'idle': {
       const promptText =
         startingMessage ||
+<<<<<<< HEAD
         'Kalt Code can be used with your Claude subscription or billed based on API usage through your Console account.'
+=======
+        'OpenClaude can be used with your Claude subscription or billed based on API usage through your Console account.'
+>>>>>>> upstream/main
 
       const loginOptions = [
         {
@@ -450,16 +458,17 @@ function OAuthStatusMessage({
 
     case 'platform_setup':
       return (
-        <ProviderWizard
+        <ProviderManager
+          mode="first-run"
           onDone={result => {
-            if (!result) {
+            if (!result || result.action !== 'saved' || !result.message) {
               setOAuthStatus({ state: 'idle' })
               return
             }
 
             setOAuthStatus({
               state: 'platform_setup_complete',
-              message: result,
+              message: result.message,
             })
           }}
         />
@@ -511,7 +520,11 @@ function OAuthStatusMessage({
         <Box flexDirection="column" gap={1}>
           <Box>
             <Spinner />
+<<<<<<< HEAD
             <Text>Creating API key for Kalt Code…</Text>
+=======
+            <Text>Creating API key for OpenClaude…</Text>
+>>>>>>> upstream/main
           </Box>
         </Box>
       )

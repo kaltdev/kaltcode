@@ -4,6 +4,7 @@ import { logEvent } from 'src/services/analytics/index.js'
 import { setHasUnknownModelCost } from '../bootstrap/state.js'
 import { isFastModeEnabled } from './fastMode.js'
 import {
+<<<<<<< HEAD
   KALT_CODE_3_5_HAIKU_CONFIG,
   KALT_CODE_3_5_V2_SONNET_CONFIG,
   KALT_CODE_3_7_SONNET_CONFIG,
@@ -15,6 +16,20 @@ import {
   KALT_CODE_SONNET_4_5_CONFIG,
   KALT_CODE_SONNET_4_6_CONFIG,
   KALT_CODE_SONNET_4_CONFIG,
+=======
+  CLAUDE_3_5_HAIKU_CONFIG,
+  CLAUDE_3_5_V2_SONNET_CONFIG,
+  CLAUDE_3_7_SONNET_CONFIG,
+  CLAUDE_HAIKU_4_5_CONFIG,
+  CLAUDE_OPUS_4_1_CONFIG,
+  CLAUDE_OPUS_4_5_CONFIG,
+  CLAUDE_OPUS_4_6_CONFIG,
+  CLAUDE_OPUS_4_7_CONFIG,
+  CLAUDE_OPUS_4_CONFIG,
+  CLAUDE_SONNET_4_5_CONFIG,
+  CLAUDE_SONNET_4_6_CONFIG,
+  CLAUDE_SONNET_4_CONFIG,
+>>>>>>> upstream/main
 } from './model/configs.js'
 import {
   firstPartyNameToCanonical,
@@ -122,6 +137,8 @@ export const MODEL_COSTS: Record<ModelShortName, ModelCosts> = {
   [firstPartyNameToCanonical(KALT_CODE_OPUS_4_5_CONFIG.firstParty)]:
     COST_TIER_5_25,
   [firstPartyNameToCanonical(KALT_CODE_OPUS_4_6_CONFIG.firstParty)]:
+    COST_TIER_5_25,
+  [firstPartyNameToCanonical(CLAUDE_OPUS_4_7_CONFIG.firstParty)]:
     COST_TIER_5_25,
 }
 

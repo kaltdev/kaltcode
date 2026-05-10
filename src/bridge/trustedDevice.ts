@@ -147,7 +147,11 @@ export async function enrollTrustedDevice(): Promise<void> {
         device_id?: string
       }>(
         `${baseUrl}/api/auth/trusted_devices`,
+<<<<<<< HEAD
         { display_name: `Kalt Code on ${hostname()} · ${process.platform}` },
+=======
+        { display_name: `OpenClaude on ${hostname()} · ${process.platform}` },
+>>>>>>> upstream/main
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,

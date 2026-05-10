@@ -2194,6 +2194,7 @@ export async function bridgeMain(args: string[]): Promise<void> {
 
   // Session ingress URL for WebSocket connections. In production this is the
   // same as baseUrl (Envoy routes /v1/session_ingress/* to session-ingress).
+<<<<<<< HEAD
   // Locally, session-ingress runs on a different port (9413) than the
   // contain-provide-api (8211), so KALT_CODE_BRIDGE_SESSION_INGRESS_URL must be
   // set explicitly. Ant-only, matching KALT_CODE_BRIDGE_BASE_URL.
@@ -2202,6 +2203,12 @@ export async function bridgeMain(args: string[]): Promise<void> {
     process.env.KALT_CODE_BRIDGE_SESSION_INGRESS_URL
       ? process.env.KALT_CODE_BRIDGE_SESSION_INGRESS_URL
       : baseUrl
+=======
+  // Locally, session-ingress may run on a different port, so
+  // CLAUDE_BRIDGE_SESSION_INGRESS_URL can override the default.
+  const sessionIngressUrl =
+    process.env.CLAUDE_BRIDGE_SESSION_INGRESS_URL || baseUrl
+>>>>>>> upstream/main
 
   const { getBranch, getRemoteUrl, findGitRoot } = await import(
     '../utils/git.js'
@@ -2252,7 +2259,11 @@ export async function bridgeMain(args: string[]): Promise<void> {
     })
     // biome-ignore lint/suspicious/noConsole: intentional dialog output
     console.log(
+<<<<<<< HEAD
       `\nClaude Remote Control is launching in spawn mode which lets you create new sessions in this project from Kalt Code on Web or your Mobile app. Learn more here: https://code.kalt-code.com/docs/en/remote-control\n\n` +
+=======
+      `\nClaude Remote Control is launching in spawn mode which lets you create new sessions in this project from OpenClaude on the web or your mobile app. Learn more here: https://code.claude.com/docs/en/remote-control\n\n` +
+>>>>>>> upstream/main
         `Spawn mode for this project:\n` +
         `  [1] same-dir \u2014 sessions share the current directory (default)\n` +
         `  [2] worktree \u2014 each session gets an isolated git worktree\n\n` +
@@ -2851,10 +2862,14 @@ export async function runBridgeHeadless(
     )
   }
   const sessionIngressUrl =
+<<<<<<< HEAD
     process.env.USER_TYPE === 'ant' &&
     process.env.KALT_CODE_BRIDGE_SESSION_INGRESS_URL
       ? process.env.KALT_CODE_BRIDGE_SESSION_INGRESS_URL
       : baseUrl
+=======
+    process.env.CLAUDE_BRIDGE_SESSION_INGRESS_URL || baseUrl
+>>>>>>> upstream/main
 
   const { getBranch, getRemoteUrl, findGitRoot } = await import(
     '../utils/git.js'

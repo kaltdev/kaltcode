@@ -119,17 +119,28 @@ export function ResumeTask({
     return <Box flexDirection="column" padding={1}>
         <Box flexDirection="row">
           <Spinner />
+<<<<<<< HEAD
           <Text bold>Loading Kalt Code sessions…</Text>
         </Box>
         <Text dimColor>
           {retrying ? 'Retrying…' : 'Fetching your Kalt Code sessions…'}
+=======
+          <Text bold>Loading OpenClaude sessions…</Text>
+        </Box>
+        <Text dimColor>
+          {retrying ? 'Retrying…' : 'Fetching your OpenClaude sessions…'}
+>>>>>>> upstream/main
         </Text>
       </Box>;
   }
   if (loadErrorType) {
     return <Box flexDirection="column" padding={1}>
         <Text bold color="error">
+<<<<<<< HEAD
           Error loading Kalt Code sessions
+=======
+          Error loading OpenClaude sessions
+>>>>>>> upstream/main
         </Text>
 
         {renderErrorSpecificGuidance(loadErrorType)}
@@ -143,7 +154,11 @@ export function ResumeTask({
   if (sessions.length === 0) {
     return <Box flexDirection="column" padding={1}>
         <Text bold>
+<<<<<<< HEAD
           No Kalt Code sessions found
+=======
+          No OpenClaude sessions found
+>>>>>>> upstream/main
           {currentRepo && <Text> for {currentRepo}</Text>}
         </Text>
         <Box marginTop={1}>
@@ -261,7 +276,11 @@ function renderErrorSpecificGuidance(errorType: LoadErrorType): React.ReactNode 
         </Box>;
     case 'other':
       return <Box marginY={1} flexDirection="row">
+<<<<<<< HEAD
           <Text dimColor>Sorry, Kalt Code encountered an error</Text>
+=======
+          <Text dimColor>Sorry, OpenClaude encountered an error</Text>
+>>>>>>> upstream/main
         </Box>;
   }
 }

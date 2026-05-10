@@ -2,7 +2,11 @@ import type { SettingSource } from 'src/utils/settings/constants.js'
 import type { AgentDefinition } from '../../tools/AgentTool/loadAgentsDir.js'
 
 export const AGENT_PATHS = {
+<<<<<<< HEAD
   FOLDER_NAME: '.kalt-code',
+=======
+  FOLDER_NAME: '.openclaude',
+>>>>>>> upstream/main
   AGENTS_DIR: 'agents',
 } as const
 

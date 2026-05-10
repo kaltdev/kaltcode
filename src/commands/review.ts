@@ -48,7 +48,11 @@ const review: Command = {
 const ultrareview: Command = {
   type: 'local-jsx',
   name: 'ultrareview',
+<<<<<<< HEAD
   description: `~10–20 min · Finds and verifies bugs in your branch. Runs in Kalt Code on the web. See ${CCR_TERMS_URL}`,
+=======
+  description: `~10–20 min · Finds and verifies bugs in your branch. Runs in OpenClaude on the web. See ${CCR_TERMS_URL}`,
+>>>>>>> upstream/main
   isEnabled: () => isUltrareviewEnabled(),
   load: () => import('./review/ultrareviewCommand.js'),
 }

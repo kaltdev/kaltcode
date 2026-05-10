@@ -56,7 +56,11 @@ export function ClaudeInChromeOnboarding(t0) {
   }
   let t5;
   if ($[6] !== t4) {
+<<<<<<< HEAD
     t5 = <Text>Claude in Chrome works with the Chrome extension to let you control your browser directly from Kalt Code. You can navigate websites, fill forms, capture screenshots, record GIFs, and debug with console logs and network requests.{t4}</Text>;
+=======
+    t5 = <Text>Claude in Chrome works with the Chrome extension to let you control your browser directly from OpenClaude. You can navigate websites, fill forms, capture screenshots, record GIFs, and debug with console logs and network requests.{t4}</Text>;
+>>>>>>> upstream/main
     $[6] = t4;
     $[7] = t5;
   } else {

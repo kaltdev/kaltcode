@@ -197,7 +197,11 @@ function ClaudeInChromeMenu(t0) {
   }
   let t6;
   if ($[20] === Symbol.for("react.memo_cache_sentinel")) {
+<<<<<<< HEAD
     t6 = <Text>Claude in Chrome works with the Chrome extension to let you control your browser directly from Kalt Code. Navigate websites, fill forms, capture screenshots, record GIFs, and debug with console logs and network requests.</Text>;
+=======
+    t6 = <Text>Claude in Chrome works with the Chrome extension to let you control your browser directly from OpenClaude. Navigate websites, fill forms, capture screenshots, record GIFs, and debug with console logs and network requests.</Text>;
+>>>>>>> upstream/main
     $[20] = t6;
   } else {
     t6 = $[20];

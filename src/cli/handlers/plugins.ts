@@ -352,7 +352,11 @@ export async function pluginListHandler(options: {
     // through to the session section so the failure is visible.
     if (inlineLoadErrors.length === 0) {
       cliOk(
+<<<<<<< HEAD
         'No plugins installed. Use `kalt-code plugin install` to install a plugin.',
+=======
+        'No plugins installed. Use `openclaude plugin install` to install a plugin.',
+>>>>>>> upstream/main
       )
     }
   }

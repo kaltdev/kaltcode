@@ -159,6 +159,7 @@ const SuggestionItemRow = memo(function SuggestionItemRow({
     const lineContent = `${paddedDisplayText}${tagText}${truncatedDescription}`;
 
     return (
+<<<<<<< HEAD
         <Box width="100%" opaque={true} backgroundColor={rowBackgroundColor}>
             <Text
                 color={textColor}
@@ -171,6 +172,55 @@ const SuggestionItemRow = memo(function SuggestionItemRow({
         </Box>
     );
 });
+=======
+      <Box width="100%" opaque={true} backgroundColor={rowBackgroundColor}>
+        <Text color={textColor} dimColor={dimColor} bold={isSelected} wrap="truncate">
+          {lineContent}
+        </Text>
+      </Box>
+    )
+  }
+
+  const maxNameWidth = Math.floor(columns * 0.4)
+  const displayTextWidth = Math.min(
+    maxColumnWidth ?? stringWidth(item.displayText) + 5,
+    maxNameWidth,
+  )
+
+  let displayText = item.displayText
+  if (stringWidth(displayText) > displayTextWidth - 2) {
+    displayText = truncateToWidth(displayText, displayTextWidth - 2)
+  }
+
+  const paddedDisplayText =
+    selectionPrefix +
+    displayText +
+    ' '.repeat(Math.max(0, displayTextWidth - stringWidth(displayText)))
+  const tagText = item.tag ? `[${item.tag}] ` : ''
+  const tagWidth = stringWidth(tagText)
+  const descriptionWidth = Math.max(
+    0,
+    columns - PREFIX_WIDTH - displayTextWidth - tagWidth - 4,
+  )
+  const truncatedDescription = item.description
+    ? truncateToWidth(item.description.replace(/\s+/g, ' '), descriptionWidth)
+    : ''
+  const lineContent = `${paddedDisplayText}${tagText}${truncatedDescription}`
+
+  return (
+    <Box width="100%" opaque={true} backgroundColor={rowBackgroundColor}>
+      <Text
+        color={textColor}
+        dimColor={!isSelected}
+        bold={isSelected}
+        wrap="truncate"
+      >
+        {lineContent}
+      </Text>
+    </Box>
+  )
+})
+>>>>>>> upstream/main
 
 type Props = {
     suggestions: SuggestionItem[];

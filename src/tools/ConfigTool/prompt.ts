@@ -59,7 +59,11 @@ export function generatePrompt(): string {
 ## Configurable settings list
 The following settings are available for you to change:
 
+<<<<<<< HEAD
 ### Global Settings (stored in ~/.kalt-code.json)
+=======
+### Global Settings (stored in ~/.openclaude.json)
+>>>>>>> upstream/main
 ${globalSettings.join('\n')}
 
 ### Project Settings (stored in settings.json)

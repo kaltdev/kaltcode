@@ -28,7 +28,11 @@ import { getSettingsForSource } from './settings/settings.js'
  * is lazy-initialized) and ensure Node.js compatibility.
  *
  * This is safe to call before the trust dialog because we only read from
+<<<<<<< HEAD
  * user-controlled files (~/.kalt-code/settings.json and ~/.kalt-code.json),
+=======
+ * user-controlled files (~/.claude/settings.json and ~/.openclaude.json),
+>>>>>>> upstream/main
  * not from project-level settings.
  */
 export function applyExtraCACertsFromConfig(): void {
@@ -52,8 +56,13 @@ export function applyExtraCACertsFromConfig(): void {
  * after the trust dialog. But we need the CA cert early to establish the TLS
  * connection to an HTTPS proxy during init().
  *
+<<<<<<< HEAD
  * We read from global config (~/.kalt-code.json) and user settings
  * (~/.kalt-code/settings.json). These are user-controlled files that don't
+=======
+ * We read from global config (~/.openclaude.json) and user settings
+ * (~/.claude/settings.json). These are user-controlled files that don't
+>>>>>>> upstream/main
  * require trust approval.
  */
 function getExtraCertsPathFromConfig(): string | undefined {

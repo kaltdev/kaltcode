@@ -34,6 +34,7 @@ export function registerMcpAddCommand(mcp: Command): void {
   mcp
     .command('add <name> <commandOrUrl> [args...]')
     .description(
+<<<<<<< HEAD
       'Add an MCP server to Kalt Code.\n\n' +
         'Examples:\n' +
         '  # Add HTTP server:\n' +
@@ -44,6 +45,18 @@ export function registerMcpAddCommand(mcp: Command): void {
         '  kalt-code mcp add -e API_KEY=xxx my-server -- npx my-mcp-server\n\n' +
         '  # Add stdio server with subprocess flags:\n' +
         '  kalt-code mcp add my-server -- my-command --some-flag arg1',
+=======
+      'Add an MCP server to OpenClaude.\n\n' +
+        'Examples:\n' +
+        '  # Add HTTP server:\n' +
+        '  openclaude mcp add --transport http sentry https://mcp.sentry.dev/mcp\n\n' +
+        '  # Add HTTP server with headers:\n' +
+        '  openclaude mcp add --transport http corridor https://app.corridor.dev/api/mcp --header "Authorization: Bearer ..."\n\n' +
+        '  # Add stdio server with environment variables:\n' +
+        '  openclaude mcp add -e API_KEY=xxx my-server -- npx my-mcp-server\n\n' +
+        '  # Add stdio server with subprocess flags:\n' +
+        '  openclaude mcp add my-server -- my-command --some-flag arg1',
+>>>>>>> upstream/main
     )
     .option(
       '-s, --scope <scope>',
@@ -75,7 +88,11 @@ export function registerMcpAddCommand(mcp: Command): void {
     .addOption(
       new Option(
         '--xaa',
+<<<<<<< HEAD
         "Enable XAA (SEP-990) for this server. Requires 'kalt-code mcp xaa setup' first. Also requires --client-id and --client-secret (for the MCP server's AS).",
+=======
+        "Enable XAA (SEP-990) for this server. Requires 'openclaude mcp xaa setup' first. Also requires --client-id and --client-secret (for the MCP server's AS).",
+>>>>>>> upstream/main
       ).hideHelp(!isXaaEnabled()),
     )
     .action(async (name, commandOrUrl, args, options) => {
@@ -87,12 +104,20 @@ export function registerMcpAddCommand(mcp: Command): void {
       if (!name) {
         cliError(
           'Error: Server name is required.\n' +
+<<<<<<< HEAD
             'Usage: kalt-code mcp add <name> <command> [args...]',
+=======
+            'Usage: openclaude mcp add <name> <command> [args...]',
+>>>>>>> upstream/main
         )
       } else if (!actualCommand) {
         cliError(
           'Error: Command is required when server name is provided.\n' +
+<<<<<<< HEAD
             'Usage: kalt-code mcp add <name> <command> [args...]',
+=======
+            'Usage: openclaude mcp add <name> <command> [args...]',
+>>>>>>> upstream/main
         )
       }
 
@@ -113,7 +138,11 @@ export function registerMcpAddCommand(mcp: Command): void {
           if (!options.clientSecret) missing.push('--client-secret')
           if (!getXaaIdpSettings()) {
             missing.push(
+<<<<<<< HEAD
               "'kalt-code mcp xaa setup' (settings.xaaIdp not configured)",
+=======
+              "'openclaude mcp xaa setup' (settings.xaaIdp not configured)",
+>>>>>>> upstream/main
             )
           }
           if (missing.length) {
@@ -254,10 +283,17 @@ export function registerMcpAddCommand(mcp: Command): void {
               `\nWarning: The command "${actualCommand}" looks like a URL, but is being interpreted as a stdio server as --transport was not specified.\n`,
             )
             process.stderr.write(
+<<<<<<< HEAD
               `If this is an HTTP server, use: kalt-code mcp add --transport http ${name} ${actualCommand}\n`,
             )
             process.stderr.write(
               `If this is an SSE server, use: kalt-code mcp add --transport sse ${name} ${actualCommand}\n`,
+=======
+              `If this is an HTTP server, use: openclaude mcp add --transport http ${name} ${actualCommand}\n`,
+            )
+            process.stderr.write(
+              `If this is an SSE server, use: openclaude mcp add --transport sse ${name} ${actualCommand}\n`,
+>>>>>>> upstream/main
             )
           }
 

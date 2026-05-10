@@ -8,11 +8,19 @@ import { getAPIProvider } from '../utils/model/providers.js'
 import { getWorkload } from '../utils/workloadContext.js'
 
 const DEFAULT_PREFIX =
+<<<<<<< HEAD
   `You are Kalt Code, an open-source fork of Kalt Code.`
 const AGENT_SDK_KALT_CODE_PRESET_PREFIX =
   `You are Kalt Code, an open-source fork of Kalt Code, running within the Claude Agent SDK.`
 const AGENT_SDK_PREFIX =
   `You are a Claude agent running in Kalt Code, built on the Claude Agent SDK.`
+=======
+  `You are OpenClaude, an open-source coding agent and CLI.`
+const AGENT_SDK_CLAUDE_CODE_PRESET_PREFIX =
+  `You are OpenClaude, an open-source coding agent and CLI running within the Claude Agent SDK.`
+const AGENT_SDK_PREFIX =
+  `You are OpenClaude, built on the Claude Agent SDK.`
+>>>>>>> upstream/main
 
 const CLI_SYSPROMPT_PREFIX_VALUES = [
   DEFAULT_PREFIX,

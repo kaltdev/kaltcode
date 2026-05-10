@@ -713,7 +713,11 @@ function EmptyStateMessage(t0) {
       {
         let t1;
         if ($[0] === Symbol.for("react.memo_cache_sentinel")) {
+<<<<<<< HEAD
           t1 = <><Text dimColor={true}>Git is required to install marketplaces.</Text><Text dimColor={true}>Please install git and restart Kalt Code.</Text></>;
+=======
+          t1 = <><Text dimColor={true}>Git is required to install marketplaces.</Text><Text dimColor={true}>Please install git and restart OpenClaude.</Text></>;
+>>>>>>> upstream/main
           $[0] = t1;
         } else {
           t1 = $[0];

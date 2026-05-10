@@ -3,7 +3,11 @@ const plugin = {
   type: 'local-jsx',
   name: 'plugin',
   aliases: ['plugins', 'marketplace'],
+<<<<<<< HEAD
   description: 'Manage Kalt Code plugins',
+=======
+  description: 'Manage OpenClaude plugins',
+>>>>>>> upstream/main
   immediate: true,
   load: () => import('./plugin.js')
 } satisfies Command;

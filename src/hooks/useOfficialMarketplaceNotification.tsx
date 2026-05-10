@@ -19,7 +19,11 @@ async function _temp() {
     logForDebugging("Showing marketplace config save failure notification");
     notifs.push({
       key: "marketplace-config-save-failed",
+<<<<<<< HEAD
       jsx: <Text color="error">Failed to save marketplace retry info · Check ~/.kalt-code.json permissions</Text>,
+=======
+      jsx: <Text color="error">Failed to save marketplace retry info · Check ~/.openclaude.json permissions</Text>,
+>>>>>>> upstream/main
       priority: "immediate",
       timeoutMs: 10000
     });
