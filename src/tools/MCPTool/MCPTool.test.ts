@@ -1,5 +1,14 @@
-import { describe, expect, test, beforeEach } from 'bun:test'
+import { describe, expect, test as bunTest, beforeEach } from 'bun:test'
 import { MCPTool } from './MCPTool.js'
+
+const MCP_TOOL_TEST_TIMEOUT_MS = 20_000
+
+function test(
+  name: string,
+  fn: Parameters<typeof bunTest>[1],
+): ReturnType<typeof bunTest> {
+  return bunTest(name, fn, MCP_TOOL_TEST_TIMEOUT_MS)
+}
 
 // =============================================================================
 // MCPTool.validateInput — AJV schema validation

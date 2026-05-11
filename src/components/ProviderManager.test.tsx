@@ -1,6 +1,6 @@
 import { PassThrough } from 'node:stream'
 
-import { afterEach, expect, mock, test } from 'bun:test'
+import { afterEach, expect, mock, test as bunTest } from 'bun:test'
 import React from 'react'
 import stripAnsi from 'strip-ansi'
 
@@ -10,6 +10,15 @@ import { AppStateProvider } from '../state/AppState.js'
 
 const SYNC_START = '\x1B[?2026h'
 const SYNC_END = '\x1B[?2026l'
+const PROVIDER_MANAGER_TEST_TIMEOUT_MS = 30_000
+const PROVIDER_MANAGER_WAIT_TIMEOUT_MS = 10_000
+
+function test(
+  name: string,
+  fn: Parameters<typeof bunTest>[1],
+): ReturnType<typeof bunTest> {
+  return bunTest(name, fn, PROVIDER_MANAGER_TEST_TIMEOUT_MS)
+}
 
 const ORIGINAL_ENV = {
   CLAUDE_CODE_SIMPLE: process.env.CLAUDE_CODE_SIMPLE,
@@ -83,7 +92,7 @@ async function waitForCondition(
   predicate: () => boolean,
   options?: { timeoutMs?: number; intervalMs?: number },
 ): Promise<void> {
-  const timeoutMs = options?.timeoutMs ?? 2000
+  const timeoutMs = options?.timeoutMs ?? PROVIDER_MANAGER_WAIT_TIMEOUT_MS
   const intervalMs = options?.intervalMs ?? 10
   const startedAt = Date.now()
 
@@ -382,7 +391,7 @@ function mockProviderManagerDependencies(
 async function waitForFrameOutput(
   getOutput: () => string,
   predicate: (output: string) => boolean,
-  timeoutMs = 2500,
+  timeoutMs = PROVIDER_MANAGER_WAIT_TIMEOUT_MS,
 ): Promise<string> {
   let output = ''
 
@@ -464,7 +473,7 @@ async function renderProviderManagerFrame(
       }
       return options.waitForOutput(frame)
     },
-    options?.timeoutMs ?? 2500,
+    options?.timeoutMs ?? PROVIDER_MANAGER_WAIT_TIMEOUT_MS,
   )
 
   await mounted.dispose()

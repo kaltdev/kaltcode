@@ -1,8 +1,10 @@
 
-import { expect, test, mock, describe, beforeEach, afterEach } from "bun:test";
+import { expect, test as bunTest, mock, describe, beforeEach, afterEach } from "bun:test";
 import { linuxSecretStorage } from "./linuxSecretStorage.js";
 import { windowsCredentialStorage } from "./windowsCredentialStorage.js";
 import { getSecureStorageServiceName, CREDENTIALS_SERVICE_SUFFIX } from "./macOsKeychainHelpers.js";
+
+const test = bunTest.serial;
 
 // Mock execaSync
 const mockExecaSync = mock(() => ({ exitCode: 0, stdout: "" }));
@@ -15,6 +17,8 @@ describe("Secure Storage Platform Implementations", () => {
 
   beforeEach(() => {
     process.env = { ...originalEnv };
+    delete process.env.KALTCODE_CONFIG_DIR;
+    delete process.env.CLAUDE_CONFIG_DIR;
     mockExecaSync.mockClear();
     // Default mock behavior
     mockExecaSync.mockImplementation(() => ({ exitCode: 0, stdout: "" }));
@@ -43,7 +47,7 @@ describe("Secure Storage Platform Implementations", () => {
       const otherName = getSecureStorageServiceName(CREDENTIALS_SERVICE_SUFFIX);
 
       expect(otherName).not.toBe(defaultName);
-      expect(otherName).toContain("Claude Code");
+      expect(otherName).toContain("Kalt Code");
       expect(otherName).toContain(CREDENTIALS_SERVICE_SUFFIX);
     });
 

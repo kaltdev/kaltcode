@@ -1,5 +1,5 @@
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
-import { writeFileSync, mkdirSync, rmSync } from 'fs'
+import { describe, test as bunTest, expect, beforeEach, afterEach } from 'bun:test'
+import { writeFileSync, mkdirSync, mkdtempSync, rmSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
 import { randomUUID } from 'crypto'
@@ -14,6 +14,35 @@ import {
 } from '../../src/entrypoints/sdk/index.js'
 import { readJSONLFile } from '../../src/utils/json.js'
 import { getProjectDir } from '../../src/utils/sessionStoragePortable.js'
+
+const originalKaltCodeConfigDir = process.env.KALTCODE_CONFIG_DIR
+const originalClaudeConfigDir = process.env.CLAUDE_CONFIG_DIR
+let testConfigDir: string
+const test = bunTest.serial
+
+function applyTestConfigDir(): void {
+  process.env.KALTCODE_CONFIG_DIR = testConfigDir
+  process.env.CLAUDE_CONFIG_DIR = testConfigDir
+}
+
+beforeEach(() => {
+  testConfigDir = mkdtempSync(join(tmpdir(), 'sdk-session-functions-config-'))
+  applyTestConfigDir()
+})
+
+afterEach(() => {
+  if (originalKaltCodeConfigDir === undefined) {
+    delete process.env.KALTCODE_CONFIG_DIR
+  } else {
+    process.env.KALTCODE_CONFIG_DIR = originalKaltCodeConfigDir
+  }
+  if (originalClaudeConfigDir === undefined) {
+    delete process.env.CLAUDE_CONFIG_DIR
+  } else {
+    process.env.CLAUDE_CONFIG_DIR = originalClaudeConfigDir
+  }
+  rmSync(testConfigDir, { recursive: true, force: true })
+})
 
 describe('SDK session functions', () => {
   test('listSessions returns array', async () => {
@@ -57,6 +86,7 @@ describe('forkSession metadata preservation (COR-2)', () => {
   let sessionDir: string
 
   beforeEach(() => {
+    applyTestConfigDir()
     sessionDir = getProjectDir(testProjectDir)
     mkdirSync(sessionDir, { recursive: true })
   })
@@ -127,6 +157,7 @@ describe('renameSession', () => {
   let sessionDir: string
 
   beforeEach(() => {
+    applyTestConfigDir()
     sessionDir = getProjectDir(testProjectDir)
     mkdirSync(sessionDir, { recursive: true })
   })
@@ -174,6 +205,7 @@ describe('tagSession', () => {
   let sessionDir: string
 
   beforeEach(() => {
+    applyTestConfigDir()
     sessionDir = getProjectDir(testProjectDir)
     mkdirSync(sessionDir, { recursive: true })
   })
@@ -235,6 +267,7 @@ describe('deleteSession', () => {
   let sessionDir: string
 
   beforeEach(() => {
+    applyTestConfigDir()
     sessionDir = getProjectDir(testProjectDir)
     mkdirSync(sessionDir, { recursive: true })
   })
@@ -301,6 +334,7 @@ describe('E2E: session lifecycle — create → read → mutate → fork → del
   let sessionDir: string
 
   beforeEach(() => {
+    applyTestConfigDir()
     sessionDir = getProjectDir(testProjectDir)
     mkdirSync(sessionDir, { recursive: true })
   })

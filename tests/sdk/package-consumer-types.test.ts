@@ -10,7 +10,7 @@
  * - Self-referential type wrappers
  */
 import { afterAll, describe, expect, test } from 'bun:test'
-import { execSync } from 'child_process'
+import { execFileSync, execSync } from 'child_process'
 import { existsSync, mkdirSync, rmSync, writeFileSync, cpSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { randomUUID } from 'crypto'
@@ -92,12 +92,16 @@ function setupConsumerProject(name: string): string {
 
 /** Compile consumer.ts in the given tmpDir. Returns stdout (empty = success). */
 function tsc(tmpDir: string): string {
-  return execSync('npx tsc -p tsconfig.json --pretty false', {
-    cwd: tmpDir,
-    encoding: 'utf-8',
-    timeout: 60000,
-    stdio: ['pipe', 'pipe', 'pipe'],
-  }).trim()
+  return execFileSync(
+    join(ROOT, 'node_modules', '.bin', 'tsc'),
+    ['-p', 'tsconfig.json', '--pretty', 'false'],
+    {
+      cwd: tmpDir,
+      encoding: 'utf-8',
+      timeout: 180000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    },
+  ).trim()
 }
 
 function ensureBuildArtifacts(): void {
@@ -122,7 +126,9 @@ afterAll(() => {
   }
 })
 
-// tsc compilation can be slow under CPU contention — 30s timeout per test
+// tsc compilation can be slow under CPU contention.
+const CONSUMER_TYPES_TEST_TIMEOUT_MS = 240_000
+
 describe('package consumer types', () => {
   test('SDK types compile for external consumer with skipLibCheck:false', () => {
     const tmpDir = setupConsumerProject('basic')
@@ -156,7 +162,7 @@ describe('package consumer types', () => {
     )
 
     expect(tsc(tmpDir)).toBe('')
-  }, 30_000)
+  }, CONSUMER_TYPES_TEST_TIMEOUT_MS)
 
   test('SDKMessage/SDKUserMessage/SDKResultMessage are re-exported correctly', () => {
     const tmpDir = setupConsumerProject('reexports')
@@ -181,7 +187,7 @@ describe('package consumer types', () => {
     )
 
     expect(tsc(tmpDir)).toBe('')
-  }, 30_000)
+  }, CONSUMER_TYPES_TEST_TIMEOUT_MS)
 
   test('SDKRateLimitError has resetsAt and rateLimitType as class properties', () => {
     const tmpDir = setupConsumerProject('ratelimit')
@@ -203,7 +209,7 @@ describe('package consumer types', () => {
     )
 
     expect(tsc(tmpDir)).toBe('')
-  }, 30_000)
+  }, CONSUMER_TYPES_TEST_TIMEOUT_MS)
 })
 
 describe('package exports resolution', () => {

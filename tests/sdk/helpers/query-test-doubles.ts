@@ -35,13 +35,20 @@ export async function withTempDir<T>(
   })
 
   const dir = createTempDir(prefix)
+  const previousKaltCodeConfigDir = process.env.KALTCODE_CONFIG_DIR
   const previousConfigDir = process.env.CLAUDE_CONFIG_DIR
   const previousSimpleMode = process.env.CLAUDE_CODE_SIMPLE
+  process.env.KALTCODE_CONFIG_DIR = dir
   process.env.CLAUDE_CONFIG_DIR = dir
   process.env.CLAUDE_CODE_SIMPLE = '1'
   try {
     return await fn(dir)
   } finally {
+    if (previousKaltCodeConfigDir === undefined) {
+      delete process.env.KALTCODE_CONFIG_DIR
+    } else {
+      process.env.KALTCODE_CONFIG_DIR = previousKaltCodeConfigDir
+    }
     if (previousConfigDir === undefined) {
       delete process.env.CLAUDE_CONFIG_DIR
     } else {
@@ -69,6 +76,8 @@ export function createSessionJsonl(
   sessionId: string,
   entries: Array<Record<string, unknown>>,
 ): string {
+  process.env.KALTCODE_CONFIG_DIR = process.env.KALTCODE_CONFIG_DIR ?? cwd
+  process.env.CLAUDE_CONFIG_DIR = process.env.CLAUDE_CONFIG_DIR ?? cwd
   const canonicalCwd = (() => {
     try {
       return realpathSync(cwd)

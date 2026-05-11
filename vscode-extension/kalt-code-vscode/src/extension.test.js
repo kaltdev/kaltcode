@@ -1,6 +1,5 @@
-const test = require('node:test');
 const assert = require('node:assert/strict');
-const Module = require('node:module');
+const { mock, test } = require('bun:test');
 
 function createStatus(overrides = {}) {
   return {
@@ -68,20 +67,9 @@ function loadExtension() {
     Uri: { parse: value => value, file: value => value },
     ViewColumn: { Active: 1 },
   };
-  const originalLoad = Module._load;
-  Module._load = function loadWithVscodeMock(request, parent, isMain) {
-    if (request === 'vscode') {
-      return vscodeMock;
-    }
+  mock.module('vscode', () => vscodeMock);
 
-    return originalLoad.call(this, request, parent, isMain);
-  };
-
-  try {
-    return require('./extension');
-  } finally {
-    Module._load = originalLoad;
-  }
+  return require('./extension');
 }
 
 test('renderControlCenterHtml uses the Kalt Code wordmark, status rail, and warm action hierarchy', () => {

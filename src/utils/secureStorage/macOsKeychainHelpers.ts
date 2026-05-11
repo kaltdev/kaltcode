@@ -17,6 +17,10 @@
 import { createHash } from 'crypto'
 import { userInfo } from 'os'
 import { getOauthConfig } from 'src/constants/oauth.js'
+import {
+  KALTCODE_CONFIG_DIR_ENV,
+  LEGACY_CLAUDE_CONFIG_DIR_ENV,
+} from 'src/constants/product.js'
 import { getClaudeConfigHomeDir } from '../envUtils.js'
 import type { SecureStorageData } from './index.js'
 
@@ -27,20 +31,22 @@ import type { SecureStorageData } from './index.js'
 export const CREDENTIALS_SERVICE_SUFFIX = '-credentials'
 
 /**
- * Get the service/resource name for secure storage, scoped by KALT_CODE_CONFIG_DIR
- * if it's set to a non-default location.
+ * Get the service/resource name for secure storage, scoped by an explicit
+ * config directory override if one is set.
  */
 export function getSecureStorageServiceName(
   serviceSuffix: string = '',
 ): string {
   const configDir = getClaudeConfigHomeDir()
-  const isDefaultDir = !process.env.KALT_CODE_CONFIG_DIR
+  const hasExplicitConfigDir =
+    Boolean(process.env[KALTCODE_CONFIG_DIR_ENV]) ||
+    Boolean(process.env[LEGACY_CLAUDE_CONFIG_DIR_ENV])
 
   // Use a hash of the config dir path to create a unique but stable suffix
-  // Only add suffix for non-default directories to maintain backwards compatibility
-  const dirHash = isDefaultDir
-    ? ''
-    : `-${createHash('sha256').update(configDir).digest('hex').substring(0, 8)}`
+  // Only add suffix for explicit directories to maintain backwards compatibility
+  const dirHash = hasExplicitConfigDir
+    ? `-${createHash('sha256').update(configDir).digest('hex').substring(0, 8)}`
+    : ''
   return `Kalt Code${getOauthConfig().OAUTH_FILE_SUFFIX}${serviceSuffix}${dirHash}`
 }
 

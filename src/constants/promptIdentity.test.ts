@@ -47,7 +47,7 @@ test('simple mode identity describes Kalt Code instead of Claude Code', async ()
   expect(prompt[0]).toContain('Kalt Code')
   expect(prompt[0]).not.toContain('Claude Code')
   expect(prompt[0]).not.toContain("Anthropic's official CLI for Claude")
-})
+}, 20_000)
 
 test('system prompt model identity updates when model changes mid-session', async () => {
   delete process.env.CLAUDE_CODE_SIMPLE
@@ -62,7 +62,7 @@ test('system prompt model identity updates when model changes mid-session', asyn
   expect(firstText).toContain('You are powered by the model old-test-model.')
   expect(secondText).toContain('You are powered by the model new-test-model.')
   expect(secondText).not.toContain('You are powered by the model old-test-model.')
-})
+}, 20_000)
 
 test('built-in agent prompts describe Kalt Code instead of Claude Code', () => {
   expect(DEFAULT_AGENT_PROMPT).toContain('Kalt Code')

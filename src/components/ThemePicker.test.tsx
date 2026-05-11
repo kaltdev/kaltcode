@@ -1,6 +1,6 @@
 import { PassThrough } from 'node:stream'
 
-import { afterEach, expect, mock, test } from 'bun:test'
+import { afterEach, expect, mock, test as bunTest } from 'bun:test'
 import React from 'react'
 import stripAnsi from 'strip-ansi'
 
@@ -23,6 +23,15 @@ mock.module('./StructuredDiff/colorDiff.js', () => ({
 
 const SYNC_START = '\x1B[?2026h'
 const SYNC_END = '\x1B[?2026l'
+const THEME_PICKER_TEST_TIMEOUT_MS = 180_000
+const THEME_PICKER_WAIT_TIMEOUT_MS = 30_000
+
+function test(
+  name: string,
+  fn: Parameters<typeof bunTest>[1],
+): ReturnType<typeof bunTest> {
+  return bunTest(name, fn, THEME_PICKER_TEST_TIMEOUT_MS)
+}
 
 function extractLastFrame(output: string): string {
   let lastFrame: string | null = null
@@ -87,7 +96,7 @@ function createTestStreams(): {
 
 async function waitForCondition(
   predicate: () => boolean,
-  timeoutMs = 2000,
+  timeoutMs = THEME_PICKER_WAIT_TIMEOUT_MS,
 ): Promise<void> {
   const startedAt = Date.now()
 

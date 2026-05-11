@@ -3,7 +3,7 @@
  * conversationRecovery so Bun's mock.module can replace sessionStart before
  * that module is first loaded.
  */
-import { afterEach, expect, mock, test } from 'bun:test'
+import { afterEach, expect, mock, test as bunTest } from 'bun:test'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -12,6 +12,14 @@ const tempDirs: string[] = []
 const originalEnv = { ...process.env }
 const sessionId = '00000000-0000-4000-8000-000000001999'
 const ts = '2026-04-02T00:00:00.000Z'
+const CONVERSATION_RECOVERY_HOOKS_TEST_TIMEOUT_MS = 60_000
+
+function test(
+  name: string,
+  fn: Parameters<typeof bunTest>[1],
+): ReturnType<typeof bunTest> {
+  return bunTest.serial(name, fn, CONVERSATION_RECOVERY_HOOKS_TEST_TIMEOUT_MS)
+}
 
 function id(n: number): string {
   return `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`

@@ -10,17 +10,24 @@ import {
 } from './knowledgeGraph.js'
 import { mkdtempSync, rmSync, existsSync } from 'fs'
 import { tmpdir } from 'os'
-import { join } from 'path'
+import { dirname, join } from 'path'
 import { getFsImplementation } from './fsOperations.js'
 
-describe('KnowledgeGraph Phase 1 Stress & Edge Cases', () => {
+describe.serial('KnowledgeGraph Phase 1 Stress & Edge Cases', () => {
+  const originalKaltCodeConfigDir = process.env.KALTCODE_CONFIG_DIR
   const originalConfigDir = process.env.CLAUDE_CONFIG_DIR
   const originalOrama = process.env.KALTCODE_KNOWLEDGE_ORAMA
   const configDir = mkdtempSync(join(tmpdir(), 'kaltcode-stress-'))
-  process.env.CLAUDE_CONFIG_DIR = configDir
+  applyTestConfigDir()
   const cwd = getFsImplementation().cwd()
 
+  function applyTestConfigDir(): void {
+    process.env.KALTCODE_CONFIG_DIR = configDir
+    process.env.CLAUDE_CONFIG_DIR = configDir
+  }
+
   beforeEach(() => {
+    applyTestConfigDir()
     process.env.KALTCODE_KNOWLEDGE_ORAMA = '1'
     resetGlobalGraph()
   })
@@ -30,6 +37,11 @@ describe('KnowledgeGraph Phase 1 Stress & Edge Cases', () => {
     clearMemoryOnly()
     
     // Restore config dir
+    if (originalKaltCodeConfigDir === undefined) {
+      delete process.env.KALTCODE_CONFIG_DIR
+    } else {
+      process.env.KALTCODE_CONFIG_DIR = originalKaltCodeConfigDir
+    }
     if (originalConfigDir === undefined) {
       delete process.env.CLAUDE_CONFIG_DIR
     } else {
@@ -99,10 +111,7 @@ describe('KnowledgeGraph Phase 1 Stress & Edge Cases', () => {
     
     // 5. Verify the corrupted file was moved
     const { readdirSync } = await import('fs')
-    const projectsBaseDir = join(configDir, 'projects')
-    if (!existsSync(projectsBaseDir)) {
-      console.log('Projects base dir not found, checking alternative path...')
-    }
+    const projectsBaseDir = dirname(oramaPath)
     // Search recursively for the corrupted file
     const findCorrupted = (dir: string): boolean => {
       const entries = readdirSync(dir, { withFileTypes: true })

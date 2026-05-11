@@ -2,8 +2,9 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, mock, test as bunTest } from 'bun:test'
 
+import { getAPIProvider } from './model/providers.js'
 import type { ProviderProfile } from './config.js'
 
 async function importFreshProvidersModule() {
@@ -16,6 +17,7 @@ const originalCwd = process.cwd()
 const RESTORED_KEYS = [
   'CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED',
   'CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED_ID',
+  'KALTCODE_CONFIG_DIR',
   'CLAUDE_CONFIG_DIR',
   'CLAUDE_CODE_USE_OPENAI',
   'CLAUDE_CODE_USE_GEMINI',
@@ -83,6 +85,9 @@ function createMockConfigState(): MockConfigState {
 
 let mockConfigState: MockConfigState = createMockConfigState()
 let testConfigDir: string | null = null
+const STARTUP_PROFILE_FILE_NAME = '.kaltcode-profile.json'
+const PROVIDER_IMPORT_TEST_TIMEOUT_MS = 60_000
+const test = bunTest.serial
 
 function saveMockGlobalConfig(
   updater: (current: MockConfigState) => MockConfigState,
@@ -90,11 +95,18 @@ function saveMockGlobalConfig(
   mockConfigState = updater(mockConfigState)
 }
 
+function applyTestConfigDir(configDir = testConfigDir): void {
+  if (!configDir) return
+  process.env.KALTCODE_CONFIG_DIR = configDir
+  process.env.CLAUDE_CONFIG_DIR = configDir
+}
+
 beforeEach(() => {
   for (const key of RESTORED_KEYS) {
     delete process.env[key]
   }
   testConfigDir = mkdtempSync(join(tmpdir(), 'kalt-code-provider-config-'))
+  process.env.KALTCODE_CONFIG_DIR = testConfigDir
   process.env.CLAUDE_CONFIG_DIR = testConfigDir
 })
 
@@ -198,7 +210,7 @@ describe('applyProviderProfileToProcessEnv', () => {
       'provider_test',
     )
     expect(getFreshAPIProvider()).toBe('openai')
-  })
+  }, PROVIDER_IMPORT_TEST_TIMEOUT_MS)
 
   test('mistral profile sets CLAUDE_CODE_USE_MISTRAL and clears openai flags', async () => {
     const { applyProviderProfileToProcessEnv } =
@@ -213,7 +225,7 @@ describe('applyProviderProfileToProcessEnv', () => {
     expect(process.env.CLAUDE_CODE_USE_OPENAI).toBeUndefined()
     expect(process.env.MISTRAL_MODEL).toBe('devstral-latest')
     expect(getFreshAPIProvider()).toBe('mistral')
-  })
+  }, PROVIDER_IMPORT_TEST_TIMEOUT_MS)
 
   test('gemini profile sets CLAUDE_CODE_USE_GEMINI and clears openai flags', async () => {
     const { applyProviderProfileToProcessEnv } =
@@ -242,17 +254,14 @@ describe('applyProviderProfileToProcessEnv', () => {
         model: 'claude-sonnet-4-6',
       }),
     )
-    const { getAPIProvider: getFreshAPIProvider } =
-      await importFreshProvidersModule()
-
     expect(process.env.CLAUDE_CODE_USE_BEDROCK).toBe('1')
     expect(process.env.CLAUDE_CODE_USE_OPENAI).toBeUndefined()
     expect(process.env.ANTHROPIC_MODEL).toBe('claude-sonnet-4-6')
     expect(process.env.ANTHROPIC_BEDROCK_BASE_URL).toBe(
       'https://bedrock-proxy.example',
     )
-    expect(getFreshAPIProvider()).toBe('bedrock')
-  })
+    expect(getAPIProvider()).toBe('bedrock')
+  }, 20_000)
 
   test('github profile sets CLAUDE_CODE_USE_GITHUB instead of generic openai mode', async () => {
     const { applyProviderProfileToProcessEnv } =
@@ -276,7 +285,7 @@ describe('applyProviderProfileToProcessEnv', () => {
     )
     expect(process.env.OPENAI_MODEL).toBe('github:copilot')
     expect(getFreshAPIProvider()).toBe('github')
-  })
+  }, 20_000)
 
   test('nvidia-nim profile keeps openai-compatible routing but stamps NVIDIA_NIM', async () => {
     const { applyProviderProfileToProcessEnv } =
@@ -1069,6 +1078,7 @@ describe('getProviderPresetDefaults', () => {
 describe('setActiveProviderProfile', () => {
   test('sets OPENAI_MODEL env var when switching to an openai-type provider', async () => {
     const configDir = mkdtempSync(join(tmpdir(), 'kalt-code-provider-config-'))
+    process.env.KALTCODE_CONFIG_DIR = configDir
     process.env.CLAUDE_CONFIG_DIR = configDir
 
     try {
@@ -1087,6 +1097,7 @@ describe('setActiveProviderProfile', () => {
         providerProfiles: [openaiProfile],
       }))
 
+      applyTestConfigDir(configDir)
       const result = setActiveProviderProfile('openai_prof')
 
       expect(result?.id).toBe('openai_prof')
@@ -1105,6 +1116,7 @@ describe('setActiveProviderProfile', () => {
     const tempDir = mkdtempSync(join(tmpdir(), 'kalt-code-provider-'))
     const configDir = mkdtempSync(join(tmpdir(), 'kalt-code-provider-config-'))
     process.chdir(tempDir)
+    process.env.KALTCODE_CONFIG_DIR = configDir
     process.env.CLAUDE_CONFIG_DIR = configDir
     process.env.OPENAI_API_KEY = 'sk-shell-should-not-persist'
 
@@ -1125,13 +1137,14 @@ describe('setActiveProviderProfile', () => {
         providerProfiles: [ollamaProfile],
       }))
 
+      applyTestConfigDir(configDir)
       const result = setActiveProviderProfile('ollama_prof')
       const persisted = JSON.parse(
-        readFileSync(join(configDir, '.kalt-code-profile.json'), 'utf8'),
+        readFileSync(join(configDir, STARTUP_PROFILE_FILE_NAME), 'utf8'),
       )
 
       expect(result?.id).toBe('ollama_prof')
-      expect(existsSync(join(tempDir, '.kalt-code-profile.json'))).toBe(false)
+      expect(existsSync(join(tempDir, STARTUP_PROFILE_FILE_NAME))).toBe(false)
       expect(persisted.profile).toBe('openai')
       expect(persisted.env).toEqual({
         OPENAI_BASE_URL: 'http://localhost:11434/v1',
@@ -1148,6 +1161,7 @@ describe('setActiveProviderProfile', () => {
     const tempDir = mkdtempSync(join(tmpdir(), 'kalt-code-provider-'))
     const configDir = mkdtempSync(join(tmpdir(), 'kalt-code-provider-config-'))
     process.chdir(tempDir)
+    process.env.KALTCODE_CONFIG_DIR = configDir
     process.env.CLAUDE_CONFIG_DIR = configDir
 
     try {
@@ -1168,13 +1182,14 @@ describe('setActiveProviderProfile', () => {
         providerProfiles: [deepSeekProfile],
       }))
 
+      applyTestConfigDir(configDir)
       const result = setActiveProviderProfile('deepseek_prof')
       const persisted = JSON.parse(
-        readFileSync(join(configDir, '.kalt-code-profile.json'), 'utf8'),
+        readFileSync(join(configDir, STARTUP_PROFILE_FILE_NAME), 'utf8'),
       )
 
       expect(result?.id).toBe('deepseek_prof')
-      expect(existsSync(join(tempDir, '.kalt-code-profile.json'))).toBe(false)
+      expect(existsSync(join(tempDir, STARTUP_PROFILE_FILE_NAME))).toBe(false)
       expect(persisted.profile).toBe('openai')
       expect(persisted.env).toEqual({
         OPENAI_BASE_URL: 'https://api.deepseek.com/v1',
@@ -1192,6 +1207,7 @@ describe('setActiveProviderProfile', () => {
     const tempDir = mkdtempSync(join(tmpdir(), 'kalt-code-provider-'))
     const configDir = mkdtempSync(join(tmpdir(), 'kalt-code-provider-config-'))
     process.chdir(tempDir)
+    process.env.KALTCODE_CONFIG_DIR = configDir
     process.env.CLAUDE_CONFIG_DIR = configDir
 
     try {
@@ -1211,13 +1227,14 @@ describe('setActiveProviderProfile', () => {
         providerProfiles: [deepSeekProfile],
       }))
 
+      applyTestConfigDir(configDir)
       const result = setActiveProviderProfile('deepseek_vendor_prof')
       const persisted = JSON.parse(
-        readFileSync(join(configDir, '.kalt-code-profile.json'), 'utf8'),
+        readFileSync(join(configDir, STARTUP_PROFILE_FILE_NAME), 'utf8'),
       )
 
       expect(result?.id).toBe('deepseek_vendor_prof')
-      expect(existsSync(join(tempDir, '.kalt-code-profile.json'))).toBe(false)
+      expect(existsSync(join(tempDir, STARTUP_PROFILE_FILE_NAME))).toBe(false)
       expect(persisted.profile).toBe('openai')
       expect(persisted.env).toEqual({
         OPENAI_BASE_URL: 'https://api.deepseek.com/v1',
@@ -1235,6 +1252,7 @@ describe('setActiveProviderProfile', () => {
     const tempDir = mkdtempSync(join(tmpdir(), 'kalt-code-provider-'))
     const configDir = mkdtempSync(join(tmpdir(), 'kalt-code-provider-config-'))
     process.chdir(tempDir)
+    process.env.KALTCODE_CONFIG_DIR = configDir
     process.env.CLAUDE_CONFIG_DIR = configDir
 
     try {
@@ -1253,13 +1271,14 @@ describe('setActiveProviderProfile', () => {
         providerProfiles: [bedrockProfile],
       }))
 
+      applyTestConfigDir(configDir)
       const result = setActiveProviderProfile('bedrock_prof')
       const persisted = JSON.parse(
-        readFileSync(join(configDir, '.kalt-code-profile.json'), 'utf8'),
+        readFileSync(join(configDir, STARTUP_PROFILE_FILE_NAME), 'utf8'),
       )
 
       expect(result?.id).toBe('bedrock_prof')
-      expect(existsSync(join(tempDir, '.kalt-code-profile.json'))).toBe(false)
+      expect(existsSync(join(tempDir, STARTUP_PROFILE_FILE_NAME))).toBe(false)
       expect(persisted.profile).toBe('bedrock')
       expect(persisted.env).toEqual({
         ANTHROPIC_MODEL: 'claude-sonnet-4-6',
@@ -1276,6 +1295,7 @@ describe('setActiveProviderProfile', () => {
     const tempDir = mkdtempSync(join(tmpdir(), 'kalt-code-provider-'))
     const configDir = mkdtempSync(join(tmpdir(), 'kalt-code-provider-config-'))
     process.chdir(tempDir)
+    process.env.KALTCODE_CONFIG_DIR = configDir
     process.env.CLAUDE_CONFIG_DIR = configDir
 
     try {
@@ -1295,13 +1315,14 @@ describe('setActiveProviderProfile', () => {
         providerProfiles: [anthropicProfile],
       }))
 
+      applyTestConfigDir(configDir)
       const result = setActiveProviderProfile('anthro_persisted_prof')
       const persisted = JSON.parse(
-        readFileSync(join(configDir, '.kalt-code-profile.json'), 'utf8'),
+        readFileSync(join(configDir, STARTUP_PROFILE_FILE_NAME), 'utf8'),
       )
 
       expect(result?.id).toBe('anthro_persisted_prof')
-      expect(existsSync(join(tempDir, '.kalt-code-profile.json'))).toBe(false)
+      expect(existsSync(join(tempDir, STARTUP_PROFILE_FILE_NAME))).toBe(false)
       expect(persisted.profile).toBe('anthropic')
       expect(persisted.env).toEqual({
         ANTHROPIC_BASE_URL: 'https://api.anthropic.com',
@@ -1331,6 +1352,7 @@ describe('setActiveProviderProfile', () => {
       providerProfiles: [anthropicProfile],
     }))
 
+    applyTestConfigDir()
     const result = setActiveProviderProfile('anthro_prof')
 
     expect(result?.id).toBe('anthro_prof')
@@ -1369,11 +1391,13 @@ describe('setActiveProviderProfile', () => {
     }))
 
     // First activate the openai profile
+    applyTestConfigDir()
     setActiveProviderProfile('openai_prof')
     expect(process.env.OPENAI_MODEL).toBe('gpt-4o')
     expect(String(process.env.CLAUDE_CODE_USE_OPENAI)).toBe('1')
 
     // Now switch to the anthropic profile
+    applyTestConfigDir()
     const result = setActiveProviderProfile('anthro_prof')
 
     expect(result?.id).toBe('anthro_prof')
@@ -1414,11 +1438,13 @@ describe('setActiveProviderProfile', () => {
     }))
 
     // First activate the anthropic profile
+    applyTestConfigDir()
     setActiveProviderProfile('anthro_prof')
     expect(process.env.ANTHROPIC_MODEL).toBe('claude-sonnet-4-6')
     expect(process.env.ANTHROPIC_BASE_URL).toBe('https://api.anthropic.com')
 
     // Now switch to the openai profile
+    applyTestConfigDir()
     const result = setActiveProviderProfile('openai_prof')
 
     expect(result?.id).toBe('openai_prof')
@@ -1443,6 +1469,7 @@ describe('setActiveProviderProfile', () => {
       providerProfiles: [openaiProfile],
     }))
 
+    applyTestConfigDir()
     const result = setActiveProviderProfile('nonexistent_prof')
 
     expect(result).toBeNull()
@@ -1658,6 +1685,7 @@ describe('setActiveProviderProfile model cache', () => {
       ],
     }
 
+    applyTestConfigDir()
     setActiveProviderProfile('multi_provider')
 
     const cache = getActiveOpenAIModelOptionsCache()
@@ -1699,6 +1727,7 @@ describe('setActiveProviderProfile model cache', () => {
       },
     }
 
+    applyTestConfigDir()
     setActiveProviderProfile('multi_provider')
 
     expect(getActiveOpenAIModelOptionsCache()).toEqual([

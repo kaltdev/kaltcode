@@ -12,6 +12,8 @@ permissions:
 jobs:
   smoke-and-tests:
     runs-on: ubuntu-latest
+    env:
+      CLAUDE_CONFIG_DIR: ${{ runner.temp }}/kaltcode-config
 
     steps:
       - name: Check out repository

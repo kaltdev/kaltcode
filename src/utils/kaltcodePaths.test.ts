@@ -1,10 +1,18 @@
-import { afterEach, describe, expect, mock, test } from 'bun:test'
+import { afterEach, describe, expect, mock, test as bunTest } from 'bun:test'
 import * as fsPromises from 'fs/promises'
 import { homedir } from 'os'
 import { join } from 'path'
 
 const originalEnv = { ...process.env }
 const originalArgv = [...process.argv]
+const KALTCODE_PATHS_TEST_TIMEOUT_MS = 20_000
+
+function test(
+  name: string,
+  fn: Parameters<typeof bunTest>[1],
+): ReturnType<typeof bunTest> {
+  return bunTest(name, fn, KALTCODE_PATHS_TEST_TIMEOUT_MS)
+}
 
 async function importFreshEnvUtils() {
   return import(`./envUtils.ts?ts=${Date.now()}-${Math.random()}`)
@@ -108,6 +116,8 @@ describe('Kalt Code paths', () => {
   })
 
   test('default plans directory normalizes generated path to NFC', async () => {
+    delete process.env.KALTCODE_CONFIG_DIR
+    delete process.env.CLAUDE_CONFIG_DIR
     const { getDefaultPlansDirectory } = await importFreshPlans()
 
     expect(

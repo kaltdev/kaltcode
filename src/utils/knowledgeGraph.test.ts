@@ -17,14 +17,21 @@ import { getFsImplementation } from './fsOperations.js'
 import { sanitizePath } from './sessionStoragePortable.js'
 import { getProjectsDir } from './envUtils.js'
 
-describe('KnowledgeGraph Global Persistence & RAG', () => {
+describe.serial('KnowledgeGraph Global Persistence & RAG', () => {
+  const originalKaltCodeConfigDir = process.env.KALTCODE_CONFIG_DIR
   const originalConfigDir = process.env.CLAUDE_CONFIG_DIR
   const configDir = mkdtempSync(join(tmpdir(), 'kaltcode-knowledge-graph-'))
-  process.env.CLAUDE_CONFIG_DIR = configDir
+  applyTestConfigDir()
   const cwd = getFsImplementation().cwd()
   const graphPath = getProjectGraphPath(cwd)
 
+  function applyTestConfigDir(): void {
+    process.env.KALTCODE_CONFIG_DIR = configDir
+    process.env.CLAUDE_CONFIG_DIR = configDir
+  }
+
   beforeEach(() => {
+    applyTestConfigDir()
     resetGlobalGraph()
     rmSync(graphPath, { force: true })
   })
@@ -35,6 +42,11 @@ describe('KnowledgeGraph Global Persistence & RAG', () => {
 
   afterAll(() => {
     resetGlobalGraph()
+    if (originalKaltCodeConfigDir === undefined) {
+      delete process.env.KALTCODE_CONFIG_DIR
+    } else {
+      process.env.KALTCODE_CONFIG_DIR = originalKaltCodeConfigDir
+    }
     if (originalConfigDir === undefined) {
       delete process.env.CLAUDE_CONFIG_DIR
     } else {

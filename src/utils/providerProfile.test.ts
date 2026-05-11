@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { existsSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import test from 'node:test'
+import { test as bunTest } from 'bun:test'
 
 import { DEFAULT_CODEX_BASE_URL } from '../services/api/providerConfig.js'
 import {
@@ -29,6 +29,8 @@ import {
   type ProfileFile,
 } from './providerProfile.js'
 
+const test = bunTest.serial
+
 function makeJwt(payload: Record<string, unknown>): string {
   const header = Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' }))
     .toString('base64url')
@@ -50,6 +52,27 @@ async function importFreshProviderProfileModule() {
 }
 
 const missingCodexAuthPath = join(tmpdir(), 'kaltcode-missing-codex-auth.json')
+
+function useConfigDir(configDir: string): () => void {
+  const previousKaltCodeConfigDir = process.env.KALTCODE_CONFIG_DIR
+  const previousClaudeConfigDir = process.env.CLAUDE_CONFIG_DIR
+  process.env.KALTCODE_CONFIG_DIR = configDir
+  process.env.CLAUDE_CONFIG_DIR = configDir
+
+  return () => {
+    if (previousKaltCodeConfigDir === undefined) {
+      delete process.env.KALTCODE_CONFIG_DIR
+    } else {
+      process.env.KALTCODE_CONFIG_DIR = previousKaltCodeConfigDir
+    }
+
+    if (previousClaudeConfigDir === undefined) {
+      delete process.env.CLAUDE_CONFIG_DIR
+    } else {
+      process.env.CLAUDE_CONFIG_DIR = previousClaudeConfigDir
+    }
+  }
+}
 
 test('matching persisted ollama env is reused for ollama launch', async () => {
   const env = await buildLaunchEnv({
@@ -587,16 +610,23 @@ test('saveProfileFile writes a profile that loadProfileFile can read back', () =
   }
 })
 
-test('saveProfileFile defaults to user config instead of the working directory', () => {
+test('saveProfileFile defaults to user config instead of the working directory', async () => {
   const cwd = mkdtempSync(join(tmpdir(), 'kaltcode-workspace-profile-'))
   const configRoot = mkdtempSync(join(tmpdir(), 'kaltcode-config-profile-'))
   const configDir = join(configRoot, 'config')
-  const previousConfigDir = process.env.CLAUDE_CONFIG_DIR
+  const restoreConfigDir = useConfigDir(configDir)
   const previousCwd = process.cwd()
 
   try {
-    process.env.CLAUDE_CONFIG_DIR = configDir
     process.chdir(cwd)
+    const {
+      createProfileFile,
+      getDefaultProfileFilePath,
+      loadProfileFile,
+      saveProfileFile,
+    } = await importFreshProviderProfileModule()
+    process.env.KALTCODE_CONFIG_DIR = configDir
+    process.env.CLAUDE_CONFIG_DIR = configDir
 
     const persisted = createProfileFile('openai', {
       OPENAI_API_KEY: 'sk-test',
@@ -612,25 +642,27 @@ test('saveProfileFile defaults to user config instead of the working directory',
     assert.deepEqual(loadProfileFile(), persisted)
   } finally {
     process.chdir(previousCwd)
-    if (previousConfigDir === undefined) {
-      delete process.env.CLAUDE_CONFIG_DIR
-    } else {
-      process.env.CLAUDE_CONFIG_DIR = previousConfigDir
-    }
+    restoreConfigDir()
     rmSync(cwd, { recursive: true, force: true })
     rmSync(configRoot, { recursive: true, force: true })
   }
 })
 
-test('loadProfileFile keeps project-local files as a legacy fallback', () => {
+test('loadProfileFile keeps project-local files as a legacy fallback', async () => {
   const cwd = mkdtempSync(join(tmpdir(), 'kaltcode-legacy-profile-'))
   const configDir = mkdtempSync(join(tmpdir(), 'kaltcode-empty-config-profile-'))
-  const previousConfigDir = process.env.CLAUDE_CONFIG_DIR
+  const restoreConfigDir = useConfigDir(configDir)
   const previousCwd = process.cwd()
 
   try {
-    process.env.CLAUDE_CONFIG_DIR = configDir
     process.chdir(cwd)
+    const {
+      createProfileFile,
+      loadProfileFile,
+      PROFILE_FILE_NAME,
+    } = await importFreshProviderProfileModule()
+    process.env.KALTCODE_CONFIG_DIR = configDir
+    process.env.CLAUDE_CONFIG_DIR = configDir
 
     const legacyProfile = createProfileFile('gemini', {
       GEMINI_API_KEY: 'gem-test',
@@ -645,25 +677,27 @@ test('loadProfileFile keeps project-local files as a legacy fallback', () => {
     assert.deepEqual(loadProfileFile(), legacyProfile)
   } finally {
     process.chdir(previousCwd)
-    if (previousConfigDir === undefined) {
-      delete process.env.CLAUDE_CONFIG_DIR
-    } else {
-      process.env.CLAUDE_CONFIG_DIR = previousConfigDir
-    }
+    restoreConfigDir()
     rmSync(cwd, { recursive: true, force: true })
     rmSync(configDir, { recursive: true, force: true })
   }
 })
 
-test('loadProfileFile does not fall back when user config profile is invalid', () => {
+test('loadProfileFile does not fall back when user config profile is invalid', async () => {
   const cwd = mkdtempSync(join(tmpdir(), 'kaltcode-invalid-profile-'))
   const configDir = mkdtempSync(join(tmpdir(), 'kaltcode-invalid-config-profile-'))
-  const previousConfigDir = process.env.CLAUDE_CONFIG_DIR
+  const restoreConfigDir = useConfigDir(configDir)
   const previousCwd = process.cwd()
 
   try {
-    process.env.CLAUDE_CONFIG_DIR = configDir
     process.chdir(cwd)
+    const {
+      createProfileFile,
+      loadProfileFile,
+      PROFILE_FILE_NAME,
+    } = await importFreshProviderProfileModule()
+    process.env.KALTCODE_CONFIG_DIR = configDir
+    process.env.CLAUDE_CONFIG_DIR = configDir
 
     const legacyProfile = createProfileFile('gemini', {
       GEMINI_API_KEY: 'gem-test',
@@ -679,25 +713,29 @@ test('loadProfileFile does not fall back when user config profile is invalid', (
     assert.equal(loadProfileFile(), null)
   } finally {
     process.chdir(previousCwd)
-    if (previousConfigDir === undefined) {
-      delete process.env.CLAUDE_CONFIG_DIR
-    } else {
-      process.env.CLAUDE_CONFIG_DIR = previousConfigDir
-    }
+    restoreConfigDir()
     rmSync(cwd, { recursive: true, force: true })
     rmSync(configDir, { recursive: true, force: true })
   }
 })
 
-test('deleteProfileFile clears the default profile and legacy workspace fallback', () => {
+test('deleteProfileFile clears the default profile and legacy workspace fallback', async () => {
   const cwd = mkdtempSync(join(tmpdir(), 'kaltcode-delete-profile-'))
   const configDir = mkdtempSync(join(tmpdir(), 'kaltcode-delete-config-profile-'))
-  const previousConfigDir = process.env.CLAUDE_CONFIG_DIR
+  const restoreConfigDir = useConfigDir(configDir)
   const previousCwd = process.cwd()
 
   try {
-    process.env.CLAUDE_CONFIG_DIR = configDir
     process.chdir(cwd)
+    const {
+      createProfileFile,
+      deleteProfileFile,
+      loadProfileFile,
+      saveProfileFile,
+      PROFILE_FILE_NAME,
+    } = await importFreshProviderProfileModule()
+    process.env.KALTCODE_CONFIG_DIR = configDir
+    process.env.CLAUDE_CONFIG_DIR = configDir
 
     const configProfile = createProfileFile('openai', {
       OPENAI_API_KEY: 'sk-test',
@@ -721,11 +759,7 @@ test('deleteProfileFile clears the default profile and legacy workspace fallback
     assert.equal(loadProfileFile(), null)
   } finally {
     process.chdir(previousCwd)
-    if (previousConfigDir === undefined) {
-      delete process.env.CLAUDE_CONFIG_DIR
-    } else {
-      process.env.CLAUDE_CONFIG_DIR = previousConfigDir
-    }
+    restoreConfigDir()
     rmSync(cwd, { recursive: true, force: true })
     rmSync(configDir, { recursive: true, force: true })
   }
@@ -801,15 +835,23 @@ test('clearPersistedCodexOAuthProfile removes only persisted Codex OAuth profile
   }
 })
 
-test('clearPersistedCodexOAuthProfile clears both default and legacy OAuth profiles', () => {
+test('clearPersistedCodexOAuthProfile clears both default and legacy OAuth profiles', async () => {
   const cwd = mkdtempSync(join(tmpdir(), 'kaltcode-clear-oauth-profile-'))
   const configDir = mkdtempSync(join(tmpdir(), 'kaltcode-clear-oauth-config-'))
-  const previousConfigDir = process.env.CLAUDE_CONFIG_DIR
+  const restoreConfigDir = useConfigDir(configDir)
   const previousCwd = process.cwd()
 
   try {
-    process.env.CLAUDE_CONFIG_DIR = configDir
     process.chdir(cwd)
+    const {
+      clearPersistedCodexOAuthProfile,
+      createProfileFile,
+      loadProfileFile,
+      saveProfileFile,
+      PROFILE_FILE_NAME,
+    } = await importFreshProviderProfileModule()
+    process.env.KALTCODE_CONFIG_DIR = configDir
+    process.env.CLAUDE_CONFIG_DIR = configDir
 
     const oauthProfile = createProfileFile('codex', {
       OPENAI_MODEL: 'codexplan',
@@ -834,11 +876,7 @@ test('clearPersistedCodexOAuthProfile clears both default and legacy OAuth profi
     assert.equal(loadProfileFile(), null)
   } finally {
     process.chdir(previousCwd)
-    if (previousConfigDir === undefined) {
-      delete process.env.CLAUDE_CONFIG_DIR
-    } else {
-      process.env.CLAUDE_CONFIG_DIR = previousConfigDir
-    }
+    restoreConfigDir()
     rmSync(cwd, { recursive: true, force: true })
     rmSync(configDir, { recursive: true, force: true })
   }
@@ -1086,7 +1124,7 @@ test('applySavedProfileToCurrentSession replaces empty active OpenAI key for Cod
   assert.equal(Object.hasOwn(processEnv, 'OPENAI_API_KEY'), false)
   assert.equal(processEnv.CHATGPT_ACCOUNT_ID, 'acct_oauth')
   assert.equal(Object.hasOwn(processEnv, 'CODEX_API_KEY'), false)
-})
+}, 20_000)
 
 test('buildStartupEnvFromProfile preserves plural-profile env when the legacy file is stale', async () => {
   // Regression: a user saves a provider via /provider (plural system).

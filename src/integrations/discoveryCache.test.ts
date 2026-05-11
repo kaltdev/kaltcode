@@ -19,6 +19,7 @@ import {
 } from '../utils/fsOperations.js'
 
 const originalConfigDir = process.env.CLAUDE_CONFIG_DIR
+const originalKaltCodeConfigDir = process.env.KALTCODE_CONFIG_DIR
 
 let tempDir: string
 
@@ -32,6 +33,7 @@ function createModel(id: string): ModelCatalogEntry {
 
 beforeEach(async () => {
   tempDir = mkdtempSync(join(tmpdir(), 'kaltcode-discovery-cache-test-'))
+  process.env.KALTCODE_CONFIG_DIR = tempDir
   process.env.CLAUDE_CONFIG_DIR = tempDir
   setOriginalFsImplementation()
   await clearDiscoveryCache()
@@ -43,6 +45,11 @@ afterEach(() => {
     delete process.env.CLAUDE_CONFIG_DIR
   } else {
     process.env.CLAUDE_CONFIG_DIR = originalConfigDir
+  }
+  if (originalKaltCodeConfigDir === undefined) {
+    delete process.env.KALTCODE_CONFIG_DIR
+  } else {
+    process.env.KALTCODE_CONFIG_DIR = originalKaltCodeConfigDir
   }
   rmSync(tempDir, { recursive: true, force: true })
 })
