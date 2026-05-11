@@ -19,9 +19,7 @@ export function buildScanReportMarkdown(input: { scannedAt: string; commits: Que
 
   if (input.commits.length === 0) {
     lines.push('No new upstream commits discovered.')
-    return `${lines.join('
-')}
-`
+    return `${lines.join('\n')}\n`
   }
 
   for (const commit of input.commits) {
@@ -30,9 +28,7 @@ export function buildScanReportMarkdown(input: { scannedAt: string; commits: Que
     )
   }
 
-  return `${lines.join('
-')}
-`
+  return `${lines.join('\n')}\n`
 }
 
 export function buildPortReportMarkdown(input: { processedAt: string; entries: SyncLedgerEntry[] }): string {
@@ -51,9 +47,7 @@ export function buildPortReportMarkdown(input: { processedAt: string; entries: S
     )
   }
 
-  return `${lines.join('
-')}
-`
+  return `${lines.join('\n')}\n`
 }
 
 export function buildReleaseReportMarkdown(input: {
@@ -75,9 +69,7 @@ export function buildReleaseReportMarkdown(input: {
 
   if (input.entries.length === 0) {
     lines.push('No successful sync entries are pending release.')
-    return `${lines.join('
-')}
-`
+    return `${lines.join('\n')}\n`
   }
 
   lines.push('## Included sync entries', '')
@@ -85,7 +77,5 @@ export function buildReleaseReportMarkdown(input: {
     lines.push(`- ${entry.upstreamShortSha} | ${entry.category} | ${entry.upstreamSubject}`)
   }
 
-  return `${lines.join('
-')}
-`
+  return `${lines.join('\n')}\n`
 }

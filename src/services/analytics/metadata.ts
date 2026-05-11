@@ -844,11 +844,11 @@ export function to1PEventFormat(
   if (false && envContext.coworkerType) {
     env.coworker_type = envContext.coworkerType
   }
-  if (envContext.kalt-codeCodeContainerId) {
-    env.kalt-code_code_container_id = envContext.kalt-codeCodeContainerId
+  if (envContext.claudeCodeContainerId) {
+    env.claude_code_container_id = envContext.claudeCodeContainerId
   }
-  if (envContext.kalt-codeCodeRemoteSessionId) {
-    env.kalt-code_code_remote_session_id = envContext.kalt-codeCodeRemoteSessionId
+  if (envContext.claudeCodeRemoteSessionId) {
+    env.claude_code_remote_session_id = envContext.claudeCodeRemoteSessionId
   }
   if (envContext.tags) {
     env.tags = envContext.tags

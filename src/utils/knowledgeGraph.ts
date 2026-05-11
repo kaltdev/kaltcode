@@ -37,7 +37,10 @@ export interface KnowledgeGraph {
 let projectGraph: KnowledgeGraph | null = null
 
 function isOramaEnabled(): boolean {
-  return process.env.OPENCLAUDE_KNOWLEDGE_ORAMA === '1'
+  return (
+    process.env.KALTCODE_KNOWLEDGE_ORAMA === '1' ||
+    process.env.OPENCLAUDE_KNOWLEDGE_ORAMA === '1'
+  )
 }
 
 let oramaDb: Orama<any> | null = null

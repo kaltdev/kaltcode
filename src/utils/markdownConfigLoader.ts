@@ -24,7 +24,7 @@ import {
 import { getManagedFilePath } from "./settings/managedPath.js";
 import { isRestrictedToPluginOnly } from "./settings/pluginOnlyPolicy.js";
 
-// Claude configuration directory names
+// Kalt Code configuration directory names
 export const KALT_CODE_CONFIG_DIRECTORIES = [
     "commands",
     "agents",
@@ -37,7 +37,11 @@ export const KALT_CODE_CONFIG_DIRECTORIES = [
 export type ClaudeConfigDirectory =
     (typeof KALT_CODE_CONFIG_DIRECTORIES)[number];
 
-const PROJECT_CONFIG_DIR_NAMES = [".claude", ".openclaude"] as const;
+const PROJECT_CONFIG_DIR_NAMES = [
+    ".claude",
+    ".openclaude",
+    ".kaltcode",
+] as const;
 
 export type MarkdownFile = {
     filePath: string;

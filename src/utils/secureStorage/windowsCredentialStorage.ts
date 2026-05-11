@@ -31,7 +31,10 @@ function getWindowsSecureStorageFilePath(): string {
 }
 
 function shouldUseLegacyPasswordVault(): boolean {
-  return process.env.OPENCLAUDE_ENABLE_LEGACY_WINDOWS_PASSWORDVAULT === '1'
+  return (
+    process.env.KALTCODE_ENABLE_LEGACY_WINDOWS_PASSWORDVAULT === '1' ||
+    process.env.OPENCLAUDE_ENABLE_LEGACY_WINDOWS_PASSWORDVAULT === '1'
+  )
 }
 
 function runPowerShell(

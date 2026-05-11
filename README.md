@@ -10,31 +10,7 @@ Use OpenAI-compatible APIs, Gemini, GitHub Models, Codex OAuth, Codex, Ollama, A
 [![Security Policy](https://img.shields.io/badge/security-policy-0f766e)](SECURITY.md)
 [![License](https://img.shields.io/badge/license-MIT-2563eb)](LICENSE)
 
-[Quick Start](#quick-start) | [Setup Guides](#setup-guides) | [Providers](#supported-providers) | [Source Build](#source-build-and-local-development) | [VS Code Extension](#vs-code-extension) | [Sponsors](#sponsors) | [Community](#community)
-
-## Sponsors
-
-<p align="center">
-  <a href="https://gitlawb.com">
-    <img src="https://gitlawb.com/logo.png" alt="GitLawb logo" width="96">
-  </a>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://bankr.bot">
-    <img src="https://bankr.bot/favicon.svg" alt="Bankr.bot logo" width="96">
-  </a>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://atomic.chat/">
-    <img src="docs/assets/atomic-chat-logo.png" alt="Atomic Chat logo" width="96">
-  </a>
-</p>
-
-<p align="center">
-  <a href="https://gitlawb.com"><strong>GitLawb</strong></a>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://bankr.bot"><strong>Bankr.bot</strong></a>
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://atomic.chat/"><strong>Atomic Chat</strong></a>
-</p>
+[Quick Start](#quick-start) | [Setup Guides](#setup-guides) | [Providers](#supported-providers) | [Source Build](#source-build-and-local-development) | [VS Code Extension](#vs-code-extension) | [Community](#community)
 
 ## Star History
 

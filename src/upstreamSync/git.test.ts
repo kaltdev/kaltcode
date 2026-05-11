@@ -16,8 +16,9 @@ describe('git helpers', () => {
   })
 
   test('parses changed files', () => {
-    expect(parseChangedFiles('README.md
-src/index.ts
-')).toEqual(['README.md', 'src/index.ts'])
+    expect(parseChangedFiles('README.md\nsrc/index.ts\n')).toEqual([
+      'README.md',
+      'src/index.ts',
+    ])
   })
 })

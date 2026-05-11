@@ -38,12 +38,19 @@ export {
 } from './providerSecrets.js'
 import { getClaudeConfigHomeDir, isEnvTruthy } from './envUtils.js'
 
-export const PROFILE_FILE_NAME = '.openclaude-profile.json'
+export const PROFILE_FILE_NAME = '.kaltcode-profile.json'
+export const DEPRECATED_PROFILE_FILE_NAME = '.openclaude-profile.json'
 export const DEFAULT_GEMINI_BASE_URL =
   'https://generativelanguage.googleapis.com/v1beta/openai'
 export const DEFAULT_GEMINI_MODEL = 'gemini-3-flash-preview'
 export const DEFAULT_MISTRAL_BASE_URL = 'https://api.mistral.ai/v1'
 export const DEFAULT_MISTRAL_MODEL = 'devstral-latest'
+
+function getRecommendationGoalFromEnv(
+  processEnv: NodeJS.ProcessEnv,
+): string | undefined {
+  return processEnv.KALTCODE_PROFILE_GOAL ?? processEnv.OPENCLAUDE_PROFILE_GOAL
+}
 
 const PROFILE_ENV_KEYS = [
   'CLAUDE_CODE_USE_OPENAI',
@@ -203,6 +210,10 @@ function resolveLegacyProfileFilePath(cwd = process.cwd()): string {
   return resolve(cwd, PROFILE_FILE_NAME)
 }
 
+function resolveDeprecatedProfileFilePath(cwd = process.cwd()): string {
+  return resolve(cwd, DEPRECATED_PROFILE_FILE_NAME)
+}
+
 function resolveProfileFilePath(options?: ProfileFileLocation): string {
   if (options?.filePath) {
     return options.filePath
@@ -225,8 +236,15 @@ function resolveProfileFileReadPaths(options?: ProfileFileLocation): string[] {
     return [primary]
   }
 
+  const defaultDeprecated = join(
+    getClaudeConfigHomeDir(),
+    DEPRECATED_PROFILE_FILE_NAME,
+  )
   const legacy = resolveLegacyProfileFilePath()
-  return legacy === primary ? [primary] : [primary, legacy]
+  const deprecatedLegacy = resolveDeprecatedProfileFilePath()
+  return Array.from(
+    new Set([primary, defaultDeprecated, legacy, deprecatedLegacy]),
+  )
 }
 
 function resolveProfileFileCleanupPaths(options?: ProfileFileLocation): string[] {
@@ -235,8 +253,15 @@ function resolveProfileFileCleanupPaths(options?: ProfileFileLocation): string[]
     return [primary]
   }
 
+  const defaultDeprecated = join(
+    getClaudeConfigHomeDir(),
+    DEPRECATED_PROFILE_FILE_NAME,
+  )
   const legacy = resolveLegacyProfileFilePath()
-  return legacy === primary ? [primary] : [primary, legacy]
+  const deprecatedLegacy = resolveDeprecatedProfileFilePath()
+  return Array.from(
+    new Set([primary, defaultDeprecated, legacy, deprecatedLegacy]),
+  )
 }
 
 function ensureProfileDirectory(filePath: string): void {
@@ -855,9 +880,10 @@ export function deleteProfileFile(options?: ProfileFileLocation): string {
   const filePath = resolveProfileFilePath(options)
   rmSync(filePath, { force: true })
   if (!options?.filePath && !options?.cwd) {
-    const legacyPath = resolveLegacyProfileFilePath()
-    if (legacyPath !== filePath) {
-      rmSync(legacyPath, { force: true })
+    for (const cleanupPath of resolveProfileFileCleanupPaths()) {
+      if (cleanupPath !== filePath) {
+        rmSync(cleanupPath, { force: true })
+      }
     }
   }
   return filePath
@@ -1387,7 +1413,7 @@ export async function buildStartupEnvFromProfile(options?: {
     persisted,
     goal:
       options?.goal ??
-      normalizeRecommendationGoal(processEnv.OPENCLAUDE_PROFILE_GOAL),
+      normalizeRecommendationGoal(getRecommendationGoalFromEnv(processEnv)),
     processEnv,
     getOllamaChatBaseUrl:
       options?.getOllamaChatBaseUrl ?? getOllamaChatBaseUrl,
@@ -1427,7 +1453,9 @@ export async function applySavedProfileToCurrentSession(options: {
     const explicitEnv = await buildLaunchEnv({
       profile: options.profileFile.profile,
       persisted: options.profileFile,
-      goal: normalizeRecommendationGoal(processEnv.OPENCLAUDE_PROFILE_GOAL),
+      goal: normalizeRecommendationGoal(
+        getRecommendationGoalFromEnv(processEnv),
+      ),
       processEnv: buildEnvSource,
       getOllamaChatBaseUrl,
       readGeminiAccessToken,
@@ -1476,7 +1504,7 @@ export async function applySavedProfileToCurrentSession(options: {
   const nextEnv = await buildLaunchEnv({
     profile: options.profileFile.profile,
     persisted: options.profileFile,
-    goal: normalizeRecommendationGoal(processEnv.OPENCLAUDE_PROFILE_GOAL),
+    goal: normalizeRecommendationGoal(getRecommendationGoalFromEnv(processEnv)),
     processEnv: baseEnv,
     getOllamaChatBaseUrl,
     readGeminiAccessToken,

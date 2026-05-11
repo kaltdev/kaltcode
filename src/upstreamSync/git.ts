@@ -17,8 +17,7 @@ export function runGit(args: string[], cwd = process.cwd()) {
 
 export function parseLogLines(output: string): UpstreamCommitRef[] {
   return output
-    .split('
-')
+    .split('\n')
     .filter(Boolean)
     .map(line => {
       const [sha, subject, authoredAt] = line.split('	')
@@ -33,8 +32,7 @@ export function parseLogLines(output: string): UpstreamCommitRef[] {
 
 export function parseChangedFiles(output: string): string[] {
   return output
-    .split('
-')
+    .split('\n')
     .map(line => line.trim())
     .filter(Boolean)
 }

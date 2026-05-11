@@ -1,5 +1,5 @@
 /**
- * Tests for Bug Fixes applied to openclaude.
+ * Tests for bug fixes applied to Kalt Code.
  *
  * Covers:
  * 1. Gemini `store: false` rejection fix

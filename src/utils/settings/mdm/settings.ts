@@ -2,10 +2,10 @@
  * MDM (Mobile Device Management) profile enforcement for Kalt Code managed settings.
  *
  * Reads enterprise settings from OS-level MDM configuration:
- * - macOS: `com.anthropic.kalt-codecode` preference domain
+ * - macOS: `com.kaltdev.kalt-code` preference domain
  *   (MDM profiles at /Library/Managed Preferences/ only — not user-writable ~/Library/Preferences/)
- * - Windows: `HKLM\SOFTWARE\Policies\ClaudeCode` (admin-only)
- *   and `HKCU\SOFTWARE\Policies\ClaudeCode` (user-writable, lowest priority)
+ * - Windows: `HKLM\SOFTWARE\Policies\KaltCode` (admin-only)
+ *   and `HKCU\SOFTWARE\Policies\KaltCode` (user-writable, lowest priority)
  * - Linux: No MDM equivalent (uses /etc/kalt-code/managed-settings.json instead)
  *
  * Policy settings use "first source wins" — the highest-priority source that exists
@@ -60,7 +60,7 @@ type MdmRuntimeState = {
 
 function getMdmRuntimeState(): MdmRuntimeState {
   const globalStore = globalThis as Record<string, unknown>
-  const key = '__openclaudeMdmRuntimeState'
+  const key = '__kaltcodeMdmRuntimeState'
   const existing = globalStore[key]
   if (existing && typeof existing === 'object') {
     return existing as MdmRuntimeState
