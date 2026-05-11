@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   release-please:
-    if: ${{ github.repository == 'kaltdev/kaltcode' }}
+    if: ${{ github.repository == 'kaltdev/kalt-code' }}
     name: Release Please
     runs-on: ubuntu-latest
     permissions:
@@ -85,7 +85,7 @@ jobs:
             echo "## Released ${{ needs.release-please.outputs.tag_name }}"
             echo
             echo "- npm: https://www.npmjs.com/package/@kaltdev/kaltcode"
-            echo "- GitHub: https://github.com/kaltdev/kaltcode/releases/tag/${{ needs.release-please.outputs.tag_name }}"
+            echo "- GitHub: https://github.com/kaltdev/kalt-code/releases/tag/${{ needs.release-please.outputs.tag_name }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
   docker:

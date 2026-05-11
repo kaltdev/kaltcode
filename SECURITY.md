@@ -60,7 +60,7 @@ This policy applies to:
 
 - the Kalt Code source code in this repository
 - official release artifacts published from this repository
-- the `@kaltdev/kalt-code` npm package
+- the `@kaltdev/kaltcode` npm package
 
 This policy does not cover:
 
