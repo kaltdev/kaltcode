@@ -12,8 +12,8 @@ import {
 import type { LocalCommandCall } from '../../types/command.js'
 
 // Cap the per-request breakdown to keep output readable. Users wanting
-// the full history can rely on OPENCLAUDE_LOG_TOKEN_USAGE=verbose for
-// structured per-request stderr output.
+// the full history can rely on the legacy compatibility env var
+// OPENCLAUDE_LOG_TOKEN_USAGE=verbose for structured per-request stderr output.
 const MAX_RECENT_ROWS = 20
 
 function formatRow(entry: CacheStatsEntry, idx: number): string {
