@@ -118,7 +118,7 @@ const peersCmd = false
       require('./commands/peers/index.js') as typeof import('./commands/peers/index.js')
     ).default
   : null
-const forkCmd = true
+const forkCmd = false
   ? (
       require('./commands/fork/index.js') as typeof import('./commands/fork/index.js')
     ).default
@@ -544,8 +544,8 @@ export async function getCommands(cwd: string): Promise<Command[]> {
  */
 export function clearCommandMemoizationCaches(): void {
   loadAllCommands.cache?.clear?.()
-  getSkillToolCommands.cache?.clear?.()
-  getSlashCommandToolSkills.cache?.clear?.()
+  getSkillToolCommandsMemo?.cache?.clear?.()
+  getSlashCommandToolSkillsMemo?.cache?.clear?.()
   // getSkillIndex in skillSearch/localSearch.ts is a separate memoization layer
   // built ON TOP of getSkillToolCommands/getCommands. Clearing only the inner
   // caches is a no-op for the outer — lodash memoize returns the cached result
@@ -580,10 +580,17 @@ export function getMcpSkillCommands(
   return []
 }
 
+var getSkillToolCommandsMemo:
+  | (((cwd: string) => Promise<Command[]>) & {
+      cache?: { clear?: () => void }
+    })
+  | undefined
+
 // SkillTool shows ALL prompt-based commands that the model can invoke
 // This includes both skills (from /skills/) and commands (from /commands/)
-export const getSkillToolCommands = memoize(
-  async (cwd: string): Promise<Command[]> => {
+export function getSkillToolCommands(cwd: string): Promise<Command[]> {
+  getSkillToolCommandsMemo ??= memoize(
+    async (cwd: string): Promise<Command[]> => {
     const allCommands = await getCommands(cwd)
     return allCommands.filter(
       cmd =>
@@ -600,13 +607,22 @@ export const getSkillToolCommands = memoize(
           cmd.whenToUse),
     )
   },
-)
+  )
+  return getSkillToolCommandsMemo(cwd)
+}
+
+var getSlashCommandToolSkillsMemo:
+  | (((cwd: string) => Promise<Command[]>) & {
+      cache?: { clear?: () => void }
+    })
+  | undefined
 
 // Filters commands to include only skills. Skills are commands that provide
 // specialized capabilities for the model to use. They are identified by
 // loadedFrom being 'skills', 'plugin', or 'bundled', or having disableModelInvocation set.
-export const getSlashCommandToolSkills = memoize(
-  async (cwd: string): Promise<Command[]> => {
+export function getSlashCommandToolSkills(cwd: string): Promise<Command[]> {
+  getSlashCommandToolSkillsMemo ??= memoize(
+    async (cwd: string): Promise<Command[]> => {
     try {
       const allCommands = await getCommands(cwd)
       return allCommands.filter(
@@ -627,7 +643,9 @@ export const getSlashCommandToolSkills = memoize(
       return []
     }
   },
-)
+  )
+  return getSlashCommandToolSkillsMemo(cwd)
+}
 
 /**
  * Commands that are safe to use in remote mode (--remote).

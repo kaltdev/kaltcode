@@ -198,3 +198,5 @@ When answering questions, consider these configured features and proactively sug
         return basePromptWithFeedback;
     },
 };
+
+export const CLAUDE_CODE_GUIDE_AGENT = KALT_CODE_GUIDE_AGENT;

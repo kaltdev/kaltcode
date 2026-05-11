@@ -258,7 +258,8 @@ export const CUSTOMIZATION_SURFACES = [
   'mcp',
 ] as const
 
-export const SettingsSchema = lazySchema(() =>
+function buildSettingsSchema() {
+  return (
   z
     .object({
       $schema: z
@@ -1098,8 +1099,16 @@ export const SettingsSchema = lazySchema(() =>
             '(e.g., "All plugins from our internal marketplace are vetted and approved.").',
         ),
     })
-    .passthrough(),
-)
+    .passthrough()
+  )
+}
+
+var cachedSettingsSchema: ReturnType<typeof buildSettingsSchema> | undefined
+
+export function SettingsSchema(): ReturnType<typeof buildSettingsSchema> {
+  cachedSettingsSchema ??= buildSettingsSchema()
+  return cachedSettingsSchema
+}
 
 /**
  * Internal type for plugin hooks - includes plugin context for execution.

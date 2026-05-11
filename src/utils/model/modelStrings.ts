@@ -22,14 +22,16 @@ import { type LegacyAPIProvider, getAPIProvider } from './providers.js'
  */
 export type ModelStrings = Record<ModelKey, string>
 
-const MODEL_KEYS = Object.keys(LEGACY_PROVIDER_MODEL_CONFIGS) as ModelKey[]
+function getModelKeys(): ModelKey[] {
+  return Object.keys(LEGACY_PROVIDER_MODEL_CONFIGS) as ModelKey[]
+}
 
 function getBuiltinModelStrings(provider: LegacyAPIProvider): ModelStrings {
   // Codex piggybacks on the OpenAI provider transport for Anthropic tier aliases.
   // Reuse OpenAI mappings so model string lookups never return undefined.
   const providerKey = provider === 'codex' || provider === 'github' ? 'openai' : provider
   const out = {} as ModelStrings
-  for (const key of MODEL_KEYS) {
+  for (const key of getModelKeys()) {
     out[key] = (
       LEGACY_PROVIDER_MODEL_CONFIGS[key] as LegacyProviderModelConfig
     )[providerKey]
@@ -54,7 +56,7 @@ async function getBedrockModelStrings(): Promise<ModelStrings> {
   // "eu.anthropic.kalt-code-opus-4-6-v1"). Fall back to the hardcoded bedrock ID
   // when no matching profile is found.
   const out = {} as ModelStrings
-  for (const key of MODEL_KEYS) {
+  for (const key of getModelKeys()) {
     const needle = LEGACY_PROVIDER_MODEL_CONFIGS[key].firstParty
     out[key] = findFirstMatch(profiles, needle) || fallback[key]
   }
@@ -106,7 +108,12 @@ export function resolveOverriddenModel(modelId: string): string {
   return modelId
 }
 
-const updateBedrockModelStrings = sequential(async () => {
+let updateBedrockModelStringsRunner:
+  | (() => Promise<void>)
+  | null = null
+
+function updateBedrockModelStrings(): Promise<void> {
+  updateBedrockModelStringsRunner ??= sequential(async () => {
   if (getModelStringsState() !== null) {
     // Already initialized. Doing the check here, combined with
     // `sequential`, allows the test suite to reset the state
@@ -120,7 +127,9 @@ const updateBedrockModelStrings = sequential(async () => {
   } catch (error) {
     logError(error as Error)
   }
-})
+  })
+  return updateBedrockModelStringsRunner()
+}
 
 function initModelStrings(): void {
   const ms = getModelStringsState()

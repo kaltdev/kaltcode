@@ -64,7 +64,7 @@ import { isMcpInstructionsDeltaEnabled } from '../utils/mcpInstructionsDelta.js'
 /* eslint-disable @typescript-eslint/no-require-imports */
 const getCachedMCConfigForFRC = true
   ? (
-      require('../services/compact/cachedMCConfig.js') as typeof import('../services/compact/cachedMCConfig.js')
+      require('../services/compact/cachedMicrocompact.js') as typeof import('../services/compact/cachedMicrocompact.js')
     ).getCachedMCConfig
   : null
 

@@ -4,7 +4,7 @@ const branch = {
   type: 'local-jsx',
   name: 'branch',
   // 'fork' alias only when /fork doesn't exist as its own command
-  aliases: true ? [] : ['fork'],
+  aliases: false ? [] : ['fork'],
   description: 'Create a branch of the current conversation at this point',
   argumentHint: '[name]',
   load: () => import('./branch.js'),

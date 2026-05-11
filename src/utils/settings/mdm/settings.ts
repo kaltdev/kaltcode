@@ -51,7 +51,9 @@ import {
 // ---------------------------------------------------------------------------
 
 type MdmResult = { settings: SettingsJson; errors: ValidationError[] }
-const EMPTY_RESULT: MdmResult = Object.freeze({ settings: {}, errors: [] })
+function getEmptyMdmResult(): MdmResult {
+  return { settings: {}, errors: [] }
+}
 type MdmRuntimeState = {
   mdmCache: MdmResult | null
   hkcuCache: MdmResult | null
@@ -142,7 +144,7 @@ export async function ensureMdmSettingsLoaded(): Promise<void> {
  * Does NOT include HKCU (user-writable) — use getHkcuSettings() for that.
  */
 export function getMdmSettings(): MdmResult {
-  return getMdmRuntimeState().mdmCache ?? EMPTY_RESULT
+  return getMdmRuntimeState().mdmCache ?? getEmptyMdmResult()
 }
 
 /**
@@ -150,7 +152,7 @@ export function getMdmSettings(): MdmResult {
  * Only relevant on Windows — returns empty on other platforms.
  */
 export function getHkcuSettings(): MdmResult {
-  return getMdmRuntimeState().hkcuCache ?? EMPTY_RESULT
+  return getMdmRuntimeState().hkcuCache ?? getEmptyMdmResult()
 }
 
 // ---------------------------------------------------------------------------
