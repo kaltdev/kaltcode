@@ -5,6 +5,13 @@
 import { access, chmod, writeFile } from "fs/promises";
 import { homedir } from "os";
 import { join } from "path";
+import {
+    DEPRECATED_OPENCLAUDE_CONFIG_DIR_NAME,
+    KALTCODE_CONFIG_DIR_NAME,
+    LEGACY_CLAUDE_CONFIG_DIR_NAME,
+    PRODUCT_CLI_NAME,
+    PRODUCT_PACKAGE_TOKEN,
+} from "../constants/product.js";
 import { type ReleaseChannel, saveGlobalConfig } from "./config.js";
 import { getClaudeConfigHomeDir } from "./envUtils.js";
 import { getErrnoCode } from "./errors.js";
@@ -15,14 +22,18 @@ import { jsonStringify } from "./slowOperations.js";
 
 // Lazy getters: getClaudeConfigHomeDir() is memoized and reads process.env.
 // Evaluating at module scope would capture the value before entrypoints like
-// hfi.tsx get a chance to set CLAUDE_CONFIG_DIR in main(), and would also
+// hfi.tsx get a chance to set config env vars in main(), and would also
 // populate the memoize cache with that stale value for all 150+ other callers.
 function getLocalInstallDir(): string {
     return join(getClaudeConfigHomeDir(), "local");
 }
 
+function getDeprecatedOpenClaudeLocalInstallDir(homeDir = homedir()): string {
+    return join(homeDir, DEPRECATED_OPENCLAUDE_CONFIG_DIR_NAME, "local");
+}
+
 function getLegacyLocalInstallDir(homeDir = homedir()): string {
-    return join(homeDir, ".claude", "local");
+    return join(homeDir, LEGACY_CLAUDE_CONFIG_DIR_NAME, "local");
 }
 
 export function getCandidateLocalInstallDirs(options?: {
@@ -34,6 +45,7 @@ export function getCandidateLocalInstallDirs(options?: {
     return Array.from(
         new Set([
             join(configHomeDir, "local"),
+            getDeprecatedOpenClaudeLocalInstallDir(homeDir),
             getLegacyLocalInstallDir(homeDir),
         ]),
     );
@@ -41,6 +53,8 @@ export function getCandidateLocalInstallDirs(options?: {
 
 function getCandidateLocalBinaryPaths(localInstallDir: string): string[] {
     return [
+        join(localInstallDir, "node_modules", ".bin", PRODUCT_CLI_NAME),
+        join(localInstallDir, "node_modules", ".bin", PRODUCT_PACKAGE_TOKEN),
         join(localInstallDir, "node_modules", ".bin", "openclaude"),
         join(localInstallDir, "node_modules", ".bin", "claude"),
     ];
@@ -49,13 +63,20 @@ function getCandidateLocalBinaryPaths(localInstallDir: string): string[] {
 export function isManagedLocalInstallationPath(execPath: string): boolean {
     const normalizedExecPath = execPath.replace(/\\+/g, "/");
     return (
-        normalizedExecPath.includes("/.openclaude/local/node_modules/") ||
-        normalizedExecPath.includes("/.claude/local/node_modules/")
+        normalizedExecPath.includes(
+            `/${KALTCODE_CONFIG_DIR_NAME}/local/node_modules/`,
+        ) ||
+        normalizedExecPath.includes(
+            `/${DEPRECATED_OPENCLAUDE_CONFIG_DIR_NAME}/local/node_modules/`,
+        ) ||
+        normalizedExecPath.includes(
+            `/${LEGACY_CLAUDE_CONFIG_DIR_NAME}/local/node_modules/`,
+        )
     );
 }
 
 export function getLocalKaltCodePath(): string {
-    return join(getLocalInstallDir(), "kalt-code");
+    return join(getLocalInstallDir(), PRODUCT_CLI_NAME);
 }
 
 export function getLocalClaudePath(): string {
@@ -102,7 +123,7 @@ export async function ensureLocalPackageEnvironment(): Promise<boolean> {
         await writeIfMissing(
             join(localInstallDir, "package.json"),
             jsonStringify(
-                { name: "openclaude-local", version: "0.0.1", private: true },
+                { name: "kaltcode-local", version: "0.0.1", private: true },
                 null,
                 2,
             ),
@@ -112,7 +133,7 @@ export async function ensureLocalPackageEnvironment(): Promise<boolean> {
         const wrapperPath = getLocalClaudePath();
         const created = await writeIfMissing(
             wrapperPath,
-            `#!/bin/sh\nexec "${localInstallDir}/node_modules/.bin/openclaude" "$@"`,
+            `#!/bin/sh\nexec "${localInstallDir}/node_modules/.bin/${PRODUCT_CLI_NAME}" "$@"`,
             0o755,
         );
         if (created) {
@@ -128,7 +149,7 @@ export async function ensureLocalPackageEnvironment(): Promise<boolean> {
 }
 
 /**
- * Install or update Claude CLI package in the local directory
+ * Install or update Kalt Code package in the local directory.
  * @param channel - Release channel to use (latest or stable)
  * @param specificVersion - Optional specific version to install (overrides channel)
  */
@@ -156,7 +177,7 @@ export async function installOrUpdateClaudePackage(
 
         if (result.code !== 0) {
             const error = new Error(
-                `Failed to install Claude CLI package: ${result.stderr}`,
+                `Failed to install Kalt Code package: ${result.stderr}`,
             );
             logError(error);
             return result.code === 190 ? "in_progress" : "install_failed";

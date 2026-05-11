@@ -2,6 +2,10 @@ import memoize from 'lodash-es/memoize.js'
 import { homedir } from 'os'
 import { join } from 'path'
 import { fileSuffixForOauthConfig } from '../constants/oauth.js'
+import {
+  KALTCODE_CONFIG_DIR_ENV,
+  LEGACY_CLAUDE_CONFIG_DIR_ENV,
+} from '../constants/product.js'
 import { isRunningWithBun } from './bundledMode.js'
 import { getClaudeConfigHomeDir, isEnvTruthy } from './envUtils.js'
 import { findExecutable } from './findExecutable.js'
@@ -22,18 +26,30 @@ export const getGlobalClaudeFile = memoize((): string => {
   }
 
   const oauthSuffix = fileSuffixForOauthConfig()
-  const configDir = process.env.CLAUDE_CONFIG_DIR || homedir()
+  const configDir =
+    process.env[KALTCODE_CONFIG_DIR_ENV] ||
+    process.env[LEGACY_CLAUDE_CONFIG_DIR_ENV] ||
+    homedir()
 
-  // Default to .openclaude.json. Fall back to .claude.json only if the new
-  // file doesn't exist yet and the legacy one does (same migration pattern
-  // as resolveClaudeConfigHomeDir for the config directory).
-  const newFilename = `.openclaude${oauthSuffix}.json`
-  const legacyFilename = `.claude${oauthSuffix}.json`
+  const newFilename = `.kaltcode${oauthSuffix}.json`
+  const deprecatedOpenClaudeFilename = `.openclaude${oauthSuffix}.json`
+  const legacyClaudeFilename = `.claude${oauthSuffix}.json`
   if (
     !getFsImplementation().existsSync(join(configDir, newFilename)) &&
-    getFsImplementation().existsSync(join(configDir, legacyFilename))
+    getFsImplementation().existsSync(
+      join(configDir, deprecatedOpenClaudeFilename),
+    )
   ) {
-    return join(configDir, legacyFilename)
+    return join(configDir, deprecatedOpenClaudeFilename)
+  }
+  if (
+    !getFsImplementation().existsSync(join(configDir, newFilename)) &&
+    !getFsImplementation().existsSync(
+      join(configDir, deprecatedOpenClaudeFilename),
+    ) &&
+    getFsImplementation().existsSync(join(configDir, legacyClaudeFilename))
+  ) {
+    return join(configDir, legacyClaudeFilename)
   }
   return join(configDir, newFilename)
 })

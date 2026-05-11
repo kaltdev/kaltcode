@@ -2,41 +2,79 @@ import memoize from 'lodash-es/memoize.js'
 import { existsSync } from 'fs'
 import { homedir } from 'os'
 import { join } from 'path'
+import {
+  DEPRECATED_OPENCLAUDE_CONFIG_DIR_NAME,
+  KALTCODE_CONFIG_DIR_ENV,
+  KALTCODE_CONFIG_DIR_NAME,
+  LEGACY_CLAUDE_CONFIG_DIR_ENV,
+  LEGACY_CLAUDE_CONFIG_DIR_NAME,
+} from '../constants/product.js'
 
-export function resolveClaudeConfigHomeDir(options?: {
+export function resolveKaltCodeConfigHomeDir(options?: {
   configDirEnv?: string
+  legacyConfigDirEnv?: string
   homeDir?: string
+  kaltCodeExists?: boolean
+  deprecatedOpenClaudeExists?: boolean
+  /**
+   * @deprecated Use deprecatedOpenClaudeExists. Retained for internal tests and
+   * migration call-sites that have not renamed the option yet.
+   */
   openClaudeExists?: boolean
   legacyClaudeExists?: boolean
 }): string {
   if (options?.configDirEnv) {
     return options.configDirEnv.normalize('NFC')
   }
+  if (options?.legacyConfigDirEnv) {
+    return options.legacyConfigDirEnv.normalize('NFC')
+  }
 
   const homeDir = options?.homeDir ?? homedir()
-  const openClaudeDir = join(homeDir, '.openclaude')
-  const legacyClaudeDir = join(homeDir, '.claude')
-  const openClaudeExists =
-    options?.openClaudeExists ?? existsSync(openClaudeDir)
+  const kaltCodeDir = join(homeDir, KALTCODE_CONFIG_DIR_NAME)
+  const deprecatedOpenClaudeDir = join(
+    homeDir,
+    DEPRECATED_OPENCLAUDE_CONFIG_DIR_NAME,
+  )
+  const legacyClaudeDir = join(homeDir, LEGACY_CLAUDE_CONFIG_DIR_NAME)
+  const kaltCodeExists = options?.kaltCodeExists ?? existsSync(kaltCodeDir)
+  const deprecatedOpenClaudeExists =
+    options?.deprecatedOpenClaudeExists ??
+    options?.openClaudeExists ??
+    existsSync(deprecatedOpenClaudeDir)
   const legacyClaudeExists =
     options?.legacyClaudeExists ?? existsSync(legacyClaudeDir)
 
-  // Preserve existing user config/install state until we ship an explicit
-  // migration. New installs (neither path exists) use ~/.openclaude.
-  if (!openClaudeExists && legacyClaudeExists) {
-    return legacyClaudeDir.normalize('NFC')
-  }
+  if (kaltCodeExists) return kaltCodeDir.normalize('NFC')
+  // Deprecated OpenClaude directory is read as a fallback for upgrade continuity.
+  if (deprecatedOpenClaudeExists) return deprecatedOpenClaudeDir.normalize('NFC')
+  if (legacyClaudeExists) return legacyClaudeDir.normalize('NFC')
 
-  return openClaudeDir.normalize('NFC')
+  return kaltCodeDir.normalize('NFC')
 }
 
-// Memoized: 150+ callers, many on hot paths. Keyed off CLAUDE_CONFIG_DIR so
-// tests that change the env var get a fresh value without explicit cache.clear.
+/**
+ * @deprecated Use resolveKaltCodeConfigHomeDir. Kept for internal call-site
+ * compatibility while Kalt Code still reads legacy Claude/OpenClaude state.
+ */
+export function resolveClaudeConfigHomeDir(
+  options?: Parameters<typeof resolveKaltCodeConfigHomeDir>[0],
+): string {
+  return resolveKaltCodeConfigHomeDir(options)
+}
+
+// Memoized: 150+ callers, many on hot paths. Keyed off config env vars so
+// tests that change them get a fresh value without explicit cache.clear.
 export const getClaudeConfigHomeDir = memoize(
-  (): string => resolveClaudeConfigHomeDir({
-    configDirEnv: process.env.CLAUDE_CONFIG_DIR,
-  }),
-  () => process.env.CLAUDE_CONFIG_DIR,
+  (): string =>
+    resolveKaltCodeConfigHomeDir({
+      configDirEnv: process.env[KALTCODE_CONFIG_DIR_ENV],
+      legacyConfigDirEnv: process.env[LEGACY_CLAUDE_CONFIG_DIR_ENV],
+    }),
+  () =>
+    `${process.env[KALTCODE_CONFIG_DIR_ENV] ?? ''}\0${
+      process.env[LEGACY_CLAUDE_CONFIG_DIR_ENV] ?? ''
+    }`,
 )
 
 export function getTeamsDir(): string {
@@ -74,6 +112,29 @@ export function isEnvDefinedFalsy(
   if (!envVar) return false
   const normalizedValue = envVar.toLowerCase().trim()
   return ['0', 'false', 'no', 'off'].includes(normalizedValue)
+}
+
+export function getEnvWithDeprecatedFallback(
+  primaryKey: string,
+  deprecatedKey: string,
+): string | undefined {
+  return process.env[primaryKey] ?? process.env[deprecatedKey]
+}
+
+export function isEnvTruthyWithDeprecatedFallback(
+  primaryKey: string,
+  deprecatedKey: string,
+): boolean {
+  return isEnvTruthy(getEnvWithDeprecatedFallback(primaryKey, deprecatedKey))
+}
+
+export function isEnvDefinedFalsyWithDeprecatedFallback(
+  primaryKey: string,
+  deprecatedKey: string,
+): boolean {
+  return isEnvDefinedFalsy(
+    getEnvWithDeprecatedFallback(primaryKey, deprecatedKey),
+  )
 }
 
 /**

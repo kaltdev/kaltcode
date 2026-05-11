@@ -1,3 +1,19 @@
+export const PRODUCT_DISPLAY_NAME = 'Kalt Code'
+export const PRODUCT_PASCAL_NAME = 'KaltCode'
+export const PRODUCT_CAMEL_NAME = 'kaltCode'
+export const PRODUCT_PACKAGE_TOKEN = 'kaltcode'
+export const PRODUCT_CLI_NAME = 'kalt-code'
+export const PRODUCT_NPM_PACKAGE = '@kaltdev/kaltcode'
+export const PRODUCT_REPOSITORY = 'https://github.com/kaltdev/kalt-code'
+export const PRODUCT_ISSUES_URL = `${PRODUCT_REPOSITORY}/issues`
+export const PRODUCT_DISCUSSIONS_URL = `${PRODUCT_REPOSITORY}/discussions`
+export const PRODUCT_RELEASES_URL = `${PRODUCT_REPOSITORY}/releases`
+export const KALTCODE_CONFIG_DIR_NAME = '.kaltcode'
+export const DEPRECATED_OPENCLAUDE_CONFIG_DIR_NAME = '.openclaude'
+export const LEGACY_CLAUDE_CONFIG_DIR_NAME = '.claude'
+export const KALTCODE_CONFIG_DIR_ENV = 'KALTCODE_CONFIG_DIR'
+export const LEGACY_CLAUDE_CONFIG_DIR_ENV = 'CLAUDE_CONFIG_DIR'
+
 export const PRODUCT_URL = 'https://claude.com/kalt-code'
 
 // Kalt Code Remote session URLs

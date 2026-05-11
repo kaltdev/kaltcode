@@ -12,6 +12,11 @@ import type {
   UserMessage,
 } from 'src/types/message.js'
 import { getPlanSlugCache, getSessionId } from '../bootstrap/state.js'
+import {
+  KALTCODE_CONFIG_DIR_ENV,
+  KALTCODE_CONFIG_DIR_NAME,
+  LEGACY_CLAUDE_CONFIG_DIR_ENV,
+} from '../constants/product.js'
 import { EXIT_PLAN_MODE_V2_TOOL_NAME } from '../tools/ExitPlanModeTool/constants.js'
 import { getCwd } from './cwd.js'
 import { logForDebugging } from './debug.js'
@@ -25,16 +30,21 @@ import { generateWordSlug } from './words.js'
 const MAX_SLUG_RETRIES = 10
 
 export function getDefaultPlansDirectory({
-  configDirEnv = process.env.CLAUDE_CONFIG_DIR,
+  configDirEnv = process.env[KALTCODE_CONFIG_DIR_ENV],
+  legacyConfigDirEnv = process.env[LEGACY_CLAUDE_CONFIG_DIR_ENV],
   homeDir = homedir(),
 }: {
   configDirEnv?: string
+  legacyConfigDirEnv?: string
   homeDir?: string
 } = {}): string {
   if (configDirEnv) {
     return join(configDirEnv.normalize('NFC'), 'plans')
   }
-  return join(homeDir, '.openclaude', 'plans').normalize('NFC')
+  if (legacyConfigDirEnv) {
+    return join(legacyConfigDirEnv.normalize('NFC'), 'plans')
+  }
+  return join(homeDir, KALTCODE_CONFIG_DIR_NAME, 'plans').normalize('NFC')
 }
 
 /**

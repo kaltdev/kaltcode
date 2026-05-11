@@ -63,6 +63,7 @@ export const DANGEROUS_FILES = [
   '.profile',
   '.ripgreprc',
   '.mcp.json',
+  '.kaltcode.json',
   '.openclaude.json',
   '.claude.json',
 ] as const
@@ -75,6 +76,7 @@ export const DANGEROUS_DIRECTORIES = [
   '.git',
   '.vscode',
   '.idea',
+  '.kaltcode',
   '.claude',
   '.openclaude',
 ] as const
@@ -209,6 +211,8 @@ export function isClaudeSettingsPath(filePath: string): boolean {
 
   // Use platform separator so endsWith checks work on both Unix (/) and Windows (\)
   if (
+    normalizedPath.endsWith(`${sep}.kaltcode${sep}settings.json`) ||
+    normalizedPath.endsWith(`${sep}.kaltcode${sep}settings.local.json`) ||
     normalizedPath.endsWith(`${sep}.openclaude${sep}settings.json`) ||
     normalizedPath.endsWith(`${sep}.openclaude${sep}settings.local.json`) ||
     normalizedPath.endsWith(`${sep}.claude${sep}settings.json`) ||
@@ -230,9 +234,12 @@ function isClaudeConfigFilePath(filePath: string): boolean {
     return true
   }
 
-  // Check if file is within .claude/commands or .claude/agents directories
+  // Check if file is within Kalt Code command, agent, or skill directories.
   // using proper path segment validation (not string matching with includes())
   // pathInWorkingPath now handles case-insensitive comparison to prevent bypasses
+  const kaltCommandsDir = join(getOriginalCwd(), '.kaltcode', 'commands')
+  const kaltAgentsDir = join(getOriginalCwd(), '.kaltcode', 'agents')
+  const kaltSkillsDir = join(getOriginalCwd(), '.kaltcode', 'skills')
   const commandsDir = join(getOriginalCwd(), '.claude', 'commands')
   const agentsDir = join(getOriginalCwd(), '.claude', 'agents')
   const skillsDir = join(getOriginalCwd(), '.claude', 'skills')
@@ -241,6 +248,9 @@ function isClaudeConfigFilePath(filePath: string): boolean {
   const openSkillsDir = join(getOriginalCwd(), '.openclaude', 'skills')
 
   return (
+    pathInWorkingPath(filePath, kaltCommandsDir) ||
+    pathInWorkingPath(filePath, kaltAgentsDir) ||
+    pathInWorkingPath(filePath, kaltSkillsDir) ||
     pathInWorkingPath(filePath, commandsDir) ||
     pathInWorkingPath(filePath, agentsDir) ||
     pathInWorkingPath(filePath, skillsDir) ||

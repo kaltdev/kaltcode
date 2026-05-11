@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import React, { useEffect, useState } from 'react';
 import type { CommandResultDisplay } from 'src/commands.js';
 import { logEvent } from 'src/services/analytics/index.js';
+import { PRODUCT_CLI_NAME, PRODUCT_DISPLAY_NAME } from '../constants/product.js';
 import { StatusIcon } from '../components/design-system/StatusIcon.js';
 import { Box, render, Text } from '../ink.js';
 import { logForDebugging } from '../utils/debug.js';
@@ -44,11 +45,11 @@ export function getInstallationPath(): string {
   const homeDir = homedir();
   if (isWindows) {
     // Convert to Windows-style path
-    const windowsPath = join(homeDir, '.local', 'bin', 'openclaude.exe');
+    const windowsPath = join(homeDir, '.local', 'bin', `${PRODUCT_CLI_NAME}.exe`);
     // Replace forward slashes with backslashes for Windows display
     return windowsPath.replace(/\//g, '\\');
   }
-  return '~/.local/bin/openclaude';
+  return `~/.local/bin/${PRODUCT_CLI_NAME}`;
 }
 function SetupNotes(t0) {
   const $ = _c(5);
@@ -113,7 +114,7 @@ function Install({
 
         // Check specifically for lock failure
         if (result.lockFailed) {
-          throw new Error('Could not install - another process is currently installing Claude. Please try again in a moment.');
+          throw new Error(`Could not install - another process is currently installing ${PRODUCT_DISPLAY_NAME}. Please try again in a moment.`);
         }
 
         // If we couldn't get the version, there might be an issue
@@ -210,12 +211,12 @@ function Install({
   useEffect(() => {
     if (state.type === 'success') {
       // Give success message time to render before exiting
-      setTimeout(onDone, 2000, 'OpenClaude installation completed successfully', {
+      setTimeout(onDone, 2000, `${PRODUCT_DISPLAY_NAME} installation completed successfully`, {
         display: 'system' as const
       });
     } else if (state.type === 'error') {
       // Give error message time to render before exiting
-      setTimeout(onDone, 3000, 'OpenClaude installation failed', {
+      setTimeout(onDone, 3000, `${PRODUCT_DISPLAY_NAME} installation failed`, {
         display: 'system' as const
       });
     }
@@ -226,7 +227,7 @@ function Install({
       {state.type === 'cleaning-npm' && <Text color="warning">Cleaning up old npm installations...</Text>}
 
       {state.type === 'installing' && <Text color="claude">
-          Installing OpenClaude native build {state.version}...
+          Installing {PRODUCT_DISPLAY_NAME} native build {state.version}...
         </Text>}
 
       {state.type === 'setting-up' && <Text color="claude">Setting up launcher and shell integration...</Text>}
@@ -237,7 +238,7 @@ function Install({
           <Box>
             <StatusIcon status="success" withSpace />
             <Text color="success" bold>
-              OpenClaude successfully installed!
+              {PRODUCT_DISPLAY_NAME} successfully installed!
             </Text>
           </Box>
           <Box marginLeft={2} flexDirection="column" gap={1}>
@@ -254,7 +255,7 @@ function Install({
             <Box marginTop={1}>
               <Text dimColor>Next: Run </Text>
               <Text color="claude" bold>
-                openclaude --help
+                {PRODUCT_CLI_NAME} --help
               </Text>
               <Text dimColor> to get started</Text>
             </Box>
@@ -279,7 +280,7 @@ function Install({
 export const install = {
   type: 'local-jsx' as const,
   name: 'install',
-  description: 'Install OpenClaude native build',
+  description: `Install ${PRODUCT_DISPLAY_NAME} native build`,
   argumentHint: '[options]',
   async call(onDone: (result: string, options?: {
     display?: CommandResultDisplay;
