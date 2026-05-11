@@ -10,7 +10,7 @@ A practical VS Code companion for Kalt Code with a project-aware **Control Cente
   - whether the launch shim injects `CLAUDE_CODE_USE_OPENAI=1`
   - the current workspace folder
   - the launch cwd that will be used for terminal sessions
-  - whether `.kalt-code-profile.json` exists in the current workspace root
+  - whether `.kaltcode-profile.json` exists in the current workspace root
   - a conservative provider summary derived from the workspace profile or known environment flags
 - **Project-aware launch behavior**:
   - `Launch Kalt Code` launches from the active editor's workspace when possible
@@ -28,7 +28,7 @@ A practical VS Code companion for Kalt Code with a project-aware **Control Cente
 ## Requirements
 
 - VS Code `1.95+`
-- `kalt-code` available in your terminal PATH (`npm install -g @kaltdev/kalt-code`)
+- `kalt-code` available in your terminal PATH (`npm install -g @kaltdev/kaltcode`)
 
 ## Commands
 
@@ -49,7 +49,8 @@ A practical VS Code companion for Kalt Code with a project-aware **Control Cente
 
 ## Notes on Status Detection
 
-- Provider status prefers the real workspace `.kalt-code-profile.json` file when present.
+- Provider status prefers the real workspace `.kaltcode-profile.json` file when present.
+- Existing `.openclaude-profile.json` files are read only as a deprecated fallback when no Kalt Code profile exists.
 - If no saved profile exists, the extension falls back to known environment flags available to the VS Code extension host.
 - If the source of truth is unclear, the extension shows `unknown` instead of guessing.
 

@@ -9,8 +9,8 @@ test('truncateMiddle keeps the profile filename visible', () => {
   const { truncateMiddle } = loadPresentation();
 
   assert.equal(
-    truncateMiddle('/Users/example/projects/kalt-code/workspace/.kalt-code-profile.json', 30),
-    '.../.kalt-code-profile.json',
+    truncateMiddle('/Users/example/projects/kalt-code/workspace/.kaltcode-profile.json', 30),
+    '.../.kaltcode-profile.json',
   );
 });
 
@@ -18,8 +18,8 @@ test('truncateMiddle keeps the filename visible for Windows-style paths', () => 
   const { truncateMiddle } = loadPresentation();
 
   assert.equal(
-    truncateMiddle('C:\\Users\\example\\kalt-code\\workspace\\.kalt-code-profile.json', 30),
-    '...\\.kalt-code-profile.json',
+    truncateMiddle('C:\\Users\\example\\kalt-code\\workspace\\.kaltcode-profile.json', 30),
+    '...\\.kaltcode-profile.json',
   );
 });
 
@@ -63,13 +63,13 @@ test('buildActionModel includes workspace-profile action when a profile exists',
 
   const model = buildActionModel({
     canLaunchInWorkspaceRoot: true,
-    workspaceProfilePath: 'C:\\Users\\example\\kalt-code\\workspace\\.kalt-code-profile.json',
+    workspaceProfilePath: 'C:\\Users\\example\\kalt-code\\workspace\\.kaltcode-profile.json',
   });
 
   assert.deepEqual(model.openProfile, {
     id: 'openProfile',
     label: 'Open Workspace Profile',
-    detail: 'Inspect ...\\.kalt-code-profile.json',
+    detail: 'Inspect ...\\.kaltcode-profile.json',
     tone: 'neutral',
     disabled: false,
   });
@@ -88,8 +88,8 @@ function createStatus(overrides = {}) {
     launchCwdLabel: '/workspace/kalt-code',
     canLaunchInWorkspaceRoot: true,
     profileStatusLabel: 'Found',
-    profileStatusHint: '/workspace/kalt-code/.kalt-code-profile.json',
-    workspaceProfilePath: '/workspace/kalt-code/.kalt-code-profile.json',
+    profileStatusHint: '/workspace/kalt-code/.kaltcode-profile.json',
+    workspaceProfilePath: '/workspace/kalt-code/.kaltcode-profile.json',
     providerState: {
       label: 'Codex',
       detail: 'gpt-5.4',
@@ -173,7 +173,7 @@ test('buildControlCenterViewModel uses a concise project summary before full pat
           key: 'profileStatus',
           label: 'Workspace profile',
           summary: 'Found',
-          detail: '/workspace/kalt-code/.kalt-code-profile.json',
+          detail: '/workspace/kalt-code/.kaltcode-profile.json',
           tone: 'neutral',
         },
       ],

@@ -1,6 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 
+const WORKSPACE_PROFILE_FILENAME = '.kaltcode-profile.json';
+// Deprecated compatibility shim: read this only when the Kalt Code profile is absent.
+const DEPRECATED_WORKSPACE_PROFILE_FILENAME = '.openclaude-profile.json';
+
 const SAVED_PROFILES = new Set([
   'openai',
   'ollama',
@@ -52,6 +56,54 @@ function chooseLaunchWorkspace({ activeWorkspacePath, workspacePaths }) {
   }
 
   return { workspacePath: null, source: 'none' };
+}
+
+function getWorkspaceProfilePaths(workspacePath) {
+  const normalizedWorkspacePath = asNonEmptyString(workspacePath);
+  if (!normalizedWorkspacePath) {
+    return {
+      primaryPath: null,
+      deprecatedPath: null,
+    };
+  }
+
+  return {
+    primaryPath: path.join(normalizedWorkspacePath, WORKSPACE_PROFILE_FILENAME),
+    deprecatedPath: path.join(normalizedWorkspacePath, DEPRECATED_WORKSPACE_PROFILE_FILENAME),
+  };
+}
+
+function chooseWorkspaceProfilePath(workspacePath, existsSync = fs.existsSync) {
+  const { primaryPath, deprecatedPath } = getWorkspaceProfilePaths(workspacePath);
+  if (!primaryPath || !deprecatedPath) {
+    return {
+      filePath: null,
+      filename: WORKSPACE_PROFILE_FILENAME,
+      isDeprecatedFallback: false,
+    };
+  }
+
+  if (existsSync(primaryPath)) {
+    return {
+      filePath: primaryPath,
+      filename: WORKSPACE_PROFILE_FILENAME,
+      isDeprecatedFallback: false,
+    };
+  }
+
+  if (existsSync(deprecatedPath)) {
+    return {
+      filePath: deprecatedPath,
+      filename: DEPRECATED_WORKSPACE_PROFILE_FILENAME,
+      isDeprecatedFallback: true,
+    };
+  }
+
+  return {
+    filePath: primaryPath,
+    filename: WORKSPACE_PROFILE_FILENAME,
+    isDeprecatedFallback: false,
+  };
 }
 
 function sanitizeProfileEnv(env) {
@@ -403,9 +455,13 @@ function describeProviderState({ shimEnabled, env, profile }) {
 }
 
 module.exports = {
+  WORKSPACE_PROFILE_FILENAME,
+  DEPRECATED_WORKSPACE_PROFILE_FILENAME,
+  chooseWorkspaceProfilePath,
   chooseLaunchWorkspace,
   describeProviderState,
   findCommandPath,
+  getWorkspaceProfilePaths,
   isPathInsideWorkspace,
   parseProfileFile,
   resolveCommandCheckPath,

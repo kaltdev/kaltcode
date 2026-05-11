@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { mock } = require('bun:test');
+const Module = require('node:module');
 
 function createStatus(overrides = {}) {
   return {
@@ -15,8 +15,8 @@ function createStatus(overrides = {}) {
     launchCwdLabel: '/workspace/kalt-code/very/long/path/example-project',
     canLaunchInWorkspaceRoot: true,
     profileStatusLabel: 'Found',
-    profileStatusHint: '/workspace/kalt-code/very/long/path/example-project/.kalt-code-profile.json',
-    workspaceProfilePath: '/workspace/kalt-code/very/long/path/example-project/.kalt-code-profile.json',
+    profileStatusHint: '/workspace/kalt-code/very/long/path/example-project/.kaltcode-profile.json',
+    workspaceProfilePath: '/workspace/kalt-code/very/long/path/example-project/.kaltcode-profile.json',
     providerState: {
       label: 'Codex',
       detail: 'gpt-5.4',
@@ -30,20 +30,33 @@ function createStatus(overrides = {}) {
 function loadExtension() {
   const extensionPath = require.resolve('./extension');
   delete require.cache[extensionPath];
-  mock.module('vscode', () => ({
+  const vscodeMock = {
     workspace: {
       workspaceFolders: [],
       getConfiguration: () => ({
         get: (_key, fallback) => fallback,
       }),
       getWorkspaceFolder: () => null,
+      createFileSystemWatcher: () => ({
+        onDidCreate: () => ({ dispose() {} }),
+        onDidChange: () => ({ dispose() {} }),
+        onDidDelete: () => ({ dispose() {} }),
+        dispose() {},
+      }),
+      onDidChangeConfiguration: () => ({ dispose() {} }),
+      onDidChangeWorkspaceFolders: () => ({ dispose() {} }),
+      openTextDocument: async () => ({}),
     },
     window: {
       activeTextEditor: null,
+      createTerminal: () => ({ show() {}, sendText() {} }),
       createWebviewPanel: () => ({}),
       registerWebviewViewProvider: () => ({ dispose() {} }),
       showInformationMessage: async () => undefined,
       showErrorMessage: async () => undefined,
+      showWarningMessage: async () => undefined,
+      showTextDocument: async () => undefined,
+      onDidChangeActiveTextEditor: () => ({ dispose() {} }),
     },
     env: {
       openExternal: async () => true,
@@ -54,8 +67,21 @@ function loadExtension() {
     },
     Uri: { parse: value => value, file: value => value },
     ViewColumn: { Active: 1 },
-  }));
-  return require('./extension');
+  };
+  const originalLoad = Module._load;
+  Module._load = function loadWithVscodeMock(request, parent, isMain) {
+    if (request === 'vscode') {
+      return vscodeMock;
+    }
+
+    return originalLoad.call(this, request, parent, isMain);
+  };
+
+  try {
+    return require('./extension');
+  } finally {
+    Module._load = originalLoad;
+  }
 }
 
 test('renderControlCenterHtml uses the Kalt Code wordmark, status rail, and warm action hierarchy', () => {

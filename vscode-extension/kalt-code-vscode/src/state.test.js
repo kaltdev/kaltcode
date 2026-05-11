@@ -5,9 +5,13 @@ const os = require('node:os');
 const path = require('node:path');
 
 const {
+  WORKSPACE_PROFILE_FILENAME,
   chooseLaunchWorkspace,
+  chooseWorkspaceProfilePath,
+  DEPRECATED_WORKSPACE_PROFILE_FILENAME,
   describeProviderState,
   findCommandPath,
+  getWorkspaceProfilePaths,
   parseProfileFile,
   resolveCommandCheckPath,
 } = require('./state');
@@ -29,6 +33,44 @@ test('chooseLaunchWorkspace falls back to the first workspace folder', () => {
       workspacePaths: ['/repo-a', '/repo-b'],
     }),
     { workspacePath: '/repo-a', source: 'first-workspace' },
+  );
+});
+
+test('getWorkspaceProfilePaths uses Kalt Code profile names', () => {
+  assert.deepEqual(getWorkspaceProfilePaths('/repo'), {
+    primaryPath: path.join('/repo', WORKSPACE_PROFILE_FILENAME),
+    deprecatedPath: path.join('/repo', DEPRECATED_WORKSPACE_PROFILE_FILENAME),
+  });
+});
+
+test('chooseWorkspaceProfilePath prefers the Kalt Code profile over deprecated fallback', () => {
+  const existingPaths = new Set([
+    path.join('/repo', WORKSPACE_PROFILE_FILENAME),
+    path.join('/repo', DEPRECATED_WORKSPACE_PROFILE_FILENAME),
+  ]);
+
+  assert.deepEqual(
+    chooseWorkspaceProfilePath('/repo', filePath => existingPaths.has(filePath)),
+    {
+      filePath: path.join('/repo', WORKSPACE_PROFILE_FILENAME),
+      filename: WORKSPACE_PROFILE_FILENAME,
+      isDeprecatedFallback: false,
+    },
+  );
+});
+
+test('chooseWorkspaceProfilePath reads the deprecated legacy profile only as fallback', () => {
+  const existingPaths = new Set([
+    path.join('/repo', DEPRECATED_WORKSPACE_PROFILE_FILENAME),
+  ]);
+
+  assert.deepEqual(
+    chooseWorkspaceProfilePath('/repo', filePath => existingPaths.has(filePath)),
+    {
+      filePath: path.join('/repo', DEPRECATED_WORKSPACE_PROFILE_FILENAME),
+      filename: DEPRECATED_WORKSPACE_PROFILE_FILENAME,
+      isDeprecatedFallback: true,
+    },
   );
 });
 
