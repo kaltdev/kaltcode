@@ -579,6 +579,20 @@ export function stripSafeHeredocSubstitutions(command: string): string | null {
         }
     }
     if (!found) return null;
+
+    // Detect nested/overlapping ranges — if any range is contained within
+    // another, the command has nested heredoc substitutions and is not safe.
+    for (let i = 0; i < ranges.length; i++) {
+        for (let j = 0; j < ranges.length; j++) {
+            if (i === j) continue;
+            const outer = ranges[i]!;
+            const inner = ranges[j]!;
+            if (inner.start >= outer.start && inner.end <= outer.end) {
+                return null;
+            }
+        }
+    }
+
     for (let i = ranges.length - 1; i >= 0; i--) {
         const r = ranges[i]!;
         result = result.slice(0, r.start) + result.slice(r.end);
