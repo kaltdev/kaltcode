@@ -7,6 +7,7 @@ import { useAppState, useAppStateStore, useSetAppState } from 'src/state/AppStat
 import { getSdkBetas, getSessionId, isSessionPersistenceDisabled, setHasExitedPlanMode, setNeedsAutoModeExitAttachment, setNeedsPlanModeExitAttachment } from '../../../bootstrap/state.js';
 import { generateSessionName } from '../../../commands/rename/generateSessionName.js';
 import { launchUltraplan } from '../../../commands/ultraplan.js';
+import { PRODUCT_DISPLAY_NAME } from '../../../constants/product.js';
 import type { KeyboardEvent } from '../../../ink/events/keyboard-event.js';
 import { Box, Text } from '../../../ink.js';
 import type { AppState } from '../../../state/AppStateStore.js';
@@ -601,7 +602,7 @@ export function ExitPlanModePermissionRequest({
     }
     return <PermissionDialog color="planMode" title="Exit plan mode?" workerBadge={workerBadge}>
         <Box flexDirection="column" paddingX={1} marginTop={1}>
-          <Text>Kalt Code wants to exit plan mode</Text>
+          <Text>{PRODUCT_DISPLAY_NAME} wants to exit plan mode</Text>
           <Box marginTop={1}>
             <Select options={[{
             label: 'Yes',
@@ -733,7 +734,7 @@ export function buildPlanApprovalOptions({
   });
   if (showUltraplan) {
     options.push({
-      label: 'No, refine with Ultraplan on Kalt Code on the web',
+      label: `No, refine with Ultraplan on ${PRODUCT_DISPLAY_NAME} on the web`,
       value: 'ultraplan'
     });
   }

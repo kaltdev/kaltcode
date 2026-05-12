@@ -1,5 +1,6 @@
 import { c as _c } from "react-compiler-runtime";
 import * as React from 'react';
+import { PRODUCT_DISPLAY_NAME } from '../../constants/product.js';
 import { EnterPlanModeTool } from 'src/tools/EnterPlanModeTool/EnterPlanModeTool.js';
 import { ExitPlanModeV2Tool } from 'src/tools/ExitPlanModeTool/ExitPlanModeV2Tool.js';
 import { useNotifyAfterTimeout } from '../../hooks/useNotifyAfterTimeout.js';
@@ -127,18 +128,18 @@ export type ToolUseConfirm<Input extends AnyObject = AnyObject> = {
 function getNotificationMessage(toolUseConfirm: ToolUseConfirm): string {
   const toolName = toolUseConfirm.tool.userFacingName(toolUseConfirm.input as never);
   if (toolUseConfirm.tool === ExitPlanModeV2Tool) {
-    return 'Kalt Code needs your approval for the plan';
+    return `${PRODUCT_DISPLAY_NAME} needs your approval for the plan`;
   }
   if (toolUseConfirm.tool === EnterPlanModeTool) {
-    return 'Kalt Code wants to enter plan mode';
+    return `${PRODUCT_DISPLAY_NAME} wants to enter plan mode`;
   }
   if (false && toolUseConfirm.tool === ReviewArtifactTool) {
-    return 'Kalt Code needs your approval for a review artifact';
+    return `${PRODUCT_DISPLAY_NAME} needs your approval for a review artifact`;
   }
   if (!toolName || toolName.trim() === '') {
-    return 'Kalt Code needs your attention';
+    return `${PRODUCT_DISPLAY_NAME} needs your attention`;
   }
-  return `Kalt Code needs your permission to use ${toolName}`;
+  return `${PRODUCT_DISPLAY_NAME} needs your permission to use ${toolName}`;
 }
 
 // TODO: Move this to Tool.renderPermissionRequest

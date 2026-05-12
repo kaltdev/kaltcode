@@ -1,5 +1,6 @@
 import { c as _c } from "react-compiler-runtime";
 import React, { useCallback, useMemo } from 'react';
+import { PRODUCT_DISPLAY_NAME } from '../../../constants/product.js';
 import { logError } from 'src/utils/log.js';
 import { getOriginalCwd } from '../../../bootstrap/state.js';
 import { Box, Text } from '../../../ink.js';
@@ -303,7 +304,7 @@ export function SkillPermissionRequest(props) {
   const t12 = `Use skill "${skill}"?`;
   let t13;
   if ($[33] === Symbol.for("react.memo_cache_sentinel")) {
-    t13 = <Text>Claude may use instructions, code, or files from this Skill.</Text>;
+    t13 = <Text>{PRODUCT_DISPLAY_NAME} may use instructions, code, or files from this Skill.</Text>;
     $[33] = t13;
   } else {
     t13 = $[33];

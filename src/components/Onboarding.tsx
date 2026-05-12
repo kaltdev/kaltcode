@@ -3,7 +3,8 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { type AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS, logEvent } from 'src/services/analytics/index.js';
 import { setupTerminal, shouldOfferTerminalSetup } from '../commands/terminalSetup/terminalSetup.js';
 import { useExitOnCtrlCDWithKeybindings } from '../hooks/useExitOnCtrlCDWithKeybindings.js';
-import { Box, Link, Newline, Text, useTheme } from '../ink.js';
+import { Box, Newline, Text, useTheme } from '../ink.js';
+import { PRODUCT_DISPLAY_NAME } from '../constants/product.js';
 import { useKeybindings } from '../keybindings/useKeybinding.js';
 import { isAnthropicAuthEnabled } from '../utils/auth.js';
 import { normalizeApiKeyForConfig } from '../utils/authPortable.js';
@@ -71,9 +72,10 @@ export function Onboarding({
          */}
         <OrderedList>
           <OrderedList.Item>
-            <Text>Claude can make mistakes</Text>
+            <Text>{PRODUCT_DISPLAY_NAME} can make mistakes</Text>
             <Text dimColor wrap="wrap">
-              You should always review Claude&apos;s responses, especially when
+              You should always review {PRODUCT_DISPLAY_NAME}&apos;s responses,
+              especially when
               <Newline />
               running code.
               <Newline />
@@ -81,12 +83,13 @@ export function Onboarding({
           </OrderedList.Item>
           <OrderedList.Item>
             <Text>
-              Due to prompt injection risks, only use it with code you trust
+              Only use {PRODUCT_DISPLAY_NAME} with code and instructions you trust
             </Text>
             <Text dimColor wrap="wrap">
-              For more details see:
+              Untrusted files, tool output, or remote content can contain
               <Newline />
-              <Link url="https://code.claude.com/docs/en/security" />
+              instructions that try to mislead {PRODUCT_DISPLAY_NAME}.
+              <Newline />
             </Text>
           </OrderedList.Item>
         </OrderedList>
@@ -146,7 +149,7 @@ export function Onboarding({
     steps.push({
       id: 'terminal-setup',
       component: <Box flexDirection="column" gap={1} paddingLeft={1}>
-          <Text bold>Use Kalt Code&apos;s terminal setup?</Text>
+          <Text bold>Use {PRODUCT_DISPLAY_NAME}&apos;s terminal setup?</Text>
           <Box flexDirection="column" width={70} gap={1}>
             <Text>
               For the optimal coding experience, enable the recommended settings
