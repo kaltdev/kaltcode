@@ -105,6 +105,7 @@ const PROFILE_ENV_KEYS = [
     "BNKR_API_KEY",
     "BANKR_MODEL",
     "XAI_API_KEY",
+    "VENICE_API_KEY",
 ] as const;
 
 export type CompatibilityProfileMode =
@@ -114,7 +115,8 @@ export type CompatibilityProfileMode =
     | "mistral"
     | "github"
     | "bedrock"
-    | "vertex";
+    | "vertex"
+    | "venice";
 
 const SECRET_ENV_KEYS = [
     "OPENAI_API_KEY",
@@ -127,6 +129,7 @@ const SECRET_ENV_KEYS = [
     "MISTRAL_API_KEY",
     "BNKR_API_KEY",
     "XAI_API_KEY",
+    "VENICE_API_KEY",
 ] as const;
 
 export type ProviderProfile =
@@ -181,6 +184,7 @@ export type ProfileEnv = {
     BNKR_API_KEY?: string;
     BANKR_MODEL?: string;
     XAI_API_KEY?: string;
+    VENICE_API_KEY?: string;
 };
 
 export type ProfileFile = {
@@ -200,7 +204,8 @@ type SecretValueSource = Partial<
         | "MINIMAX_API_KEY"
         | "MISTRAL_API_KEY"
         | "BNKR_API_KEY"
-        | "XAI_API_KEY",
+        | "XAI_API_KEY"
+        | "VENICE_API_KEY",
         string | undefined
     >
 >;
@@ -779,6 +784,50 @@ function buildXaiProfileEnv(options: {
     if (key) {
         env.OPENAI_API_KEY = key;
         env.XAI_API_KEY = key;
+    }
+
+    return env;
+}
+
+function buildVeniceProfileEnv(options: {
+    model?: string | null;
+    baseUrl?: string | null;
+    apiKey?: string | null;
+    processEnv?: NodeJS.ProcessEnv;
+}): ProfileEnv {
+    const processEnv = options.processEnv ?? process.env;
+    const key = sanitizeApiKey(options.apiKey ?? processEnv.VENICE_API_KEY);
+    const secretSource: SecretValueSource = {
+        OPENAI_API_KEY: key,
+        VENICE_API_KEY: key,
+    };
+    const defaultBaseUrl =
+        getRouteDefaultBaseUrl("venice") ?? "https://api.venice.ai/api/v1";
+    const defaultModel = getRouteDefaultModel("venice") ?? "venice-uncensored";
+    const env: ProfileEnv = {
+        OPENAI_BASE_URL:
+            sanitizeProviderConfigValue(options.baseUrl, secretSource) ||
+            sanitizeProviderConfigValue(
+                processEnv.OPENAI_BASE_URL,
+                secretSource,
+            ) ||
+            defaultBaseUrl,
+        OPENAI_MODEL:
+            normalizeProfileModel(
+                sanitizeProviderConfigValue(options.model, secretSource),
+            ) ||
+            normalizeProfileModel(
+                sanitizeProviderConfigValue(
+                    processEnv.OPENAI_MODEL,
+                    secretSource,
+                ),
+            ) ||
+            defaultModel,
+    };
+
+    if (key) {
+        env.OPENAI_API_KEY = key;
+        env.VENICE_API_KEY = key;
     }
 
     return env;

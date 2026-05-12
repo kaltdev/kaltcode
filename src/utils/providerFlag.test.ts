@@ -24,6 +24,7 @@ const ENV_KEYS = [
     "BNKR_API_KEY",
     "XAI_API_KEY",
     "MINIMAX_API_KEY",
+    "VENICE_API_KEY",
     "MISTRAL_MODEL",
     "ANTHROPIC_MODEL",
 ];
@@ -53,6 +54,7 @@ const RESET_KEYS = [
     "BNKR_API_KEY",
     "XAI_API_KEY",
     "MINIMAX_API_KEY",
+    "VENICE_API_KEY",
     "MISTRAL_MODEL",
     "ANTHROPIC_MODEL",
 ] as const;
@@ -126,6 +128,7 @@ describe("VALID_PROVIDERS", () => {
         expect(VALID_PROVIDERS).toContain("openrouter");
         expect(VALID_PROVIDERS).toContain("atomic-chat");
         expect(VALID_PROVIDERS).toContain("zai");
+        expect(VALID_PROVIDERS).toContain("venice");
     });
 });
 
@@ -361,7 +364,7 @@ describe("applyProviderFlag - xai", () => {
         const result = applyProviderFlag("xai", []);
         expect(result.error).toBeUndefined();
         expect(process.env.CLAUDE_CODE_USE_OPENAI).toBe("1");
-        expect(process.env.OPENAI_BASE_URL).toBe("https://api.x.ai/v1");
+        expect(process.env.OPENAI_BASE_URL!).toBe("https://api.x.ai/v1");
         expect(process.env.OPENAI_MODEL).toBe("grok-4.3");
     });
 
@@ -376,7 +379,7 @@ describe("applyProviderFlag - xai", () => {
 
         applyProviderFlag("xai", []);
 
-        expect(process.env.OPENAI_API_KEY).toBe("xai-secret-key");
+        expect(process.env.OPENAI_API_KEY!).toBe("xai-secret-key");
     });
 
     test("does not override existing OPENAI_API_KEY when both keys are set", () => {
@@ -386,6 +389,61 @@ describe("applyProviderFlag - xai", () => {
         applyProviderFlag("xai", []);
 
         expect(process.env.OPENAI_API_KEY).toBe("existing-openai-key");
+    });
+});
+
+describe("applyProviderFlag - venice", () => {
+    test("sets CLAUDE_CODE_USE_OPENAI=1 with Venice defaults when unset", () => {
+        delete process.env.OPENAI_BASE_URL;
+        delete process.env.OPENAI_API_KEY;
+
+        const result = applyProviderFlag("venice", []);
+        expect(result.error).toBeUndefined();
+        expect(process.env.CLAUDE_CODE_USE_OPENAI).toBe("1");
+        expect(process.env.OPENAI_BASE_URL!).toBe(
+            "https://api.venice.ai/api/v1",
+        );
+        expect(process.env.OPENAI_MODEL).toBe("venice-uncensored");
+    });
+
+    test("sets OPENAI_MODEL when --model is provided", () => {
+        applyProviderFlag("venice", ["--model", "llama-3.3-70b"]);
+        expect(process.env.OPENAI_MODEL).toBe("llama-3.3-70b");
+    });
+
+    test("propagates VENICE_API_KEY to OPENAI_API_KEY when only VENICE_API_KEY is set", () => {
+        delete process.env.OPENAI_API_KEY;
+        process.env.VENICE_API_KEY = "venice-secret-key";
+
+        applyProviderFlag("venice", []);
+
+        expect(process.env.OPENAI_API_KEY!).toBe("venice-secret-key");
+    });
+
+    test("does not override existing OPENAI_API_KEY when both keys are set", () => {
+        process.env.OPENAI_API_KEY = "existing-openai-key";
+        process.env.VENICE_API_KEY = "venice-secret-key";
+
+        applyProviderFlag("venice", []);
+
+        expect(process.env.OPENAI_API_KEY).toBe("existing-openai-key");
+    });
+
+    test("clears VENICE_API_KEY copied into OPENAI_API_KEY when switching routes", () => {
+        process.env.VENICE_API_KEY = "venice-live-key";
+
+        const veniceResult = applyProviderFlag("venice", []);
+        expect(veniceResult.error).toBeUndefined();
+        expect(process.env.OPENAI_API_KEY).toBe("venice-live-key");
+
+        process.env.OPENAI_BASE_URL = "https://openrouter.ai/api/v1";
+        const openrouterResult = applyProviderFlag("openrouter", []);
+
+        expect(openrouterResult.error).toBeUndefined();
+        expect(process.env.OPENAI_API_KEY).toBeUndefined();
+        expect(process.env.OPENAI_BASE_URL).toBe(
+            "https://openrouter.ai/api/v1",
+        );
     });
 });
 
