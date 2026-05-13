@@ -6,6 +6,7 @@ web/*.tsbuildinfo
 .env
 .env.*
 !.env.example
+auth.json
 .kaltcode-profile.json
 .kaltcode/
 .openclaude-profile.json
