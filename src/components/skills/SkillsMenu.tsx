@@ -89,16 +89,16 @@ export function SkillsMenu(t0) {
         t1 = $[1];
     }
     const skills = t1;
-    let groups;
+    let groups: Record<SkillSource, SkillCommand[]>;
     if ($[2] !== skills) {
         groups = {
-            policySettings: [],
-            userSettings: [],
-            projectSettings: [],
-            localSettings: [],
-            flagSettings: [],
-            plugin: [],
-            mcp: [],
+            policySettings: [] as SkillCommand[],
+            userSettings: [] as SkillCommand[],
+            projectSettings: [] as SkillCommand[],
+            localSettings: [] as SkillCommand[],
+            flagSettings: [] as SkillCommand[],
+            plugin: [] as SkillCommand[],
+            mcp: [] as SkillCommand[],
         };
         for (const skill of skills) {
             const source = skill.source as SkillSource;
