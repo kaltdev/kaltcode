@@ -930,7 +930,7 @@ export function Config({
   }] : []), {
     id: 'claudeInChromeDefaultEnabled',
     label: 'Claude in Chrome enabled by default',
-    value: globalConfig.kalt-codeInChromeDefaultEnabled ?? true,
+    value: globalConfig.claudeInChromeDefaultEnabled ?? true,
     type: 'boolean' as const,
     onChange(enabled_5: boolean) {
       saveGlobalConfig(current_18 => ({

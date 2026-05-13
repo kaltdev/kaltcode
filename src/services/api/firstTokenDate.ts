@@ -13,7 +13,7 @@ export async function fetchAndStoreClaudeCodeFirstTokenDate(): Promise<void> {
   try {
     const config = getGlobalConfig()
 
-    if (config.kalt-codeCodeFirstTokenDate !== undefined) {
+    if (config.claudeCodeFirstTokenDate !== undefined) {
       return
     }
 

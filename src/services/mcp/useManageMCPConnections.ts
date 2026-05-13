@@ -883,7 +883,7 @@ export function useManageMCPConnections(
       // Add MCP errors to plugin errors for UI visibility (deduplicated)
       addErrorsToAppState(setAppState, mcpErrors)
 
-      const configs = { ...kalt-codeCodeConfigs, ...dynamicMcpConfig }
+      const configs = { ...claudeCodeConfigs, ...dynamicMcpConfig }
 
       // Start connecting to Kalt Code servers (don't wait - runs concurrently with Phase 2)
       // Filter out disabled servers to avoid unnecessary connection attempts
