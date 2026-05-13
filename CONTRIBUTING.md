@@ -6,7 +6,7 @@ Kalt Code is a fast-moving open-source coding-agent CLI with support for multipl
 
 ## Before You Start
 
-- Search existing [issues](https://github.com/kaltdev/kalt-code/issues) and [discussions](https://github.com/kaltdev/kalt-code/discussions) before opening a new thread.
+- Search existing [issues](https://github.com/kaltdev/kaltcode/issues) and [discussions](https://github.com/kaltdev/kaltcode/discussions) before opening a new thread.
 - Use issues for confirmed bugs and actionable feature work.
 - Use discussions for setup help, ideas, and general community conversation.
 - For larger changes, open an issue first so the scope is clear before implementation.

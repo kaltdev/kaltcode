@@ -65,7 +65,7 @@ Package naming must be internally consistent:
 
 - npm package: `@kaltdev/kaltcode`
 - CLI binary: `kalt-code`
-- repository: `https://github.com/kaltdev/kalt-code`
+- repository: `https://github.com/kaltdev/kaltcode`
 - display name: `Kalt Code`
 
 Generated or lockfile references should be regenerated where the repository has an existing command for doing so. If a lockfile can be updated safely by editing package metadata and running the project package manager, prefer regeneration over hand editing.

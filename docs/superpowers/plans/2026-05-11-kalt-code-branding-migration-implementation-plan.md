@@ -106,7 +106,7 @@ export const PRODUCT_CAMEL_NAME = 'kaltCode'
 export const PRODUCT_PACKAGE_TOKEN = 'kaltcode'
 export const PRODUCT_CLI_NAME = 'kalt-code'
 export const PRODUCT_NPM_PACKAGE = '@kaltdev/kaltcode'
-export const PRODUCT_REPOSITORY = 'https://github.com/kaltdev/kalt-code'
+export const PRODUCT_REPOSITORY = 'https://github.com/kaltdev/kaltcode'
 export const PRODUCT_ISSUES_URL = `${PRODUCT_REPOSITORY}/issues`
 export const PRODUCT_DISCUSSIONS_URL = `${PRODUCT_REPOSITORY}/discussions`
 export const PRODUCT_RELEASES_URL = `${PRODUCT_REPOSITORY}/releases`
@@ -482,7 +482,7 @@ Ensure `package.json` uses this metadata:
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/kaltdev/kalt-code.git"
+    "url": "https://github.com/kaltdev/kaltcode.git"
   }
 }
 ```
@@ -585,7 +585,7 @@ In `web/src/content.ts`, set:
 export const installCommand = 'npm install -g @kaltdev/kaltcode'
 ```
 
-Update feature copy to use `.kaltcode-profile.json`, `kalt-code`, and `https://github.com/kaltdev/kalt-code`.
+Update feature copy to use `.kaltcode-profile.json`, `kalt-code`, and `https://github.com/kaltdev/kaltcode`.
 
 Expected: web package and copy are Kalt Code branded.
 
@@ -708,7 +708,7 @@ Expected: `getCLISyspromptPrefix()` returns Kalt Code text.
 In `src/constants/promptIdentity.test.ts`, update the mock constants and assertions:
 
 ```ts
-ISSUES_EXPLAINER: 'report the issue at https://github.com/kaltdev/kalt-code/issues',
+ISSUES_EXPLAINER: 'report the issue at https://github.com/kaltdev/kaltcode/issues',
 PACKAGE_URL: '@kaltdev/kaltcode',
 ```
 
@@ -807,14 +807,14 @@ return 'kaltcode@kaltdev.dev'
 ```
 
 ```ts
-'🤖 Generated with [Kalt Code](https://github.com/kaltdev/kalt-code)'
+'🤖 Generated with [Kalt Code](https://github.com/kaltdev/kaltcode)'
 ```
 
 In `src/utils/version.ts`, rename `OPENCLAUDE_RELEASES_URL` to `KALTCODE_RELEASES_URL` and point it to:
 
 ```ts
 export const KALTCODE_RELEASES_URL =
-  'https://github.com/kaltdev/kalt-code/releases'
+  'https://github.com/kaltdev/kaltcode/releases'
 ```
 
 Expected: commit trailers, release URLs, and tests use Kalt Code.
@@ -900,7 +900,7 @@ In `vscode-extension/kalt-code-vscode/package.json`, ensure:
   "main": "./src/extension.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kaltdev/kalt-code"
+    "url": "https://github.com/kaltdev/kaltcode"
   }
 }
 ```

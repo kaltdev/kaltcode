@@ -1,487 +1,524 @@
-const vscode = require('vscode');
-const crypto = require('crypto');
-const fs = require('fs');
-const path = require('path');
+const vscode = require("vscode");
+const crypto = require("crypto");
+const fs = require("fs");
+const path = require("path");
 
-const { buildControlCenterViewModel } = require('./presentation');
+const { buildControlCenterViewModel } = require("./presentation");
 const {
-  WORKSPACE_PROFILE_FILENAME,
-  DEPRECATED_WORKSPACE_PROFILE_FILENAME,
-  chooseLaunchWorkspace,
-  chooseWorkspaceProfilePath,
-  describeProviderState,
-  findCommandPath,
-  isPathInsideWorkspace,
-  parseProfileFile,
-  resolveCommandCheckPath,
-} = require('./state');
+    WORKSPACE_PROFILE_FILENAME,
+    DEPRECATED_WORKSPACE_PROFILE_FILENAME,
+    chooseLaunchWorkspace,
+    chooseWorkspaceProfilePath,
+    describeProviderState,
+    findCommandPath,
+    isPathInsideWorkspace,
+    parseProfileFile,
+    resolveCommandCheckPath,
+} = require("./state");
 
-const KALT_CODE_REPO_URL = 'https://github.com/kaltdev/kalt-code';
-const KALT_CODE_SETUP_URL = 'https://github.com/kaltdev/kalt-code/blob/main/vscode-extension/kalt-code-vscode/README.md';
-const KALT_CODE_INSTALL_COMMAND = 'npm install -g @kaltdev/kaltcode';
+const KALT_CODE_REPO_URL = "https://github.com/kaltdev/kaltcode";
+const KALT_CODE_SETUP_URL =
+    "https://github.com/kaltdev/kaltcode/blob/main/vscode-extension/kalt-code-vscode/README.md";
+const KALT_CODE_INSTALL_COMMAND = "npm install -g @kaltdev/kaltcode";
 
 function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
 }
 
 async function isCommandAvailable(command, launchCwd) {
-  return Boolean(findCommandPath(command, { cwd: launchCwd }));
+    return Boolean(findCommandPath(command, { cwd: launchCwd }));
 }
 
 function getExecutableFromCommand(command) {
-  const normalized = String(command || '').trim();
-  if (!normalized) {
-    return '';
-  }
+    const normalized = String(command || "").trim();
+    if (!normalized) {
+        return "";
+    }
 
-  const doubleQuotedMatch = normalized.match(/^"([^"]+)"/);
-  if (doubleQuotedMatch) {
-    return doubleQuotedMatch[1];
-  }
+    const doubleQuotedMatch = normalized.match(/^"([^"]+)"/);
+    if (doubleQuotedMatch) {
+        return doubleQuotedMatch[1];
+    }
 
-  const singleQuotedMatch = normalized.match(/^'([^']+)'/);
-  if (singleQuotedMatch) {
-    return singleQuotedMatch[1];
-  }
+    const singleQuotedMatch = normalized.match(/^'([^']+)'/);
+    if (singleQuotedMatch) {
+        return singleQuotedMatch[1];
+    }
 
-  return normalized.split(/\s+/)[0];
+    return normalized.split(/\s+/)[0];
 }
 
 function getWorkspacePaths() {
-  return (vscode.workspace.workspaceFolders || []).map(folder => folder.uri.fsPath);
+    return (vscode.workspace.workspaceFolders || []).map(
+        (folder) => folder.uri.fsPath,
+    );
 }
 
 function getActiveWorkspacePath() {
-  const editor = vscode.window.activeTextEditor;
-  if (!editor || editor.document.uri.scheme !== 'file') {
-    return null;
-  }
+    const editor = vscode.window.activeTextEditor;
+    if (!editor || editor.document.uri.scheme !== "file") {
+        return null;
+    }
 
-  const workspaceFolder = vscode.workspace.getWorkspaceFolder(editor.document.uri);
-  return workspaceFolder ? workspaceFolder.uri.fsPath : null;
+    const workspaceFolder = vscode.workspace.getWorkspaceFolder(
+        editor.document.uri,
+    );
+    return workspaceFolder ? workspaceFolder.uri.fsPath : null;
 }
 
 function getActiveFilePath() {
-  const editor = vscode.window.activeTextEditor;
-  if (!editor || editor.document.uri.scheme !== 'file') {
-    return null;
-  }
+    const editor = vscode.window.activeTextEditor;
+    if (!editor || editor.document.uri.scheme !== "file") {
+        return null;
+    }
 
-  return editor.document.uri.fsPath || null;
+    return editor.document.uri.fsPath || null;
 }
 
 function resolveLaunchTargets({
-  activeFilePath,
-  workspacePath,
-  workspaceSourceLabel,
-  executable,
+    activeFilePath,
+    workspacePath,
+    workspaceSourceLabel,
+    executable,
 } = {}) {
-  const activeFileDirectory = isPathInsideWorkspace(activeFilePath, workspacePath)
-    ? path.dirname(activeFilePath)
-    : null;
-  const normalizedExecutable = String(executable || '').trim();
-  const commandPath = normalizedExecutable
-    ? resolveCommandCheckPath(normalizedExecutable, workspacePath)
-    : null;
-  const relativeCommandRequiresWorkspaceRoot = Boolean(
-    workspacePath && commandPath && !path.isAbsolute(normalizedExecutable),
-  );
+    const activeFileDirectory = isPathInsideWorkspace(
+        activeFilePath,
+        workspacePath,
+    )
+        ? path.dirname(activeFilePath)
+        : null;
+    const normalizedExecutable = String(executable || "").trim();
+    const commandPath = normalizedExecutable
+        ? resolveCommandCheckPath(normalizedExecutable, workspacePath)
+        : null;
+    const relativeCommandRequiresWorkspaceRoot = Boolean(
+        workspacePath && commandPath && !path.isAbsolute(normalizedExecutable),
+    );
 
-  if (relativeCommandRequiresWorkspaceRoot) {
+    if (relativeCommandRequiresWorkspaceRoot) {
+        return {
+            projectAwareCwd: workspacePath,
+            projectAwareCwdLabel: workspacePath,
+            projectAwareSourceLabel:
+                "workspace root (required by relative launch command)",
+            workspaceRootCwd: workspacePath,
+            workspaceRootCwdLabel: workspacePath,
+            launchActionsShareTarget: true,
+            launchActionsShareTargetReason: "relative-launch-command",
+        };
+    }
+
+    if (activeFileDirectory) {
+        return {
+            projectAwareCwd: activeFileDirectory,
+            projectAwareCwdLabel: activeFileDirectory,
+            projectAwareSourceLabel: "active file directory",
+            workspaceRootCwd: workspacePath || null,
+            workspaceRootCwdLabel: workspacePath || "No workspace open",
+            launchActionsShareTarget: false,
+            launchActionsShareTargetReason: null,
+        };
+    }
+
+    if (workspacePath) {
+        return {
+            projectAwareCwd: workspacePath,
+            projectAwareCwdLabel: workspacePath,
+            projectAwareSourceLabel: workspaceSourceLabel || "workspace root",
+            workspaceRootCwd: workspacePath,
+            workspaceRootCwdLabel: workspacePath,
+            launchActionsShareTarget: true,
+            launchActionsShareTargetReason: null,
+        };
+    }
+
     return {
-      projectAwareCwd: workspacePath,
-      projectAwareCwdLabel: workspacePath,
-      projectAwareSourceLabel: 'workspace root (required by relative launch command)',
-      workspaceRootCwd: workspacePath,
-      workspaceRootCwdLabel: workspacePath,
-      launchActionsShareTarget: true,
-      launchActionsShareTargetReason: 'relative-launch-command',
+        projectAwareCwd: null,
+        projectAwareCwdLabel: "VS Code default terminal cwd",
+        projectAwareSourceLabel: "VS Code default terminal cwd",
+        workspaceRootCwd: null,
+        workspaceRootCwdLabel: "No workspace open",
+        launchActionsShareTarget: false,
+        launchActionsShareTargetReason: null,
     };
-  }
-
-  if (activeFileDirectory) {
-    return {
-      projectAwareCwd: activeFileDirectory,
-      projectAwareCwdLabel: activeFileDirectory,
-      projectAwareSourceLabel: 'active file directory',
-      workspaceRootCwd: workspacePath || null,
-      workspaceRootCwdLabel: workspacePath || 'No workspace open',
-      launchActionsShareTarget: false,
-      launchActionsShareTargetReason: null,
-    };
-  }
-
-  if (workspacePath) {
-    return {
-      projectAwareCwd: workspacePath,
-      projectAwareCwdLabel: workspacePath,
-      projectAwareSourceLabel: workspaceSourceLabel || 'workspace root',
-      workspaceRootCwd: workspacePath,
-      workspaceRootCwdLabel: workspacePath,
-      launchActionsShareTarget: true,
-      launchActionsShareTargetReason: null,
-    };
-  }
-
-  return {
-    projectAwareCwd: null,
-    projectAwareCwdLabel: 'VS Code default terminal cwd',
-    projectAwareSourceLabel: 'VS Code default terminal cwd',
-    workspaceRootCwd: null,
-    workspaceRootCwdLabel: 'No workspace open',
-    launchActionsShareTarget: false,
-    launchActionsShareTargetReason: null,
-  };
 }
 
 function resolveLaunchWorkspace() {
-  return chooseLaunchWorkspace({
-    activeWorkspacePath: getActiveWorkspacePath(),
-    workspacePaths: getWorkspacePaths(),
-  });
+    return chooseLaunchWorkspace({
+        activeWorkspacePath: getActiveWorkspacePath(),
+        workspacePaths: getWorkspacePaths(),
+    });
 }
 
 function getWorkspaceSourceLabel(source) {
-  switch (source) {
-    case 'active-workspace':
-      return 'active editor workspace';
-    case 'first-workspace':
-      return 'first workspace folder';
-    default:
-      return 'no workspace open';
-  }
+    switch (source) {
+        case "active-workspace":
+            return "active editor workspace";
+        case "first-workspace":
+            return "first workspace folder";
+        default:
+            return "no workspace open";
+    }
 }
 
 function getProviderSourceLabel(source) {
-  switch (source) {
-    case 'profile':
-      return 'saved profile';
-    case 'env':
-      return 'environment';
-    case 'shim':
-      return 'launch setting';
-    default:
-      return 'unknown';
-  }
+    switch (source) {
+        case "profile":
+            return "saved profile";
+        case "env":
+            return "environment";
+        case "shim":
+            return "launch setting";
+        default:
+            return "unknown";
+    }
 }
 
 function getMissingProfileHint() {
-  return `${WORKSPACE_PROFILE_FILENAME} not found in the workspace root`;
+    return `${WORKSPACE_PROFILE_FILENAME} not found in the workspace root`;
 }
 
 function getDeprecatedProfileHint(profilePath) {
-  return [
-    profilePath,
-    `deprecated fallback; create ${WORKSPACE_PROFILE_FILENAME} to use the Kalt Code profile name`,
-  ].join(' (') + ')';
+    return (
+        [
+            profilePath,
+            `deprecated fallback; create ${WORKSPACE_PROFILE_FILENAME} to use the Kalt Code profile name`,
+        ].join(" (") + ")"
+    );
 }
 
 function readWorkspaceProfile(profileSelection) {
-  const profilePath = profileSelection?.filePath || null;
-  const isDeprecatedFallback = Boolean(profileSelection?.isDeprecatedFallback);
+    const profilePath = profileSelection?.filePath || null;
+    const isDeprecatedFallback = Boolean(
+        profileSelection?.isDeprecatedFallback,
+    );
 
-  if (!profilePath || !fs.existsSync(profilePath)) {
-    return {
-      profile: null,
-      statusLabel: 'Missing',
-      statusHint: getMissingProfileHint(),
-      filePath: null,
-    };
-  }
-
-  try {
-    const raw = fs.readFileSync(profilePath, 'utf8');
-    const profile = parseProfileFile(raw);
-    if (!profile) {
-      return {
-        profile: null,
-        statusLabel: 'Invalid',
-        statusHint: `${profilePath} has invalid JSON or an unsupported profile`,
-        filePath: profilePath,
-      };
+    if (!profilePath || !fs.existsSync(profilePath)) {
+        return {
+            profile: null,
+            statusLabel: "Missing",
+            statusHint: getMissingProfileHint(),
+            filePath: null,
+        };
     }
 
-    return {
-      profile,
-      statusLabel: isDeprecatedFallback ? 'Deprecated fallback' : 'Found',
-      statusHint: isDeprecatedFallback ? getDeprecatedProfileHint(profilePath) : profilePath,
-      filePath: profilePath,
-    };
-  } catch (error) {
-    return {
-      profile: null,
-      statusLabel: 'Unreadable',
-      statusHint: `${profilePath} (${error instanceof Error ? error.message : 'read failed'})`,
-      filePath: profilePath,
-    };
-  }
+    try {
+        const raw = fs.readFileSync(profilePath, "utf8");
+        const profile = parseProfileFile(raw);
+        if (!profile) {
+            return {
+                profile: null,
+                statusLabel: "Invalid",
+                statusHint: `${profilePath} has invalid JSON or an unsupported profile`,
+                filePath: profilePath,
+            };
+        }
+
+        return {
+            profile,
+            statusLabel: isDeprecatedFallback ? "Deprecated fallback" : "Found",
+            statusHint: isDeprecatedFallback
+                ? getDeprecatedProfileHint(profilePath)
+                : profilePath,
+            filePath: profilePath,
+        };
+    } catch (error) {
+        return {
+            profile: null,
+            statusLabel: "Unreadable",
+            statusHint: `${profilePath} (${error instanceof Error ? error.message : "read failed"})`,
+            filePath: profilePath,
+        };
+    }
 }
 
 async function collectControlCenterState() {
-  const configured = vscode.workspace.getConfiguration('kalt-code');
-  const launchCommand = configured.get('launchCommand', 'kalt-code');
-  const terminalName = configured.get('terminalName', 'Kalt Code');
-  const shimEnabled = configured.get('useOpenAIShim', false);
-  const executable = getExecutableFromCommand(launchCommand);
-  const launchWorkspace = resolveLaunchWorkspace();
-  const workspaceFolder = launchWorkspace.workspacePath;
-  const workspaceSourceLabel = getWorkspaceSourceLabel(launchWorkspace.source);
-  const launchTargets = resolveLaunchTargets({
-    activeFilePath: getActiveFilePath(),
-    workspacePath: workspaceFolder,
-    workspaceSourceLabel,
-    executable,
-  });
-  const installed = await isCommandAvailable(executable, launchTargets.projectAwareCwd);
-  const profileState = workspaceFolder
-    ? readWorkspaceProfile(chooseWorkspaceProfilePath(workspaceFolder))
-    : {
-        profile: null,
-        statusLabel: 'No workspace',
-        statusHint: 'Open a workspace folder to detect a saved profile',
-        filePath: null,
-      };
-  const providerState = describeProviderState({
-    shimEnabled,
-    env: process.env,
-    profile: profileState.profile,
-  });
+    const configured = vscode.workspace.getConfiguration("kalt-code");
+    const launchCommand = configured.get("launchCommand", "kalt-code");
+    const terminalName = configured.get("terminalName", "Kalt Code");
+    const shimEnabled = configured.get("useOpenAIShim", false);
+    const executable = getExecutableFromCommand(launchCommand);
+    const launchWorkspace = resolveLaunchWorkspace();
+    const workspaceFolder = launchWorkspace.workspacePath;
+    const workspaceSourceLabel = getWorkspaceSourceLabel(
+        launchWorkspace.source,
+    );
+    const launchTargets = resolveLaunchTargets({
+        activeFilePath: getActiveFilePath(),
+        workspacePath: workspaceFolder,
+        workspaceSourceLabel,
+        executable,
+    });
+    const installed = await isCommandAvailable(
+        executable,
+        launchTargets.projectAwareCwd,
+    );
+    const profileState = workspaceFolder
+        ? readWorkspaceProfile(chooseWorkspaceProfilePath(workspaceFolder))
+        : {
+              profile: null,
+              statusLabel: "No workspace",
+              statusHint: "Open a workspace folder to detect a saved profile",
+              filePath: null,
+          };
+    const providerState = describeProviderState({
+        shimEnabled,
+        env: process.env,
+        profile: profileState.profile,
+    });
 
-  return {
-    installed,
-    executable,
-    launchCommand,
-    terminalName,
-    shimEnabled,
-    workspaceFolder,
-    workspaceSourceLabel,
-    launchCwd: launchTargets.projectAwareCwd,
-    launchCwdLabel: launchTargets.projectAwareCwdLabel,
-    launchCwdSourceLabel: launchTargets.projectAwareSourceLabel,
-    workspaceRootCwd: launchTargets.workspaceRootCwd,
-    workspaceRootCwdLabel: launchTargets.workspaceRootCwdLabel,
-    launchActionsShareTarget: launchTargets.launchActionsShareTarget,
-    launchActionsShareTargetReason: launchTargets.launchActionsShareTargetReason,
-    canLaunchInWorkspaceRoot: Boolean(workspaceFolder),
-    profileStatusLabel: profileState.statusLabel,
-    profileStatusHint: profileState.statusHint,
-    workspaceProfilePath: profileState.filePath,
-    providerState,
-    providerSourceLabel: getProviderSourceLabel(providerState.source),
-  };
+    return {
+        installed,
+        executable,
+        launchCommand,
+        terminalName,
+        shimEnabled,
+        workspaceFolder,
+        workspaceSourceLabel,
+        launchCwd: launchTargets.projectAwareCwd,
+        launchCwdLabel: launchTargets.projectAwareCwdLabel,
+        launchCwdSourceLabel: launchTargets.projectAwareSourceLabel,
+        workspaceRootCwd: launchTargets.workspaceRootCwd,
+        workspaceRootCwdLabel: launchTargets.workspaceRootCwdLabel,
+        launchActionsShareTarget: launchTargets.launchActionsShareTarget,
+        launchActionsShareTargetReason:
+            launchTargets.launchActionsShareTargetReason,
+        canLaunchInWorkspaceRoot: Boolean(workspaceFolder),
+        profileStatusLabel: profileState.statusLabel,
+        profileStatusHint: profileState.statusHint,
+        workspaceProfilePath: profileState.filePath,
+        providerState,
+        providerSourceLabel: getProviderSourceLabel(providerState.source),
+    };
 }
 
 async function launchKaltCode(options = {}) {
-  const { requireWorkspace = false } = options;
-  const configured = vscode.workspace.getConfiguration('kalt-code');
-  const launchCommand = configured.get('launchCommand', 'kalt-code');
-  const terminalName = configured.get('terminalName', 'Kalt Code');
-  const shimEnabled = configured.get('useOpenAIShim', false);
-  const executable = getExecutableFromCommand(launchCommand);
-  const launchWorkspace = resolveLaunchWorkspace();
+    const { requireWorkspace = false } = options;
+    const configured = vscode.workspace.getConfiguration("kalt-code");
+    const launchCommand = configured.get("launchCommand", "kalt-code");
+    const terminalName = configured.get("terminalName", "Kalt Code");
+    const shimEnabled = configured.get("useOpenAIShim", false);
+    const executable = getExecutableFromCommand(launchCommand);
+    const launchWorkspace = resolveLaunchWorkspace();
 
-  if (requireWorkspace && !launchWorkspace.workspacePath) {
-    await vscode.window.showWarningMessage(
-      'Open a workspace folder before using Launch in Workspace Root.',
-    );
-    return;
-  }
-
-  const launchTargets = resolveLaunchTargets({
-    activeFilePath: getActiveFilePath(),
-    workspacePath: launchWorkspace.workspacePath,
-    workspaceSourceLabel: getWorkspaceSourceLabel(launchWorkspace.source),
-    executable,
-  });
-  const targetCwd = requireWorkspace
-    ? launchTargets.workspaceRootCwd
-    : launchTargets.projectAwareCwd;
-  const installed = await isCommandAvailable(executable, targetCwd);
-
-  if (!installed) {
-    const action = await vscode.window.showErrorMessage(
-      `Kalt Code command not found: ${executable}. Install it with: ${KALT_CODE_INSTALL_COMMAND}`,
-      'Open Kalt Code Setup Guide',
-      'Open Kalt Code Repository',
-    );
-
-    if (action === 'Open Kalt Code Setup Guide') {
-      await vscode.env.openExternal(vscode.Uri.parse(KALT_CODE_SETUP_URL));
-    } else if (action === 'Open Kalt Code Repository') {
-      await vscode.env.openExternal(vscode.Uri.parse(KALT_CODE_REPO_URL));
+    if (requireWorkspace && !launchWorkspace.workspacePath) {
+        await vscode.window.showWarningMessage(
+            "Open a workspace folder before using Launch in Workspace Root.",
+        );
+        return;
     }
 
-    return;
-  }
+    const launchTargets = resolveLaunchTargets({
+        activeFilePath: getActiveFilePath(),
+        workspacePath: launchWorkspace.workspacePath,
+        workspaceSourceLabel: getWorkspaceSourceLabel(launchWorkspace.source),
+        executable,
+    });
+    const targetCwd = requireWorkspace
+        ? launchTargets.workspaceRootCwd
+        : launchTargets.projectAwareCwd;
+    const installed = await isCommandAvailable(executable, targetCwd);
 
-  const env = {};
-  if (shimEnabled) {
-    env.CLAUDE_CODE_USE_OPENAI = '1';
-  }
+    if (!installed) {
+        const action = await vscode.window.showErrorMessage(
+            `Kalt Code command not found: ${executable}. Install it with: ${KALT_CODE_INSTALL_COMMAND}`,
+            "Open Kalt Code Setup Guide",
+            "Open Kalt Code Repository",
+        );
 
-  const terminalOptions = {
-    name: terminalName,
-    env,
-  };
+        if (action === "Open Kalt Code Setup Guide") {
+            await vscode.env.openExternal(
+                vscode.Uri.parse(KALT_CODE_SETUP_URL),
+            );
+        } else if (action === "Open Kalt Code Repository") {
+            await vscode.env.openExternal(vscode.Uri.parse(KALT_CODE_REPO_URL));
+        }
 
-  if (targetCwd) {
-    terminalOptions.cwd = targetCwd;
-  }
+        return;
+    }
 
-  const terminal = vscode.window.createTerminal(terminalOptions);
-  terminal.show(true);
-  terminal.sendText(launchCommand, true);
+    const env = {};
+    if (shimEnabled) {
+        env.CLAUDE_CODE_USE_OPENAI = "1";
+    }
+
+    const terminalOptions = {
+        name: terminalName,
+        env,
+    };
+
+    if (targetCwd) {
+        terminalOptions.cwd = targetCwd;
+    }
+
+    const terminal = vscode.window.createTerminal(terminalOptions);
+    terminal.show(true);
+    terminal.sendText(launchCommand, true);
 }
 
 async function openWorkspaceProfile() {
-  const state = await collectControlCenterState();
+    const state = await collectControlCenterState();
 
-  if (!state.workspaceProfilePath) {
-    await vscode.window.showInformationMessage(
-      `No ${WORKSPACE_PROFILE_FILENAME} file was found for the current workspace.`,
+    if (!state.workspaceProfilePath) {
+        await vscode.window.showInformationMessage(
+            `No ${WORKSPACE_PROFILE_FILENAME} file was found for the current workspace.`,
+        );
+        return;
+    }
+
+    const document = await vscode.workspace.openTextDocument(
+        vscode.Uri.file(state.workspaceProfilePath),
     );
-    return;
-  }
-
-  const document = await vscode.workspace.openTextDocument(
-    vscode.Uri.file(state.workspaceProfilePath),
-  );
-  await vscode.window.showTextDocument(document, { preview: false });
+    await vscode.window.showTextDocument(document, { preview: false });
 }
 
 function getToneClass(tone) {
-  switch (tone) {
-    case 'accent':
-      return 'tone-accent';
-    case 'positive':
-      return 'tone-positive';
-    case 'warning':
-      return 'tone-warning';
-    case 'critical':
-      return 'tone-critical';
-    default:
-      return 'tone-neutral';
-  }
+    switch (tone) {
+        case "accent":
+            return "tone-accent";
+        case "positive":
+            return "tone-positive";
+        case "warning":
+            return "tone-warning";
+        case "critical":
+            return "tone-critical";
+        default:
+            return "tone-neutral";
+    }
 }
 
 function renderHeaderBadge(badge) {
-  return `<div class="rail-pill ${getToneClass(badge.tone)}" title="${escapeHtml(badge.label)}: ${escapeHtml(badge.value)}">
+    return `<div class="rail-pill ${getToneClass(badge.tone)}" title="${escapeHtml(badge.label)}: ${escapeHtml(badge.value)}">
     <span class="rail-label">${escapeHtml(badge.label)}</span>
     <span class="rail-value">${escapeHtml(badge.value)}</span>
   </div>`;
 }
 
 function renderSummaryCard(card) {
-  const detail = card.detail || '';
-  return `<section class="summary-card" aria-label="${escapeHtml(card.label)}">
+    const detail = card.detail || "";
+    return `<section class="summary-card" aria-label="${escapeHtml(card.label)}">
     <div class="summary-label">${escapeHtml(card.label)}</div>
     <div class="summary-value" title="${escapeHtml(card.value)}">${escapeHtml(card.value)}</div>
-    ${detail ? `<div class="summary-detail" title="${escapeHtml(detail)}">${escapeHtml(detail)}</div>` : ''}
+    ${detail ? `<div class="summary-detail" title="${escapeHtml(detail)}">${escapeHtml(detail)}</div>` : ""}
   </section>`;
 }
 
 function renderDetailRow(row) {
-  return `<div class="detail-row ${getToneClass(row.tone)}">
+    return `<div class="detail-row ${getToneClass(row.tone)}">
     <div class="detail-label">${escapeHtml(row.label)}</div>
     <div class="detail-summary" title="${escapeHtml(row.summary)}">${escapeHtml(row.summary)}</div>
-    ${row.detail ? `<div class="detail-meta" title="${escapeHtml(row.detail)}">${escapeHtml(row.detail)}</div>` : ''}
+    ${row.detail ? `<div class="detail-meta" title="${escapeHtml(row.detail)}">${escapeHtml(row.detail)}</div>` : ""}
   </div>`;
 }
 
 function renderDetailSection(section) {
-  const sectionId = `section-${String(section.title || 'section').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
-  return `<section class="detail-module" aria-labelledby="${escapeHtml(sectionId)}">
+    const sectionId = `section-${String(section.title || "section")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")}`;
+    return `<section class="detail-module" aria-labelledby="${escapeHtml(sectionId)}">
     <h2 class="module-title" id="${escapeHtml(sectionId)}">${escapeHtml(section.title)}</h2>
-    <div class="detail-list">${section.rows.map(renderDetailRow).join('')}</div>
+    <div class="detail-list">${section.rows.map(renderDetailRow).join("")}</div>
   </section>`;
 }
 
-function renderActionButton(action, variant = 'secondary') {
-  return `<button class="action-button ${variant}" id="${escapeHtml(action.id)}" type="button" ${action.disabled ? 'disabled aria-disabled="true"' : ''}>
+function renderActionButton(action, variant = "secondary") {
+    return `<button class="action-button ${variant}" id="${escapeHtml(action.id)}" type="button" ${action.disabled ? 'disabled aria-disabled="true"' : ""}>
     <span class="action-label">${escapeHtml(action.label)}</span>
     <span class="action-detail">${escapeHtml(action.detail)}</span>
   </button>`;
 }
 
 function renderProfileEmptyState(detail) {
-  return `<div class="action-empty" role="status" aria-live="polite">
+    return `<div class="action-empty" role="status" aria-live="polite">
     <div class="action-empty-title">No workspace profile yet</div>
     <div class="action-empty-detail">${escapeHtml(detail)}</div>
   </div>`;
 }
 
 function getPrimaryLaunchActionDetail(status) {
-  if (status.launchActionsShareTargetReason === 'relative-launch-command' && status.launchCwd) {
-    return `Project-aware launch is anchored to the workspace root by the relative command · ${status.launchCwdLabel}`;
-  }
+    if (
+        status.launchActionsShareTargetReason === "relative-launch-command" &&
+        status.launchCwd
+    ) {
+        return `Project-aware launch is anchored to the workspace root by the relative command · ${status.launchCwdLabel}`;
+    }
 
-  if (status.launchCwd && status.launchCwdSourceLabel === 'active file directory') {
-    return `Starts beside the active file · ${status.launchCwdLabel}`;
-  }
+    if (
+        status.launchCwd &&
+        status.launchCwdSourceLabel === "active file directory"
+    ) {
+        return `Starts beside the active file · ${status.launchCwdLabel}`;
+    }
 
-  if (status.launchCwd) {
-    return `Project-aware launch. Currently resolves to ${status.launchCwdSourceLabel} · ${status.launchCwdLabel}`;
-  }
+    if (status.launchCwd) {
+        return `Project-aware launch. Currently resolves to ${status.launchCwdSourceLabel} · ${status.launchCwdLabel}`;
+    }
 
-  return 'Project-aware launch. Uses the VS Code default terminal cwd';
+    return "Project-aware launch. Uses the VS Code default terminal cwd";
 }
 
 function getWorkspaceRootActionDetail(status, fallbackDetail) {
-  if (!status.canLaunchInWorkspaceRoot) {
-    return fallbackDetail;
-  }
+    if (!status.canLaunchInWorkspaceRoot) {
+        return fallbackDetail;
+    }
 
-  if (status.launchActionsShareTargetReason === 'relative-launch-command') {
-    return `Same workspace-root target as Launch Kalt Code because the relative command resolves from the workspace root · ${status.workspaceRootCwdLabel}`;
-  }
+    if (status.launchActionsShareTargetReason === "relative-launch-command") {
+        return `Same workspace-root target as Launch Kalt Code because the relative command resolves from the workspace root · ${status.workspaceRootCwdLabel}`;
+    }
 
-  return `Always starts at the workspace root · ${status.workspaceRootCwdLabel}`;
+    return `Always starts at the workspace root · ${status.workspaceRootCwdLabel}`;
 }
 
 function getRenderableViewModel(status) {
-  const viewModel = buildControlCenterViewModel(status);
-  const summaryCards = viewModel.summaryCards.map(card => {
-    if (card.key !== 'launchCwd' || card.detail) {
-      return card;
-    }
+    const viewModel = buildControlCenterViewModel(status);
+    const summaryCards = viewModel.summaryCards.map((card) => {
+        if (card.key !== "launchCwd" || card.detail) {
+            return card;
+        }
+
+        return {
+            ...card,
+            detail: status.launchCwdSourceLabel || "",
+        };
+    });
 
     return {
-      ...card,
-      detail: status.launchCwdSourceLabel || '',
+        ...viewModel,
+        summaryCards,
+        actions: {
+            ...viewModel.actions,
+            primary: {
+                ...viewModel.actions.primary,
+                detail: getPrimaryLaunchActionDetail(status),
+            },
+            launchRoot: {
+                ...viewModel.actions.launchRoot,
+                detail: getWorkspaceRootActionDetail(
+                    status,
+                    viewModel.actions.launchRoot.detail,
+                ),
+            },
+        },
     };
-  });
-
-  return {
-    ...viewModel,
-    summaryCards,
-    actions: {
-      ...viewModel.actions,
-      primary: {
-        ...viewModel.actions.primary,
-        detail: getPrimaryLaunchActionDetail(status),
-      },
-      launchRoot: {
-        ...viewModel.actions.launchRoot,
-        detail: getWorkspaceRootActionDetail(status, viewModel.actions.launchRoot.detail),
-      },
-    },
-  };
 }
 
 function renderControlCenterHtml(status, options = {}) {
-  const nonce = options.nonce || crypto.randomBytes(16).toString('base64');
-  const platform = options.platform || process.platform;
-  const viewModel = getRenderableViewModel(status);
-  const profileActionOrEmpty = viewModel.actions.openProfile
-    ? renderActionButton(viewModel.actions.openProfile)
-    : renderProfileEmptyState(status.profileStatusHint || 'Open a workspace folder to detect a saved profile');
+    const nonce = options.nonce || crypto.randomBytes(16).toString("base64");
+    const platform = options.platform || process.platform;
+    const viewModel = getRenderableViewModel(status);
+    const profileActionOrEmpty = viewModel.actions.openProfile
+        ? renderActionButton(viewModel.actions.openProfile)
+        : renderProfileEmptyState(
+              status.profileStatusHint ||
+                  "Open a workspace folder to detect a saved profile",
+          );
 
-  return `<!DOCTYPE html>
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -720,23 +757,23 @@ function renderControlCenterHtml(status, options = {}) {
             </div>
           </div>
           <div class="status-rail" role="group" aria-label="Runtime, provider, and profile status">
-            ${viewModel.headerBadges.map(renderHeaderBadge).join('')}
+            ${viewModel.headerBadges.map(renderHeaderBadge).join("")}
             <button class="refresh-button" id="refresh" type="button">Refresh</button>
           </div>
         </div>
         <section class="summary-grid" aria-label="Current launch summary">
-          ${viewModel.summaryCards.map(renderSummaryCard).join('')}
+          ${viewModel.summaryCards.map(renderSummaryCard).join("")}
         </section>
       </header>
 
       <section class="modules" aria-label="Control center details">
-        ${viewModel.detailSections.map(renderDetailSection).join('')}
+        ${viewModel.detailSections.map(renderDetailSection).join("")}
       </section>
 
       <section class="actions-layout" aria-label="Control center actions">
         <section class="action-panel" aria-labelledby="actions-title">
           <h2 class="action-section-title" id="actions-title">Launch & Project</h2>
-          ${renderActionButton(viewModel.actions.primary, 'primary')}
+          ${renderActionButton(viewModel.actions.primary, "primary")}
           <div class="action-stack">
             ${renderActionButton(viewModel.actions.launchRoot)}
             ${profileActionOrEmpty}
@@ -764,7 +801,7 @@ function renderControlCenterHtml(status, options = {}) {
       </section>
 
       <p class="footer-note">
-        Quick trigger: use <code>${escapeHtml(platform === 'darwin' ? 'Cmd+Shift+P' : 'Ctrl+Shift+P')}</code> for the command palette, then refresh this panel after workspace or profile changes.
+        Quick trigger: use <code>${escapeHtml(platform === "darwin" ? "Cmd+Shift+P" : "Ctrl+Shift+P")}</code> for the command palette, then refresh this panel after workspace or profile changes.
       </p>
     </div>
   </main>
@@ -788,70 +825,78 @@ function renderControlCenterHtml(status, options = {}) {
 }
 
 class KaltCodeControlCenterProvider {
-  constructor() {
-    this.webviewView = null;
-  }
-
-  async resolveWebviewView(webviewView) {
-    this.webviewView = webviewView;
-    webviewView.webview.options = { enableScripts: true };
-
-    webviewView.onDidDispose(() => {
-      if (this.webviewView === webviewView) {
+    constructor() {
         this.webviewView = null;
-      }
-    });
-
-    webviewView.webview.onDidReceiveMessage(async message => {
-      switch (message?.type) {
-        case 'launch':
-          await launchKaltCode();
-          break;
-        case 'launchRoot':
-          await launchKaltCode({ requireWorkspace: true });
-          break;
-        case 'openProfile':
-          await openWorkspaceProfile();
-          break;
-        case 'repo':
-          await vscode.env.openExternal(vscode.Uri.parse(KALT_CODE_REPO_URL));
-          break;
-        case 'setup':
-          await vscode.env.openExternal(vscode.Uri.parse(KALT_CODE_SETUP_URL));
-          break;
-        case 'commands':
-          await vscode.commands.executeCommand('workbench.action.showCommands');
-          break;
-        case 'refresh':
-        default:
-          break;
-      }
-
-      await this.refresh();
-    });
-
-    await this.refresh();
-  }
-
-  async refresh() {
-    if (!this.webviewView) {
-      return;
     }
 
-    try {
-      const status = await collectControlCenterState();
-      this.webviewView.webview.html = this.getHtml(status);
-    } catch (error) {
-      this.webviewView.webview.html = this.getErrorHtml(error);
+    async resolveWebviewView(webviewView) {
+        this.webviewView = webviewView;
+        webviewView.webview.options = { enableScripts: true };
+
+        webviewView.onDidDispose(() => {
+            if (this.webviewView === webviewView) {
+                this.webviewView = null;
+            }
+        });
+
+        webviewView.webview.onDidReceiveMessage(async (message) => {
+            switch (message?.type) {
+                case "launch":
+                    await launchKaltCode();
+                    break;
+                case "launchRoot":
+                    await launchKaltCode({ requireWorkspace: true });
+                    break;
+                case "openProfile":
+                    await openWorkspaceProfile();
+                    break;
+                case "repo":
+                    await vscode.env.openExternal(
+                        vscode.Uri.parse(KALT_CODE_REPO_URL),
+                    );
+                    break;
+                case "setup":
+                    await vscode.env.openExternal(
+                        vscode.Uri.parse(KALT_CODE_SETUP_URL),
+                    );
+                    break;
+                case "commands":
+                    await vscode.commands.executeCommand(
+                        "workbench.action.showCommands",
+                    );
+                    break;
+                case "refresh":
+                default:
+                    break;
+            }
+
+            await this.refresh();
+        });
+
+        await this.refresh();
     }
-  }
 
-  getErrorHtml(error) {
-    const nonce = crypto.randomBytes(16).toString('base64');
-    const message =
-      error instanceof Error ? error.message : 'Unknown Control Center error';
+    async refresh() {
+        if (!this.webviewView) {
+            return;
+        }
 
-    return `<!DOCTYPE html>
+        try {
+            const status = await collectControlCenterState();
+            this.webviewView.webview.html = this.getHtml(status);
+        } catch (error) {
+            this.webviewView.webview.html = this.getErrorHtml(error);
+        }
+    }
+
+    getErrorHtml(error) {
+        const nonce = crypto.randomBytes(16).toString("base64");
+        const message =
+            error instanceof Error
+                ? error.message
+                : "Unknown Control Center error";
+
+        return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -904,88 +949,106 @@ class KaltCodeControlCenterProvider {
   </script>
 </body>
 </html>`;
-  }
+    }
 
-  getHtml(status) {
-    const nonce = crypto.randomBytes(16).toString('base64');
-    return renderControlCenterHtml(status, { nonce, platform: process.platform });
-  }
+    getHtml(status) {
+        const nonce = crypto.randomBytes(16).toString("base64");
+        return renderControlCenterHtml(status, {
+            nonce,
+            platform: process.platform,
+        });
+    }
 }
 
 function activate(context) {
-  const provider = new KaltCodeControlCenterProvider();
-  const refreshProvider = () => {
-    void provider.refresh();
-  };
+    const provider = new KaltCodeControlCenterProvider();
+    const refreshProvider = () => {
+        void provider.refresh();
+    };
 
-  const startCommand = vscode.commands.registerCommand('kalt-code.start', async () => {
-    await launchKaltCode();
-  });
-  const startInWorkspaceRootCommand = vscode.commands.registerCommand(
-    'kalt-code.startInWorkspaceRoot',
-    async () => {
-      await launchKaltCode({ requireWorkspace: true });
-    },
-  );
-  const openDocsCommand = vscode.commands.registerCommand('kalt-code.openDocs', async () => {
-    await vscode.env.openExternal(vscode.Uri.parse(KALT_CODE_REPO_URL));
-  });
-  const openSetupDocsCommand = vscode.commands.registerCommand(
-    'kalt-code.openSetupDocs',
-    async () => {
-      await vscode.env.openExternal(vscode.Uri.parse(KALT_CODE_SETUP_URL));
-    },
-  );
-  const openWorkspaceProfileCommand = vscode.commands.registerCommand(
-    'kalt-code.openWorkspaceProfile',
-    async () => {
-      await openWorkspaceProfile();
-    },
-  );
-  const openUiCommand = vscode.commands.registerCommand('kalt-code.openControlCenter', async () => {
-    await vscode.commands.executeCommand('workbench.view.extension.kalt-code');
-  });
-  const providerDisposable = vscode.window.registerWebviewViewProvider(
-    'kalt-code.controlCenter',
-    provider,
-  );
-  const profileWatcher = vscode.workspace.createFileSystemWatcher(`**/${WORKSPACE_PROFILE_FILENAME}`);
-  const deprecatedProfileWatcher = vscode.workspace.createFileSystemWatcher(
-    `**/${DEPRECATED_WORKSPACE_PROFILE_FILENAME}`,
-  );
+    const startCommand = vscode.commands.registerCommand(
+        "kalt-code.start",
+        async () => {
+            await launchKaltCode();
+        },
+    );
+    const startInWorkspaceRootCommand = vscode.commands.registerCommand(
+        "kalt-code.startInWorkspaceRoot",
+        async () => {
+            await launchKaltCode({ requireWorkspace: true });
+        },
+    );
+    const openDocsCommand = vscode.commands.registerCommand(
+        "kalt-code.openDocs",
+        async () => {
+            await vscode.env.openExternal(vscode.Uri.parse(KALT_CODE_REPO_URL));
+        },
+    );
+    const openSetupDocsCommand = vscode.commands.registerCommand(
+        "kalt-code.openSetupDocs",
+        async () => {
+            await vscode.env.openExternal(
+                vscode.Uri.parse(KALT_CODE_SETUP_URL),
+            );
+        },
+    );
+    const openWorkspaceProfileCommand = vscode.commands.registerCommand(
+        "kalt-code.openWorkspaceProfile",
+        async () => {
+            await openWorkspaceProfile();
+        },
+    );
+    const openUiCommand = vscode.commands.registerCommand(
+        "kalt-code.openControlCenter",
+        async () => {
+            await vscode.commands.executeCommand(
+                "workbench.view.extension.kalt-code",
+            );
+        },
+    );
+    const providerDisposable = vscode.window.registerWebviewViewProvider(
+        "kalt-code.controlCenter",
+        provider,
+    );
+    const profileWatcher = vscode.workspace.createFileSystemWatcher(
+        `**/${WORKSPACE_PROFILE_FILENAME}`,
+    );
+    const deprecatedProfileWatcher = vscode.workspace.createFileSystemWatcher(
+        `**/${DEPRECATED_WORKSPACE_PROFILE_FILENAME}`,
+    );
 
-  context.subscriptions.push(
-    startCommand,
-    startInWorkspaceRootCommand,
-    openDocsCommand,
-    openSetupDocsCommand,
-    openWorkspaceProfileCommand,
-    openUiCommand,
-    providerDisposable,
-    profileWatcher,
-    deprecatedProfileWatcher,
-    vscode.workspace.onDidChangeConfiguration(event => {
-      if (event.affectsConfiguration('kalt-code')) {
-        refreshProvider();
-      }
-    }),
-    vscode.workspace.onDidChangeWorkspaceFolders(refreshProvider),
-    vscode.window.onDidChangeActiveTextEditor(refreshProvider),
-    profileWatcher.onDidCreate(refreshProvider),
-    profileWatcher.onDidChange(refreshProvider),
-    profileWatcher.onDidDelete(refreshProvider),
-    deprecatedProfileWatcher.onDidCreate(refreshProvider),
-    deprecatedProfileWatcher.onDidChange(refreshProvider),
-    deprecatedProfileWatcher.onDidDelete(refreshProvider),
-  );
+    context.subscriptions.push(
+        startCommand,
+        startInWorkspaceRootCommand,
+        openDocsCommand,
+        openSetupDocsCommand,
+        openWorkspaceProfileCommand,
+        openUiCommand,
+        providerDisposable,
+        profileWatcher,
+        deprecatedProfileWatcher,
+        vscode.workspace.onDidChangeConfiguration((event) => {
+            if (event.affectsConfiguration("kalt-code")) {
+                refreshProvider();
+            }
+        }),
+        vscode.workspace.onDidChangeWorkspaceFolders(refreshProvider),
+        vscode.window.onDidChangeActiveTextEditor(refreshProvider),
+        profileWatcher.onDidCreate(refreshProvider),
+        profileWatcher.onDidChange(refreshProvider),
+        profileWatcher.onDidDelete(refreshProvider),
+        deprecatedProfileWatcher.onDidCreate(refreshProvider),
+        deprecatedProfileWatcher.onDidChange(refreshProvider),
+        deprecatedProfileWatcher.onDidDelete(refreshProvider),
+    );
 }
 
 function deactivate() {}
 
 module.exports = {
-  KaltCodeControlCenterProvider,
-  activate,
-  deactivate,
-  renderControlCenterHtml,
-  resolveLaunchTargets,
+    KaltCodeControlCenterProvider,
+    activate,
+    deactivate,
+    renderControlCenterHtml,
+    resolveLaunchTargets,
 };

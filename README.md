@@ -4,9 +4,9 @@ Kalt Code is an open-source coding-agent CLI for cloud and local model providers
 
 Use OpenAI-compatible APIs, Gemini, GitHub Models, Codex OAuth, Codex, Ollama, Atomic Chat, and other supported backends while keeping one terminal-first workflow: prompts, tools, agents, MCP, slash commands, and streaming output.
 
-[![PR Checks](https://github.com/kaltdev/kalt-code/actions/workflows/pr-checks.yml/badge.svg?branch=main)](https://github.com/kaltdev/kalt-code/actions/workflows/pr-checks.yml)
-[![Release](https://img.shields.io/github/v/tag/kaltdev/kalt-code?label=release&color=0ea5e9)](https://github.com/kaltdev/kalt-code/tags)
-[![Discussions](https://img.shields.io/badge/discussions-open-7c3aed)](https://github.com/kaltdev/kalt-code/discussions)
+[![PR Checks](https://github.com/kaltdev/kaltcode/actions/workflows/pr-checks.yml/badge.svg?branch=main)](https://github.com/kaltdev/kaltcode/actions/workflows/pr-checks.yml)
+[![Release](https://img.shields.io/github/v/tag/kaltdev/kalt-code?label=release&color=0ea5e9)](https://github.com/kaltdev/kaltcode/tags)
+[![Discussions](https://img.shields.io/badge/discussions-open-7c3aed)](https://github.com/kaltdev/kaltcode/discussions)
 [![Security Policy](https://img.shields.io/badge/security-policy-0f766e)](SECURITY.md)
 [![License](https://img.shields.io/badge/license-MIT-2563eb)](LICENSE)
 
@@ -317,8 +317,8 @@ If you believe you found a security issue, see [SECURITY.md](SECURITY.md).
 
 ## Community
 
-- Use [GitHub Discussions](https://github.com/kaltdev/kalt-code/discussions) for Q&A, ideas, and community conversation
-- Use [GitHub Issues](https://github.com/kaltdev/kalt-code/issues) for confirmed bugs and actionable feature work
+- Use [GitHub Discussions](https://github.com/kaltdev/kaltcode/discussions) for Q&A, ideas, and community conversation
+- Use [GitHub Issues](https://github.com/kaltdev/kaltcode/issues) for confirmed bugs and actionable feature work
 
 ## Contributing
 

@@ -42,7 +42,7 @@ node --version  # should be v20+
 ### Step 3 — Clone Kalt Code
 
 ```bash
-git clone https://github.com/kaltdev/kalt-code.git
+git clone https://github.com/kaltdev/kaltcode.git
 cd kalt-code
 npm install
 npm link

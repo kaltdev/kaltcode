@@ -2,7 +2,7 @@
  * Kalt Code startup screen — filled-block text logo with sunset gradient.
  * Called once at CLI startup before the Ink UI renders.
  *
- * Addresses: https://github.com/kaltdev/kalt-code/issues/55
+ * Addresses: https://github.com/kaltdev/kaltcode/issues/55
  */
 
 import {

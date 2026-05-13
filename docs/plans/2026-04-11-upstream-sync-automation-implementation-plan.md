@@ -130,7 +130,7 @@ export const RELEASES_DIR = 'releases'
 export const PROTECTED_BRANDING_PATTERNS = [
   '@kaltdev/kalt-code',
   'kalt-code',
-  'https://github.com/kaltdev/kalt-code',
+  'https://github.com/kaltdev/kaltcode',
 ] as const
 
 export const FORBIDDEN_UPSTREAM_BRANDING = [

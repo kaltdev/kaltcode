@@ -161,7 +161,7 @@ Allowed and expected rewrite targets include:
 Automation must never blindly overwrite:
 - package name `@kaltdev/kalt-code`
 - executable name `kalt-code`
-- repository URL `https://github.com/kaltdev/kalt-code`
+- repository URL `https://github.com/kaltdev/kaltcode`
 - npm scope `@kaltdev`
 - release and discussion URLs that belong to Kalt Code
 - product identity in published documentation and release notes

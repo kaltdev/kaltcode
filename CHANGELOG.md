@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.10.0](https://github.com/kaltdev/kalt-code/compare/v0.9.2...v0.10.0) (2026-05-12)
+## [0.10.0](https://github.com/kaltdev/kaltcode/compare/v0.9.2...v0.10.0) (2026-05-12)
 
 
 ### Features

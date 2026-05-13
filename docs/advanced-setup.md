@@ -15,7 +15,7 @@ npm install -g @kaltdev/kaltcode
 Use Bun `1.3.11` or newer for source builds on Windows. Older Bun versions can fail during `bun run build`.
 
 ```bash
-git clone https://github.com/kaltdev/kalt-code.git
+git clone https://github.com/kaltdev/kaltcode.git
 cd kalt-code
 
 bun install
@@ -26,7 +26,7 @@ npm link
 ### Option C: Run directly with Bun
 
 ```bash
-git clone https://github.com/kaltdev/kalt-code.git
+git clone https://github.com/kaltdev/kaltcode.git
 cd kalt-code
 
 bun install

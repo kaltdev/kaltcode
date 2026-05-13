@@ -136,7 +136,7 @@ Expected: commit succeeds with renamed paths staged cleanly
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/kaltdev/kalt-code"
+    "url": "https://github.com/kaltdev/kaltcode"
   }
 }
 ```
@@ -150,8 +150,8 @@ Expected: `package.json` no longer references the legacy package or owner
 
 Kalt Code is an open-source coding-agent CLI for cloud and local model providers.
 
-[![PR Checks](https://github.com/kaltdev/kalt-code/actions/workflows/pr-checks.yml/badge.svg?branch=main)](https://github.com/kaltdev/kalt-code/actions/workflows/pr-checks.yml)
-[![Release](https://img.shields.io/github/v/tag/kaltdev/kalt-code?label=release&color=0ea5e9)](https://github.com/kaltdev/kalt-code/tags)
+[![PR Checks](https://github.com/kaltdev/kaltcode/actions/workflows/pr-checks.yml/badge.svg?branch=main)](https://github.com/kaltdev/kaltcode/actions/workflows/pr-checks.yml)
+[![Release](https://img.shields.io/github/v/tag/kaltdev/kalt-code?label=release&color=0ea5e9)](https://github.com/kaltdev/kaltcode/tags)
 ```
 
 Expected: top-level docs consistently use Kalt Code and the new GitHub repo
@@ -160,7 +160,7 @@ Expected: top-level docs consistently use Kalt Code and the new GitHub repo
 
 ```bash
 npm install -g @kaltdev/kalt-code
-git clone https://github.com/kaltdev/kalt-code.git
+git clone https://github.com/kaltdev/kaltcode.git
 cd kalt-code
 kalt-code
 ```
@@ -171,8 +171,8 @@ Expected: docs no longer instruct users to install, clone, or launch any legacy-
 
 ```text
 Copyright (c) 2026 kaltdev contributors
-https://github.com/kaltdev/kalt-code/issues
-https://github.com/kaltdev/kalt-code/discussions
+https://github.com/kaltdev/kaltcode/issues
+https://github.com/kaltdev/kaltcode/discussions
 ```
 
 Expected: visible owner and support channels reference `kaltdev`
