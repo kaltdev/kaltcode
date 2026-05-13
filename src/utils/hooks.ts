@@ -4849,7 +4849,8 @@ export async function executeStatusLineCommand(
   }
 
   // Use provided signal or create a default one
-  const abortSignal = signal || AbortSignal.timeout(timeoutMs)
+  const combined = createCombinedAbortSignal(signal, { timeoutMs })
+  const abortSignal = combined.signal
 
   try {
     // Convert status input to JSON
@@ -4939,7 +4940,8 @@ export async function executeFileSuggestionCommand(
   }
 
   // Use provided signal or create a default one
-  const abortSignal = signal || AbortSignal.timeout(timeoutMs)
+  const combined = createCombinedAbortSignal(signal, { timeoutMs })
+  const abortSignal = combined.signal
 
   try {
     const jsonInput = jsonStringify(fileSuggestionInput)

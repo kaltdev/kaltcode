@@ -37,6 +37,7 @@ import {
 } from '../services/analytics/index.js'
 import type { AppState } from '../state/AppState.js'
 import { runCleanupFunctions } from './cleanupRegistry.js'
+import { createCombinedAbortSignal } from './combinedAbortSignal.js'
 import { logForDebugging } from './debug.js'
 import { logForDiagnosticsNoPII } from './diagLogs.js'
 import { isEnvTruthy } from './envUtils.js'
@@ -480,11 +481,18 @@ export async function gracefulShutdown(
   // overall execution via a single budget (KALT_CODE_SESSIONEND_HOOKS_TIMEOUT_MS,
   // default 1.5s). hook.timeout in settings is respected up to this cap.
   try {
-    await executeSessionEndHooks(reason, {
-      ...options,
-      signal: AbortSignal.timeout(sessionEndTimeoutMs),
+    const { signal, cleanup } = createCombinedAbortSignal(undefined, {
       timeoutMs: sessionEndTimeoutMs,
     })
+    try {
+      await executeSessionEndHooks(reason, {
+        ...options,
+        signal,
+        timeoutMs: sessionEndTimeoutMs,
+      })
+    } finally {
+      cleanup()
+    }
   } catch {
     // Ignore SessionEnd hook exceptions (including AbortError on timeout)
   }

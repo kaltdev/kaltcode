@@ -1,6 +1,18 @@
-import { describe, expect, test } from 'bun:test'
+import { spawnSync } from 'node:child_process'
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { afterEach, describe, expect, test } from 'bun:test'
 
-import { scanAddedLines, type DiffLine } from './pr-intent-scan.ts'
+import { getGitDiff, scanAddedLines, type DiffLine } from './pr-intent-scan.ts'
+
+const dirs: string[] = []
+
+afterEach(() => {
+  while (dirs.length > 0) {
+    rmSync(dirs.pop()!, { recursive: true, force: true })
+  }
+})
 
 function line(content: string, overrides: Partial<DiffLine> = {}): DiffLine {
   return {
@@ -8,6 +20,19 @@ function line(content: string, overrides: Partial<DiffLine> = {}): DiffLine {
     line: 10,
     content,
     ...overrides,
+  }
+}
+
+function makeTempDir(): string {
+  const dir = mkdtempSync(join(tmpdir(), 'pr-intent-scan-'))
+  dirs.push(dir)
+  return dir
+}
+
+function git(cwd: string, args: string[]): void {
+  const result = spawnSync('git', args, { cwd, encoding: 'utf8' })
+  if (result.status !== 0) {
+    throw new Error(result.stderr.trim() || result.stdout.trim())
   }
 }
 
@@ -132,5 +157,28 @@ describe('scanAddedLines', () => {
     ])
 
     expect(findings.some(finding => finding.code === 'download-command')).toBe(false)
+  })
+})
+
+describe('getGitDiff', () => {
+  test('handles diffs larger than the default spawnSync output buffer', () => {
+    const cwd = makeTempDir()
+
+    git(cwd, ['init'])
+    git(cwd, ['config', 'user.email', 'test@example.com'])
+    git(cwd, ['config', 'user.name', 'Test User'])
+
+    writeFileSync(join(cwd, 'README.md'), 'base\n')
+    git(cwd, ['add', '.'])
+    git(cwd, ['commit', '-m', 'base'])
+
+    writeFileSync(join(cwd, 'large.txt'), `${'A'.repeat(2 * 1024 * 1024)}\n`)
+    git(cwd, ['add', '.'])
+    git(cwd, ['commit', '-m', 'large diff'])
+
+    const diff = getGitDiff('HEAD~1', cwd)
+
+    expect(diff).toContain('+++ b/large.txt')
+    expect(diff.length).toBeGreaterThan(1024 * 1024)
   })
 })

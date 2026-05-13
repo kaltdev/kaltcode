@@ -29,6 +29,7 @@ import { isENOENT } from '../utils/errors.js'
 import { startUpstreamProxyRelay } from './relay.js'
 
 export const SESSION_TOKEN_PATH = '/run/ccr/session_token'
+import { createCombinedAbortSignal } from '../utils/combinedAbortSignal.js'
 const SYSTEM_CA_BUNDLE = '/etc/ssl/certs/ca-certificates.crt'
 
 // Hosts the proxy must NOT intercept. Covers loopback, RFC1918, the IMDS
@@ -270,11 +271,19 @@ async function downloadCaBundle(
 ): Promise<boolean> {
   try {
     // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
-    const resp = await fetch(`${baseUrl}/v1/code/upstreamproxy/ca-cert`, {
-      // Bun has no default fetch timeout — a hung endpoint would block CLI
-      // startup forever. 5s is generous for a small PEM.
-      signal: AbortSignal.timeout(5000),
+    const { signal, cleanup } = createCombinedAbortSignal(undefined, {
+      timeoutMs: 5000,
     })
+    let resp: Response
+    try {
+      resp = await fetch(`${baseUrl}/v1/code/upstreamproxy/ca-cert`, {
+        // Bun has no default fetch timeout — a hung endpoint would block CLI
+        // startup forever. 5s is generous for a small PEM.
+        signal,
+      })
+    } finally {
+      cleanup()
+    }
     if (!resp.ok) {
       logForDebugging(
         `[upstreamproxy] ca-cert fetch ${resp.status}; proxy disabled`,

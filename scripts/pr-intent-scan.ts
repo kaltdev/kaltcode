@@ -56,6 +56,8 @@ const EXECUTABLE_PATH_REGEX =
   /\.(?:sh|bash|zsh|ps1|exe|msi|pkg|deb|rpm|zip|tar|tgz|gz|xz|dmg|appimage)(?:$|[?#])/i
 const SENSITIVE_PATH_REGEX =
   /^(?:\.github\/workflows\/|scripts\/|bin\/|install(?:\/|\.|$)|.*(?:Dockerfile|docker-compose|compose\.ya?ml)$)/i
+const GIT_OUTPUT_MAX_BUFFER_BYTES = 64 * 1024 * 1024
+const ERROR_OUTPUT_PREVIEW_CHARS = 4000
 
 function parseOptions(argv: string[]): CliOptions {
   const options: CliOptions = {
@@ -367,14 +369,42 @@ export function scanAddedLines(lines: DiffLine[]): Finding[] {
   return uniqueFindings(findings)
 }
 
-export function getGitDiff(baseRef: string): string {
+function trimGitErrorOutput(output: string): string {
+  const trimmed = output.trim()
+  if (trimmed.length <= ERROR_OUTPUT_PREVIEW_CHARS) {
+    return trimmed
+  }
+  return `${trimmed.slice(0, ERROR_OUTPUT_PREVIEW_CHARS)}... [truncated]`
+}
+
+function formatGitCommandError(
+  command: string,
+  result: ReturnType<typeof spawnSync>,
+): string {
+  const output = trimGitErrorOutput(
+    String(result.stderr || result.stdout || ''),
+  )
+  const error = result.error ? `: ${result.error.message}` : ''
+  const status = result.status === null ? 'unknown' : result.status
+
+  return output
+    ? `${command} failed${error}: ${output}`
+    : `${command} failed${error}: exit code ${status}`
+}
+
+export function getGitDiff(baseRef: string, cwd = process.cwd()): string {
   const mergeBase = spawnSync('git', ['merge-base', baseRef, 'HEAD'], {
     encoding: 'utf8',
+    cwd,
+    maxBuffer: GIT_OUTPUT_MAX_BUFFER_BYTES,
   })
 
   if (mergeBase.status !== 0) {
     throw new Error(
-      `Could not determine merge-base with ${baseRef}: ${mergeBase.stderr.trim() || mergeBase.stdout.trim()}`,
+      `Could not determine merge-base with ${baseRef}: ${formatGitCommandError(
+        'git merge-base',
+        mergeBase,
+      )}`,
     )
   }
 
@@ -382,11 +412,15 @@ export function getGitDiff(baseRef: string): string {
   const diff = spawnSync(
     'git',
     ['diff', '--unified=0', '--no-ext-diff', `${base}...HEAD`],
-    { encoding: 'utf8' },
+    {
+      encoding: 'utf8',
+      cwd,
+      maxBuffer: GIT_OUTPUT_MAX_BUFFER_BYTES,
+    },
   )
 
   if (diff.status !== 0) {
-    throw new Error(`git diff failed: ${diff.stderr.trim() || diff.stdout.trim()}`)
+    throw new Error(formatGitCommandError('git diff', diff))
   }
 
   return diff.stdout

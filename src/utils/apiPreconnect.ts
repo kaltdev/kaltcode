@@ -70,8 +70,14 @@ export function preconnectAnthropicApi(): void {
   // so a slow network doesn't hang the process; abort is fine since the real
   // request will handshake fresh if needed.
   // eslint-disable-next-line eslint-plugin-n/no-unsupported-features/node-builtins
+  const { signal, cleanup } = createCombinedAbortSignal(undefined, {
+    timeoutMs: 10_000,
+  })
   void fetch(baseUrl, {
     method: 'HEAD',
-    signal: AbortSignal.timeout(10_000),
-  }).catch(() => {})
+    signal,
+  })
+    .catch(() => {})
+    .finally(cleanup)
 }
+import { createCombinedAbortSignal } from './combinedAbortSignal.js'

@@ -13,6 +13,7 @@ import {
 } from "../native-ts/file-index/index.js";
 import { logEvent } from "../services/analytics/index.js";
 import type { FileSuggestionCommandInput } from "../types/fileSuggestion.js";
+import { createCombinedAbortSignal } from "../utils/combinedAbortSignal.js";
 import { getGlobalConfig } from "../utils/config.js";
 import { getCwd } from "../utils/cwd.js";
 import { logForDebugging } from "../utils/debug.js";
@@ -535,7 +536,9 @@ async function getProjectFiles(
  * Returns a FileIndex populated for fast fuzzy search
  */
 export async function getPathsForSuggestions(): Promise<FileIndex> {
-    const signal = AbortSignal.timeout(10_000);
+    const { signal, cleanup } = createCombinedAbortSignal(undefined, {
+        timeoutMs: 10_000,
+    });
     const index = getFileIndex();
 
     try {
@@ -580,6 +583,8 @@ export async function getPathsForSuggestions(): Promise<FileIndex> {
         }
     } catch (error) {
         logError(error);
+    } finally {
+        cleanup();
     }
 
     return index;

@@ -33,6 +33,7 @@ export const KALT_CODE_CONFIG_DIRECTORIES = [
     "workflows",
     ...(false ? (["templates"] as const) : []),
 ] as const;
+import { createCombinedAbortSignal } from './combinedAbortSignal.js'
 
 export type ClaudeConfigDirectory =
     (typeof KALT_CODE_CONFIG_DIRECTORIES)[number];
@@ -588,7 +589,9 @@ async function loadMarkdownFiles(dir: string): Promise<
     const useNative = isEnvTruthy(
         process.env.CLAUDE_CODE_USE_NATIVE_FILE_SEARCH,
     );
-    const signal = AbortSignal.timeout(3000);
+    const { signal, cleanup } = createCombinedAbortSignal(undefined, {
+        timeoutMs: 3000,
+    });
     let files: string[];
     try {
         files = useNative
