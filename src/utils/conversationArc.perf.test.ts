@@ -5,6 +5,7 @@ import {
   getArcSummary,
   resetArc 
 } from './conversationArc.js'
+import { resetGlobalGraph } from './knowledgeGraph.js'
 
 function createMessage(content: string): any {
   return {
@@ -16,6 +17,7 @@ function createMessage(content: string): any {
 describe('Conversation Arc Performance Benchmarks', () => {
   beforeEach(() => {
     resetArc()
+    resetGlobalGraph()
     initializeArc()
   })
 
@@ -23,6 +25,8 @@ describe('Conversation Arc Performance Benchmarks', () => {
     const iterations = 100
     const complexContent =
       'Deploying version v1.2.3 to /opt/prod/server on https://api.prod.local with JIRA_URL=https://jira.corp'
+
+    await updateArcPhase([createMessage(complexContent)])
 
     const startTime = performance.now()
     for (let i = 0; i < iterations; i++) {

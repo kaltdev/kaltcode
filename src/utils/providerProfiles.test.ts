@@ -298,7 +298,9 @@ describe("applyProviderProfileToProcessEnv", () => {
         expect(process.env.ANTHROPIC_BEDROCK_BASE_URL).toBe(
             "https://bedrock-proxy.example",
         );
-        expect(getAPIProvider()).toBe("bedrock");
+        const { getAPIProvider: getFreshAPIProvider } =
+            await importFreshProvidersModule();
+        expect(getFreshAPIProvider()).toBe("bedrock");
     }, 20_000);
 
     test("github profile sets CLAUDE_CODE_USE_GITHUB instead of generic openai mode", async () => {

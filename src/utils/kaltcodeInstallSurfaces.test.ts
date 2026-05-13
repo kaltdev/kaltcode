@@ -2,12 +2,15 @@ import { afterEach, expect, mock, test } from 'bun:test'
 import * as fsPromises from 'fs/promises'
 import { homedir } from 'os'
 import { join } from 'path'
+import { env } from './env.js'
 
 const originalEnv = { ...process.env }
+const originalPlatform = env.platform
 const originalMacro = (globalThis as Record<string, unknown>).MACRO
 
 afterEach(() => {
   process.env = { ...originalEnv }
+  env.platform = originalPlatform
   ;(globalThis as Record<string, unknown>).MACRO = originalMacro
   mock.restore()
 })
@@ -21,9 +24,7 @@ async function importFreshInstaller() {
 }
 
 test('install command displays ~/.local/bin/kalt-code on non-Windows', async () => {
-  mock.module('../utils/env.js', () => ({
-    env: { platform: 'darwin' },
-  }))
+  env.platform = 'darwin'
 
   const { getInstallationPath } = await importFreshInstallCommand()
 
@@ -31,9 +32,7 @@ test('install command displays ~/.local/bin/kalt-code on non-Windows', async () 
 })
 
 test('install command displays kalt-code.exe path on Windows', async () => {
-  mock.module('../utils/env.js', () => ({
-    env: { platform: 'win32' },
-  }))
+  env.platform = 'win32'
 
   const { getInstallationPath } = await importFreshInstallCommand()
 
@@ -47,6 +46,8 @@ test('cleanupNpmInstallations removes Kalt Code, deprecated OpenClaude, and lega
   ;(globalThis as Record<string, unknown>).MACRO = {
     PACKAGE_URL: '@kaltdev/kaltcode',
   }
+  process.env.KALTCODE_CONFIG_DIR = join(homedir(), '.kaltcode')
+  process.env.CLAUDE_CONFIG_DIR = join(homedir(), '.kaltcode')
 
   mock.module('fs/promises', () => ({
     ...fsPromises,
@@ -60,11 +61,6 @@ test('cleanupNpmInstallations removes Kalt Code, deprecated OpenClaude, and lega
       code: 1,
       stderr: 'npm ERR! code E404',
     }),
-  }))
-
-  mock.module('./envUtils.js', () => ({
-    getClaudeConfigHomeDir: () => join(homedir(), '.kaltcode'),
-    isEnvTruthy: (value: string | undefined) => value === '1',
   }))
 
   const { cleanupNpmInstallations } = await importFreshInstaller()

@@ -7,9 +7,17 @@
  */
 
 import type { UUID } from 'crypto'
+import { existsSync } from 'fs'
 import { open as fsOpen, readdir, realpath, stat } from 'fs/promises'
+import { homedir } from 'os'
 import { join } from 'path'
-import { getClaudeConfigHomeDir, getProjectsDir } from './envUtils.js'
+import {
+  DEPRECATED_OPENCLAUDE_CONFIG_DIR_NAME,
+  KALTCODE_CONFIG_DIR_ENV,
+  KALTCODE_CONFIG_DIR_NAME,
+  LEGACY_CLAUDE_CONFIG_DIR_ENV,
+  LEGACY_CLAUDE_CONFIG_DIR_NAME,
+} from '../constants/product.js'
 import { getWorktreePathsPortable } from './getWorktreePathsPortable.js'
 import { djb2Hash } from './hash.js'
 
@@ -323,7 +331,36 @@ export function sanitizePath(name: string): string {
 // ---------------------------------------------------------------------------
 
 export function getProjectDir(projectDir: string): string {
-  return join(getProjectsDir(), sanitizePath(projectDir))
+  return join(getSessionStorageProjectsDir(), sanitizePath(projectDir))
+}
+
+function getSessionStorageProjectsDir(): string {
+  return join(getSessionStorageConfigHomeDir(), 'projects')
+}
+
+function getSessionStorageConfigHomeDir(): string {
+  const configDirEnv = process.env[KALTCODE_CONFIG_DIR_ENV]
+  if (configDirEnv) return configDirEnv.normalize('NFC')
+
+  const legacyConfigDirEnv = process.env[LEGACY_CLAUDE_CONFIG_DIR_ENV]
+  if (legacyConfigDirEnv) return legacyConfigDirEnv.normalize('NFC')
+
+  const homeDir = homedir()
+  const kaltCodeDir = join(homeDir, KALTCODE_CONFIG_DIR_NAME)
+  if (existsSync(kaltCodeDir)) return kaltCodeDir.normalize('NFC')
+
+  const deprecatedOpenClaudeDir = join(
+    homeDir,
+    DEPRECATED_OPENCLAUDE_CONFIG_DIR_NAME,
+  )
+  if (existsSync(deprecatedOpenClaudeDir)) {
+    return deprecatedOpenClaudeDir.normalize('NFC')
+  }
+
+  const legacyClaudeDir = join(homeDir, LEGACY_CLAUDE_CONFIG_DIR_NAME)
+  if (existsSync(legacyClaudeDir)) return legacyClaudeDir.normalize('NFC')
+
+  return kaltCodeDir.normalize('NFC')
 }
 
 /**
@@ -362,7 +399,7 @@ export async function findProjectDir(
       return undefined
     }
     const prefix = sanitized.slice(0, MAX_SANITIZED_LENGTH)
-    const projectsDir = getProjectsDir()
+    const projectsDir = getSessionStorageProjectsDir()
     try {
       const dirents = await readdir(projectsDir, { withFileTypes: true })
       const match = dirents.find(
@@ -441,7 +478,7 @@ export async function resolveSessionFilePath(
   }
 
   // No dir — scan all project directories
-  const projectsDir = getProjectsDir()
+  const projectsDir = getSessionStorageProjectsDir()
   let dirents: string[]
   try {
     dirents = await readdir(projectsDir)

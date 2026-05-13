@@ -423,16 +423,16 @@ export type EnvContext = {
   isRunningWithBun: boolean
   isCi: boolean
   isClaubbit: boolean
-  isClaudeCodeRemote: boolean
+  isKaltCodeRemote: boolean
   isLocalAgentMode: boolean
   isConductor: boolean
   remoteEnvironmentType?: string
   coworkerType?: string
-  claudeCodeContainerId?: string
-  claudeCodeRemoteSessionId?: string
+  kaltCodeContainerId?: string
+  kaltCodeRemoteSessionId?: string
   tags?: string
   isGithubAction: boolean
-  isClaudeCodeAction: boolean
+  isKaltCodeAction: boolean
   isClaudeAiAuth: boolean
   version: string
   versionBase?: string
@@ -591,7 +591,7 @@ const buildEnvContext = memoize(async (): Promise<EnvContext> => {
     isRunningWithBun: env.isRunningWithBun(),
     isCi: isEnvTruthy(process.env.CI),
     isClaubbit: isEnvTruthy(process.env.CLAUBBIT),
-    isClaudeCodeRemote: isEnvTruthy(process.env.KALT_CODE_REMOTE),
+    isKaltCodeRemote: isEnvTruthy(process.env.KALT_CODE_REMOTE),
     isLocalAgentMode: process.env.KALT_CODE_ENTRYPOINT === 'local-agent',
     isConductor: env.isConductor(),
     ...(process.env.KALT_CODE_REMOTE_ENVIRONMENT_TYPE && {
@@ -604,16 +604,16 @@ const buildEnvContext = memoize(async (): Promise<EnvContext> => {
         : {}
       : {}),
     ...(process.env.KALT_CODE_CONTAINER_ID && {
-      claudeCodeContainerId: process.env.KALT_CODE_CONTAINER_ID,
+      kaltCodeContainerId: process.env.KALT_CODE_CONTAINER_ID,
     }),
     ...(process.env.KALT_CODE_REMOTE_SESSION_ID && {
-      claudeCodeRemoteSessionId: process.env.KALT_CODE_REMOTE_SESSION_ID,
+      kaltCodeRemoteSessionId: process.env.KALT_CODE_REMOTE_SESSION_ID,
     }),
     ...(process.env.KALT_CODE_TAGS && {
       tags: process.env.KALT_CODE_TAGS,
     }),
     isGithubAction: isEnvTruthy(process.env.GITHUB_ACTIONS),
-    isClaudeCodeAction: isEnvTruthy(process.env.KALT_CODE_ACTION),
+    isKaltCodeAction: isEnvTruthy(process.env.KALT_CODE_ACTION),
     isClaudeAiAuth: isClaudeAISubscriber(),
     version: MACRO.VERSION,
     versionBase: getVersionBase(),
@@ -826,11 +826,11 @@ export function to1PEventFormat(
     is_running_with_bun: envContext.isRunningWithBun,
     is_ci: envContext.isCi,
     is_claubbit: envContext.isClaubbit,
-    is_claude_code_remote: envContext.isClaudeCodeRemote,
+    is_claude_code_remote: envContext.isKaltCodeRemote,
     is_local_agent_mode: envContext.isLocalAgentMode,
     is_conductor: envContext.isConductor,
     is_github_action: envContext.isGithubAction,
-    is_claude_code_action: envContext.isClaudeCodeAction,
+    is_claude_code_action: envContext.isKaltCodeAction,
     is_claude_ai_auth: envContext.isClaudeAiAuth,
     version: envContext.version,
     build_time: envContext.buildTime,
@@ -844,11 +844,11 @@ export function to1PEventFormat(
   if (false && envContext.coworkerType) {
     env.coworker_type = envContext.coworkerType
   }
-  if (envContext.claudeCodeContainerId) {
-    env.claude_code_container_id = envContext.claudeCodeContainerId
+  if (envContext.kaltCodeContainerId) {
+    env.claude_code_container_id = envContext.kaltCodeContainerId
   }
-  if (envContext.claudeCodeRemoteSessionId) {
-    env.claude_code_remote_session_id = envContext.claudeCodeRemoteSessionId
+  if (envContext.kaltCodeRemoteSessionId) {
+    env.claude_code_remote_session_id = envContext.kaltCodeRemoteSessionId
   }
   if (envContext.tags) {
     env.tags = envContext.tags

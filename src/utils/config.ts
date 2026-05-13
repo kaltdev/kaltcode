@@ -420,8 +420,10 @@ export type GlobalConfig = {
   inputNeededNotifEnabled?: boolean
   agentPushNotifEnabled?: boolean
 
-  // Claude Code usage tracking
-  claudeCodeFirstTokenDate?: string // ISO timestamp of the user's first Claude Code OAuth token
+  // Kalt Code usage tracking
+  kaltCodeFirstTokenDate?: string // ISO timestamp of the user's first Kalt Code OAuth token
+  /** @deprecated Use kaltCodeFirstTokenDate. Kept for migration support. */
+  claudeCodeFirstTokenDate?: string
 
   // Model switch callout tracking (internal-only)
   modelSwitchCalloutDismissed?: boolean // Whether user chose "Don't show again"
@@ -539,15 +541,20 @@ export type GlobalConfig = {
   lspRecommendationNeverPlugins?: string[] // Plugin IDs to never suggest
   lspRecommendationIgnoredCount?: number // Track ignored recommendations (stops after 5)
 
-  // Claude Code hint protocol state (<claude-code-hint /> tags from CLIs/SDKs).
+  // Kalt Code hint protocol state (<kalt-code-hint /> tags from CLIs/SDKs).
   // Nested by hint type so future types (docs, mcp, ...) slot in without new
   // top-level keys.
-  claudeCodeHints?: {
+  kaltCodeHints?: {
     // Plugin IDs the user has already been prompted for. Show-once semantics:
     // recorded regardless of yes/no response, never re-prompted. Capped at
     // 100 entries to bound config growth — past that, hints stop entirely.
     plugin?: string[]
     // User chose "don't show plugin installation hints again" from the dialog.
+    disabled?: boolean
+  }
+  /** @deprecated Use kaltCodeHints. Kept for migration support. */
+  claudeCodeHints?: {
+    plugin?: string[]
     disabled?: boolean
   }
 
@@ -980,10 +987,50 @@ registerCleanup(async () => {
 })
 
 /**
+ * Migrates legacy Claude Code config field names to Kalt Code names.
+ * @internal
+ */
+function migrateKaltCodeConfigFields(config: GlobalConfig): GlobalConfig {
+  const legacy = config as GlobalConfig & {
+    claudeCodeFirstTokenDate?: string
+    claudeCodeHints?: {
+      plugin?: string[]
+      disabled?: boolean
+    }
+  }
+
+  let migrated = config
+
+  if (
+    migrated.kaltCodeFirstTokenDate === undefined &&
+    legacy.claudeCodeFirstTokenDate !== undefined
+  ) {
+    migrated = {
+      ...migrated,
+      kaltCodeFirstTokenDate: legacy.claudeCodeFirstTokenDate,
+    }
+  }
+
+  if (
+    migrated.kaltCodeHints === undefined &&
+    legacy.claudeCodeHints !== undefined
+  ) {
+    migrated = {
+      ...migrated,
+      kaltCodeHints: legacy.claudeCodeHints,
+    }
+  }
+
+  return migrated
+}
+
+/**
  * Migrates old autoUpdaterStatus to new installMethod and autoUpdates fields
  * @internal
  */
 function migrateConfigFields(config: GlobalConfig): GlobalConfig {
+  config = migrateKaltCodeConfigFields(config)
+
   // Already migrated
   if (config.installMethod !== undefined) {
     return config

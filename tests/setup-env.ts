@@ -1,21 +1,27 @@
 import { afterEach, beforeEach } from 'bun:test'
-import { tmpdir } from 'node:os'
+import { homedir, tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 const testConfigDir = join(tmpdir(), `kaltcode-bun-test-${process.pid}`)
 
 delete process.env.KALTCODE_CONFIG_DIR
-if (!process.env.KALTCODE_CONFIG_DIR && !process.env.CLAUDE_CONFIG_DIR) {
-  process.env.CLAUDE_CONFIG_DIR = testConfigDir
-}
+process.env.CLAUDE_CONFIG_DIR = testConfigDir
 
 const baselineKaltCodeConfigDir = process.env.KALTCODE_CONFIG_DIR
 const baselineClaudeConfigDir = process.env.CLAUDE_CONFIG_DIR
+const homeConfigDirs = new Set([
+  join(homedir(), '.kaltcode').normalize('NFC'),
+  join(homedir(), '.openclaude').normalize('NFC'),
+  join(homedir(), '.claude').normalize('NFC'),
+])
 
 beforeEach(() => {
-  restoreBaselineConfigDirEnv()
-  if (!process.env.KALTCODE_CONFIG_DIR && !process.env.CLAUDE_CONFIG_DIR) {
-    process.env.CLAUDE_CONFIG_DIR = testConfigDir
+  if (
+    (!process.env.KALTCODE_CONFIG_DIR && !process.env.CLAUDE_CONFIG_DIR) ||
+    isHomeConfigDir(process.env.KALTCODE_CONFIG_DIR) ||
+    isHomeConfigDir(process.env.CLAUDE_CONFIG_DIR)
+  ) {
+    restoreBaselineConfigDirEnv()
   }
 })
 
@@ -35,4 +41,8 @@ function restoreBaselineConfigDirEnv(): void {
   } else {
     process.env.CLAUDE_CONFIG_DIR = baselineClaudeConfigDir
   }
+}
+
+function isHomeConfigDir(value: string | undefined): boolean {
+  return value ? homeConfigDirs.has(value.normalize('NFC')) : false
 }
