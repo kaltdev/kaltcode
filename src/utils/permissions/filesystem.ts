@@ -9,6 +9,7 @@ import {
   KALT_CODE_FOLDER_PERMISSION_PATTERN,
   FILE_EDIT_TOOL_NAME,
   GLOBAL_KALT_CODE_FOLDER_PERMISSION_PATTERN,
+  LEGACY_GLOBAL_CLAUDE_FOLDER_PERMISSION_PATTERN,
 } from 'src/tools/FileEditTool/constants.js'
 import type { z } from 'zod/v4'
 import { getOriginalCwd, getSessionId } from '../../bootstrap/state.js'
@@ -64,8 +65,8 @@ export const DANGEROUS_FILES = [
   '.profile',
   '.ripgreprc',
   '.mcp.json',
+  '.kalt-code.json',
   '.kaltcode.json',
-  '.openclaude.json',
   '.claude.json',
 ] as const
 
@@ -77,9 +78,9 @@ export const DANGEROUS_DIRECTORIES = [
   '.git',
   '.vscode',
   '.idea',
+  '.kalt-code',
   '.kaltcode',
   '.claude',
-  '.openclaude',
 ] as const
 
 /**
@@ -96,8 +97,9 @@ export function normalizeCaseForComparison(path: string): string {
 }
 
 /**
- * If filePath is inside a .claude/skills/{name}/ directory (project or global),
- * return the skill name and a session-allow pattern scoped to just that skill.
+ * If filePath is inside a .kalt-code/skills/{name}/ directory (project/global)
+ * or .claude/skills/{name}/ directory (legacy project/global), return the
+ * skill name and a session-allow pattern scoped to just that skill.
  * Used to offer a narrower "allow edits to this skill only" option in the
  * permission dialog and SDK suggestions, so iterating on one skill doesn't
  * require granting session access to all of .claude/ (settings.json, hooks/, etc.).
@@ -110,8 +112,16 @@ export function getClaudeSkillScope(
 
   const bases = [
     {
+      dir: expandPath(join(getOriginalCwd(), '.kalt-code', 'skills')),
+      prefix: '/.kalt-code/skills/',
+    },
+    {
       dir: expandPath(join(getOriginalCwd(), '.claude', 'skills')),
       prefix: '/.claude/skills/',
+    },
+    {
+      dir: expandPath(join(homedir(), '.kalt-code', 'skills')),
+      prefix: '~/.kalt-code/skills/',
     },
     {
       dir: expandPath(join(homedir(), '.claude', 'skills')),
@@ -212,10 +222,10 @@ export function isClaudeSettingsPath(filePath: string): boolean {
 
   // Use platform separator so endsWith checks work on both Unix (/) and Windows (\)
   if (
+    normalizedPath.endsWith(`${sep}.kalt-code${sep}settings.json`) ||
+    normalizedPath.endsWith(`${sep}.kalt-code${sep}settings.local.json`) ||
     normalizedPath.endsWith(`${sep}.kaltcode${sep}settings.json`) ||
     normalizedPath.endsWith(`${sep}.kaltcode${sep}settings.local.json`) ||
-    normalizedPath.endsWith(`${sep}.openclaude${sep}settings.json`) ||
-    normalizedPath.endsWith(`${sep}.openclaude${sep}settings.local.json`) ||
     normalizedPath.endsWith(`${sep}.claude${sep}settings.json`) ||
     normalizedPath.endsWith(`${sep}.claude${sep}settings.local.json`)
   ) {
@@ -238,26 +248,26 @@ function isClaudeConfigFilePath(filePath: string): boolean {
   // Check if file is within Kalt Code command, agent, or skill directories.
   // using proper path segment validation (not string matching with includes())
   // pathInWorkingPath now handles case-insensitive comparison to prevent bypasses
-  const kaltCommandsDir = join(getOriginalCwd(), '.kaltcode', 'commands')
-  const kaltAgentsDir = join(getOriginalCwd(), '.kaltcode', 'agents')
-  const kaltSkillsDir = join(getOriginalCwd(), '.kaltcode', 'skills')
+  const kaltCommandsDir = join(getOriginalCwd(), '.kalt-code', 'commands')
+  const kaltAgentsDir = join(getOriginalCwd(), '.kalt-code', 'agents')
+  const kaltSkillsDir = join(getOriginalCwd(), '.kalt-code', 'skills')
+  const legacyKaltCommandsDir = join(getOriginalCwd(), '.kaltcode', 'commands')
+  const legacyKaltAgentsDir = join(getOriginalCwd(), '.kaltcode', 'agents')
+  const legacyKaltSkillsDir = join(getOriginalCwd(), '.kaltcode', 'skills')
   const commandsDir = join(getOriginalCwd(), '.claude', 'commands')
   const agentsDir = join(getOriginalCwd(), '.claude', 'agents')
   const skillsDir = join(getOriginalCwd(), '.claude', 'skills')
-  const openCommandsDir = join(getOriginalCwd(), '.openclaude', 'commands')
-  const openAgentsDir = join(getOriginalCwd(), '.openclaude', 'agents')
-  const openSkillsDir = join(getOriginalCwd(), '.openclaude', 'skills')
 
   return (
     pathInWorkingPath(filePath, kaltCommandsDir) ||
     pathInWorkingPath(filePath, kaltAgentsDir) ||
     pathInWorkingPath(filePath, kaltSkillsDir) ||
+    pathInWorkingPath(filePath, legacyKaltCommandsDir) ||
+    pathInWorkingPath(filePath, legacyKaltAgentsDir) ||
+    pathInWorkingPath(filePath, legacyKaltSkillsDir) ||
     pathInWorkingPath(filePath, commandsDir) ||
     pathInWorkingPath(filePath, agentsDir) ||
-    pathInWorkingPath(filePath, skillsDir) ||
-    pathInWorkingPath(filePath, openCommandsDir) ||
-    pathInWorkingPath(filePath, openAgentsDir) ||
-    pathInWorkingPath(filePath, openSkillsDir)
+    pathInWorkingPath(filePath, skillsDir)
   )
 }
 
@@ -1291,19 +1301,23 @@ export function checkWritePermissionForTool<Input extends AnyObject>(
     'allow',
   )
   if (claudeFolderAllowRule) {
-    // Check if this rule is scoped under .claude/ (project or global).
-    // Accepts both the broad patterns ('/.claude/**', '~/.claude/**') and
-    // narrowed ones like '/.claude/skills/my-skill/**' so users can grant
+    // Check if this rule is scoped under a Claude config folder.
+    // Accepts broad project/global patterns ('/.kalt-code/**',
+    // '~/.kalt-code/**', and legacy '~/.claude/**') plus narrowed skill
+    // patterns like '~/.kalt-code/skills/my-skill/**' so users can grant
     // session access to a single skill without also exposing settings.json
     // or hooks/. The rule already matched the path via matchingRuleForInput;
     // this is an additional scope check. Reject '..' to prevent a rule like
-    // '/.claude/../**' from leaking this bypass outside .claude/.
+    // '/.claude/../**' from leaking this bypass outside the config folder
     const ruleContent = claudeFolderAllowRule.ruleValue.ruleContent
     if (
       ruleContent &&
       (ruleContent.startsWith(KALT_CODE_FOLDER_PERMISSION_PATTERN.slice(0, -2)) ||
         ruleContent.startsWith(
           GLOBAL_KALT_CODE_FOLDER_PERMISSION_PATTERN.slice(0, -2),
+        ) ||
+        ruleContent.startsWith(
+          LEGACY_GLOBAL_CLAUDE_FOLDER_PERMISSION_PATTERN.slice(0, -2),
         )) &&
       !ruleContent.includes('..') &&
       ruleContent.endsWith('/**')

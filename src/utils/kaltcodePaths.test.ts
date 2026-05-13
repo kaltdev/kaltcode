@@ -1,286 +1,374 @@
-import { afterEach, describe, expect, mock, test as bunTest } from 'bun:test'
-import * as fsPromises from 'fs/promises'
-import { homedir } from 'os'
-import { join } from 'path'
+import { afterEach, describe, expect, mock, test } from "bun:test";
+import {
+    existsSync,
+    mkdirSync,
+    mkdtempSync,
+    readFileSync,
+    rmSync,
+    writeFileSync,
+} from "fs";
+import * as fsPromises from "fs/promises";
+import { homedir, tmpdir } from "os";
+import { join } from "path";
+import { getDefaultPlansDirectory } from "./plans.ts";
 
-const originalEnv = { ...process.env }
-const originalArgv = [...process.argv]
-const KALTCODE_PATHS_TEST_TIMEOUT_MS = 20_000
-
-function test(
-  name: string,
-  fn: Parameters<typeof bunTest>[1],
-): ReturnType<typeof bunTest> {
-  return bunTest(name, fn, KALTCODE_PATHS_TEST_TIMEOUT_MS)
-}
+const originalEnv = { ...process.env };
+const originalArgv = [...process.argv];
 
 async function importFreshEnvUtils() {
-  return import(`./envUtils.ts?ts=${Date.now()}-${Math.random()}`)
+    return import(`./envUtils.ts?ts=${Date.now()}-${Math.random()}`);
 }
 
 async function importFreshSettings() {
-  return import(`./settings/settings.ts?ts=${Date.now()}-${Math.random()}`)
+    return import(`./settings/settings.ts?ts=${Date.now()}-${Math.random()}`);
 }
 
 async function importFreshLocalInstaller() {
-  return import(`./localInstaller.ts?ts=${Date.now()}-${Math.random()}`)
-}
-
-async function importFreshPlans() {
-  return import(`./plans.ts?ts=${Date.now()}-${Math.random()}`)
+    return import(`./localInstaller.ts?ts=${Date.now()}-${Math.random()}`);
 }
 
 afterEach(() => {
-  process.env = { ...originalEnv }
-  process.argv = [...originalArgv]
-  mock.restore()
-})
+    process.env = { ...originalEnv };
+    process.argv = [...originalArgv];
+    mock.restore();
+});
 
-describe('Kalt Code paths', () => {
-  test('defaults user config home to ~/.kaltcode', async () => {
-    delete process.env.KALTCODE_CONFIG_DIR
-    delete process.env.CLAUDE_CONFIG_DIR
-    const { resolveClaudeConfigHomeDir } = await importFreshEnvUtils()
+describe("Kalt Code paths", () => {
+    test("defaults user config home to ~/.kalt-code", async () => {
+        delete process.env.CLAUDE_CONFIG_DIR;
+        const { resolveClaudeConfigHomeDir } = await importFreshEnvUtils();
 
-    expect(
-      resolveClaudeConfigHomeDir({
-        homeDir: homedir(),
-        kaltCodeExists: false,
-        deprecatedOpenClaudeExists: false,
-        legacyClaudeExists: false,
-      }),
-    ).toBe(join(homedir(), '.kaltcode'))
-  })
+        expect(
+            resolveClaudeConfigHomeDir({
+                homeDir: homedir(),
+            }),
+        ).toBe(join(homedir(), ".kalt-code"));
+    });
 
-  test('uses ~/.kaltcode when it exists before deprecated fallbacks', async () => {
-    delete process.env.KALTCODE_CONFIG_DIR
-    delete process.env.CLAUDE_CONFIG_DIR
-    const { resolveClaudeConfigHomeDir } = await importFreshEnvUtils()
+    test("hard-cuts user config home to ~/.kalt-code by default", async () => {
+        delete process.env.CLAUDE_CONFIG_DIR;
+        const { resolveClaudeConfigHomeDir } = await importFreshEnvUtils();
 
-    expect(
-      resolveClaudeConfigHomeDir({
-        homeDir: homedir(),
-        kaltCodeExists: true,
-        deprecatedOpenClaudeExists: true,
-        legacyClaudeExists: true,
-      }),
-    ).toBe(join(homedir(), '.kaltcode'))
-  })
+        expect(
+            resolveClaudeConfigHomeDir({
+                homeDir: homedir(),
+            }),
+        ).toBe(join(homedir(), ".kalt-code"));
+    });
 
-  test('falls back to deprecated ~/.openclaude when ~/.kaltcode does not exist', async () => {
-    delete process.env.KALTCODE_CONFIG_DIR
-    delete process.env.CLAUDE_CONFIG_DIR
-    const { resolveClaudeConfigHomeDir } = await importFreshEnvUtils()
+    test("migrates legacy config home and global config files to .kalt-code", async () => {
+        const tempHome = mkdtempSync(join(tmpdir(), "kalt-code-paths-test-"));
+        try {
+            mkdirSync(join(tempHome, ".claude", "skills", "legacy-skill"), {
+                recursive: true,
+            });
+            writeFileSync(
+                join(tempHome, ".claude", "skills", "legacy-skill", "SKILL.md"),
+                "legacy skill",
+            );
+            writeFileSync(join(tempHome, ".claude", "settings.json"), "{}");
+            writeFileSync(join(tempHome, ".claude.json"), '{"legacy":true}');
+            writeFileSync(
+                join(tempHome, ".claude-custom-oauth.json"),
+                '{"custom":true}',
+            );
 
-    expect(
-      resolveClaudeConfigHomeDir({
-        homeDir: homedir(),
-        kaltCodeExists: false,
-        deprecatedOpenClaudeExists: true,
-        legacyClaudeExists: true,
-      }),
-    ).toBe(join(homedir(), '.openclaude'))
-  })
+            const { migrateLegacyClaudeConfigHome } =
+                await importFreshEnvUtils();
 
-  test('falls back to ~/.claude when only legacy Claude config exists', async () => {
-    delete process.env.KALTCODE_CONFIG_DIR
-    delete process.env.CLAUDE_CONFIG_DIR
-    const { resolveClaudeConfigHomeDir } = await importFreshEnvUtils()
-
-    expect(
-      resolveClaudeConfigHomeDir({
-        homeDir: homedir(),
-        kaltCodeExists: false,
-        deprecatedOpenClaudeExists: false,
-        legacyClaudeExists: true,
-      }),
-    ).toBe(join(homedir(), '.claude'))
-  })
-
-  test('default plans directory uses ~/.kaltcode/plans', async () => {
-    delete process.env.KALTCODE_CONFIG_DIR
-    delete process.env.CLAUDE_CONFIG_DIR
-    const { getDefaultPlansDirectory } = await importFreshPlans()
-
-    expect(getDefaultPlansDirectory({ homeDir: homedir() })).toBe(
-      join(homedir(), '.kaltcode', 'plans'),
-    )
-  })
-
-  test('default plans directory respects explicit KALTCODE_CONFIG_DIR', async () => {
-    const { getDefaultPlansDirectory } = await importFreshPlans()
-
-    expect(
-      getDefaultPlansDirectory({ configDirEnv: '/tmp/custom-kaltcode' }),
-    ).toBe(join('/tmp/custom-kaltcode', 'plans'))
-  })
-
-  test('default plans directory normalizes generated path to NFC', async () => {
-    delete process.env.KALTCODE_CONFIG_DIR
-    delete process.env.CLAUDE_CONFIG_DIR
-    const { getDefaultPlansDirectory } = await importFreshPlans()
-
-    expect(
-      getDefaultPlansDirectory({ homeDir: '/tmp/cafe\u0301' }),
-    ).toBe(join('/tmp/caf\u00e9', '.kaltcode', 'plans'))
-  })
-
-  test('default plans directory normalizes explicit KALTCODE_CONFIG_DIR to NFC', async () => {
-    const { getDefaultPlansDirectory } = await importFreshPlans()
-
-    expect(
-      getDefaultPlansDirectory({ configDirEnv: '/tmp/cafe\u0301-kaltcode' }),
-    ).toBe(join('/tmp/caf\u00e9-kaltcode', 'plans'))
-  })
-
-  test('uses KALTCODE_CONFIG_DIR before deprecated CLAUDE_CONFIG_DIR when both are provided', async () => {
-    process.env.KALTCODE_CONFIG_DIR = '/tmp/custom-kaltcode'
-    process.env.CLAUDE_CONFIG_DIR = '/tmp/custom-claude'
-    const { getClaudeConfigHomeDir, resolveClaudeConfigHomeDir } =
-      await importFreshEnvUtils()
-
-    expect(getClaudeConfigHomeDir()).toBe('/tmp/custom-kaltcode')
-    expect(
-      resolveClaudeConfigHomeDir({
-        configDirEnv: '/tmp/custom-kaltcode',
-        legacyConfigDirEnv: '/tmp/custom-claude',
-      }),
-    ).toBe('/tmp/custom-kaltcode')
-  })
-
-  test('uses deprecated CLAUDE_CONFIG_DIR override when KALTCODE_CONFIG_DIR is absent', async () => {
-    delete process.env.KALTCODE_CONFIG_DIR
-    process.env.CLAUDE_CONFIG_DIR = '/tmp/custom-claude'
-    const { getClaudeConfigHomeDir, resolveClaudeConfigHomeDir } =
-      await importFreshEnvUtils()
-
-    expect(getClaudeConfigHomeDir()).toBe('/tmp/custom-claude')
-    expect(
-      resolveClaudeConfigHomeDir({
-        legacyConfigDirEnv: '/tmp/custom-claude',
-      }),
-    ).toBe('/tmp/custom-claude')
-  })
-
-  test('project and local settings paths use .kaltcode', async () => {
-    const { getRelativeSettingsFilePathForSource } = await importFreshSettings()
-
-    expect(getRelativeSettingsFilePathForSource('projectSettings')).toBe(
-      '.kaltcode/settings.json',
-    )
-    expect(getRelativeSettingsFilePathForSource('localSettings')).toBe(
-      '.kaltcode/settings.local.json',
-    )
-  })
-
-  test('local installer uses kalt-code wrapper path', async () => {
-    process.env.KALTCODE_CONFIG_DIR = join(homedir(), '.kaltcode')
-    delete process.env.CLAUDE_CONFIG_DIR
-    const { getLocalClaudePath } = await importFreshLocalInstaller()
-
-    expect(getLocalClaudePath()).toBe(
-      join(homedir(), '.kaltcode', 'local', 'kalt-code'),
-    )
-  })
-
-  test('local installation detection matches .kaltcode path', async () => {
-    const { isManagedLocalInstallationPath } =
-      await importFreshLocalInstaller()
-
-    expect(
-      isManagedLocalInstallationPath(
-        `${join(homedir(), '.kaltcode', 'local')}/node_modules/.bin/kalt-code`,
-      ),
-    ).toBe(true)
-  })
-
-  test('local installation detection still matches deprecated .openclaude path', async () => {
-    const { isManagedLocalInstallationPath } =
-      await importFreshLocalInstaller()
-
-    expect(
-      isManagedLocalInstallationPath(
-        `${join(homedir(), '.openclaude', 'local')}/node_modules/.bin/openclaude`,
-      ),
-    ).toBe(true)
-  })
-
-  test('local installation detection still matches legacy .claude path', async () => {
-    const { isManagedLocalInstallationPath } =
-      await importFreshLocalInstaller()
-
-    expect(
-      isManagedLocalInstallationPath(
-        `${join(homedir(), '.claude', 'local')}/node_modules/.bin/openclaude`,
-      ),
-    ).toBe(true)
-  })
-
-  test('candidate local install dirs include Kalt Code, deprecated OpenClaude, and legacy Claude paths', async () => {
-    const { getCandidateLocalInstallDirs } = await importFreshLocalInstaller()
-
-    expect(
-      getCandidateLocalInstallDirs({
-        configHomeDir: join(homedir(), '.kaltcode'),
-        homeDir: homedir(),
-      }),
-    ).toEqual([
-      join(homedir(), '.kaltcode', 'local'),
-      join(homedir(), '.openclaude', 'local'),
-      join(homedir(), '.claude', 'local'),
-    ])
-  })
-
-  test('deprecated OpenClaude local installs are detected when they still expose the openclaude binary', async () => {
-    mock.module('fs/promises', () => ({
-      ...fsPromises,
-      access: async (path: string) => {
-        if (
-          path ===
-          join(
-            homedir(),
-            '.openclaude',
-            'local',
-            'node_modules',
-            '.bin',
-            'openclaude',
-          )
-        ) {
-          return
+            expect(migrateLegacyClaudeConfigHome({ homeDir: tempHome })).toBe(
+                true,
+            );
+            expect(
+                readFileSync(
+                    join(
+                        tempHome,
+                        ".kalt-code",
+                        "skills",
+                        "legacy-skill",
+                        "SKILL.md",
+                    ),
+                    "utf8",
+                ),
+            ).toBe("legacy skill");
+            expect(
+                existsSync(join(tempHome, ".kalt-code", "settings.json")),
+            ).toBe(true);
+            expect(
+                readFileSync(join(tempHome, ".kalt-code.json"), "utf8"),
+            ).toBe('{"legacy":true}');
+            expect(
+                readFileSync(
+                    join(tempHome, ".kalt-code-custom-oauth.json"),
+                    "utf8",
+                ),
+            ).toBe('{"custom":true}');
+        } finally {
+            rmSync(tempHome, { recursive: true, force: true });
         }
-        throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' })
-      },
-    }))
+    });
 
-    const { getDetectedLocalInstallDir, localInstallationExists } =
-      await importFreshLocalInstaller()
+    test("migration preserves existing .kalt-code data while copying missing legacy data", async () => {
+        const tempHome = mkdtempSync(join(tmpdir(), "kalt-code-paths-test-"));
+        try {
+            mkdirSync(join(tempHome, ".claude", "skills", "legacy-skill"), {
+                recursive: true,
+            });
+            mkdirSync(join(tempHome, ".kalt-code", "skills"), {
+                recursive: true,
+            });
+            writeFileSync(join(tempHome, ".claude", "settings.json"), "legacy");
+            writeFileSync(
+                join(tempHome, ".kalt-code", "settings.json"),
+                "current",
+            );
+            writeFileSync(
+                join(tempHome, ".claude", "skills", "legacy-skill", "SKILL.md"),
+                "legacy skill",
+            );
 
-    expect(await localInstallationExists()).toBe(true)
-    expect(await getDetectedLocalInstallDir()).toBe(
-      join(homedir(), '.openclaude', 'local'),
-    )
-  })
+            const { migrateLegacyClaudeConfigHome } =
+                await importFreshEnvUtils();
 
-  test('legacy Claude local installs are detected when they still expose the claude binary', async () => {
-    mock.module('fs/promises', () => ({
-      ...fsPromises,
-      access: async (path: string) => {
-        if (
-          path ===
-          join(homedir(), '.claude', 'local', 'node_modules', '.bin', 'claude')
-        ) {
-          return
+            expect(migrateLegacyClaudeConfigHome({ homeDir: tempHome })).toBe(
+                true,
+            );
+            expect(
+                readFileSync(
+                    join(tempHome, ".kalt-code", "settings.json"),
+                    "utf8",
+                ),
+            ).toBe("current");
+            expect(
+                readFileSync(
+                    join(
+                        tempHome,
+                        ".kalt-code",
+                        "skills",
+                        "legacy-skill",
+                        "SKILL.md",
+                    ),
+                    "utf8",
+                ),
+            ).toBe("legacy skill");
+        } finally {
+            rmSync(tempHome, { recursive: true, force: true });
         }
-        throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' })
-      },
-    }))
+    });
 
-    const { getDetectedLocalInstallDir, localInstallationExists } =
-      await importFreshLocalInstaller()
+    test("migration skips explicit CLAUDE_CONFIG_DIR overrides", async () => {
+        const tempHome = mkdtempSync(join(tmpdir(), "kalt-code-paths-test-"));
+        try {
+            mkdirSync(join(tempHome, ".claude"), { recursive: true });
+            writeFileSync(join(tempHome, ".claude", "settings.json"), "legacy");
 
-    expect(await localInstallationExists()).toBe(true)
-    expect(await getDetectedLocalInstallDir()).toBe(
-      join(homedir(), '.claude', 'local'),
-    )
-  })
-})
+            const { migrateLegacyClaudeConfigHome } =
+                await importFreshEnvUtils();
+
+            expect(
+                migrateLegacyClaudeConfigHome({
+                    configDirEnv: join(tempHome, "custom-config"),
+                    homeDir: tempHome,
+                }),
+            ).toBe(true);
+            expect(existsSync(join(tempHome, ".kalt-code"))).toBe(false);
+        } finally {
+            rmSync(tempHome, { recursive: true, force: true });
+        }
+    });
+
+    test("migration fails closed when .kalt-code collides with a non-directory", async () => {
+        const tempHome = mkdtempSync(join(tmpdir(), "kalt-code-paths-test-"));
+        try {
+            writeFileSync(join(tempHome, ".kalt-code"), "not a directory");
+            mkdirSync(join(tempHome, ".claude"), { recursive: true });
+            writeFileSync(join(tempHome, ".claude", "settings.json"), "legacy");
+
+            const { migrateLegacyClaudeConfigHome } =
+                await importFreshEnvUtils();
+
+            expect(migrateLegacyClaudeConfigHome({ homeDir: tempHome })).toBe(
+                false,
+            );
+        } finally {
+            rmSync(tempHome, { recursive: true, force: true });
+        }
+    });
+
+    test("migration ignores non-directory legacy config homes", async () => {
+        const tempHome = mkdtempSync(join(tmpdir(), "kalt-code-paths-test-"));
+        try {
+            writeFileSync(join(tempHome, ".claude"), "not a directory");
+
+            const { migrateLegacyClaudeConfigHome } =
+                await importFreshEnvUtils();
+
+            expect(migrateLegacyClaudeConfigHome({ homeDir: tempHome })).toBe(
+                true,
+            );
+            expect(existsSync(join(tempHome, ".kalt-code"))).toBe(false);
+        } finally {
+            rmSync(tempHome, { recursive: true, force: true });
+        }
+    });
+
+    test("config home falls back to legacy when migration fails on a non-directory .kalt-code collision", async () => {
+        const tempHome = mkdtempSync(join(tmpdir(), "kalt-code-paths-test-"));
+        try {
+            writeFileSync(join(tempHome, ".kalt-code"), "not a directory");
+            mkdirSync(join(tempHome, ".claude"), { recursive: true });
+            mock.module("os", () => ({
+                homedir: () => tempHome,
+                tmpdir,
+            }));
+            delete process.env.CLAUDE_CONFIG_DIR;
+
+            const { getClaudeConfigHomeDir } = await importFreshEnvUtils();
+
+            expect(getClaudeConfigHomeDir()).toBe(join(tempHome, ".claude"));
+        } finally {
+            rmSync(tempHome, { recursive: true, force: true });
+        }
+    });
+
+    test("default plans directory uses ~/.kalt-code/plans", async () => {
+        delete process.env.CLAUDE_CONFIG_DIR;
+
+        expect(
+            getDefaultPlansDirectory({
+                configDirEnv: "",
+                legacyConfigDirEnv: "",
+                homeDir: homedir(),
+            }),
+        ).toBe(join(homedir(), ".kalt-code", "plans"));
+    });
+
+    test("default plans directory respects explicit CLAUDE_CONFIG_DIR", async () => {
+        expect(
+            getDefaultPlansDirectory({
+                configDirEnv: "/tmp/custom-kalt-code",
+            }),
+        ).toBe(join("/tmp/custom-kalt-code", "plans"));
+    });
+
+    test("default plans directory normalizes generated path to NFC", async () => {
+        expect(
+            getDefaultPlansDirectory({
+                configDirEnv: "",
+                legacyConfigDirEnv: "",
+                homeDir: "/tmp/cafe\u0301",
+            }),
+        ).toBe(join("/tmp/caf\u00e9", ".kalt-code", "plans"));
+    });
+
+    test("default plans directory normalizes explicit CLAUDE_CONFIG_DIR to NFC", async () => {
+        expect(
+            getDefaultPlansDirectory({
+                configDirEnv: "/tmp/cafe\u0301-kalt-code",
+            }),
+        ).toBe(join("/tmp/caf\u00e9-kalt-code", "plans"));
+    });
+
+    test("uses CLAUDE_CONFIG_DIR override when provided", async () => {
+        process.env.CLAUDE_CONFIG_DIR = "/tmp/custom-kalt-code";
+        const { getClaudeConfigHomeDir, resolveClaudeConfigHomeDir } =
+            await importFreshEnvUtils();
+
+        expect(getClaudeConfigHomeDir()).toBe("/tmp/custom-kalt-code");
+        expect(
+            resolveClaudeConfigHomeDir({
+                configDirEnv: "/tmp/custom-kalt-code",
+            }),
+        ).toBe("/tmp/custom-kalt-code");
+    });
+
+    test("project and local settings paths use .kalt-code", async () => {
+        const { getRelativeSettingsFilePathForSource } =
+            await importFreshSettings();
+
+        expect(getRelativeSettingsFilePathForSource("projectSettings")).toBe(
+            ".kalt-code/settings.json",
+        );
+        expect(getRelativeSettingsFilePathForSource("localSettings")).toBe(
+            ".kalt-code/settings.local.json",
+        );
+    });
+
+    test("local installer uses kalt-code wrapper path", async () => {
+        // Force .kalt-code config home so the test doesn't fall back to
+        // ~/.claude when ~/.kalt-code doesn't exist on this machine.
+        process.env.CLAUDE_CONFIG_DIR = join(homedir(), ".kalt-code");
+        const { getLocalClaudePath } = await importFreshLocalInstaller();
+
+        expect(getLocalClaudePath()).toBe(
+            join(homedir(), ".kalt-code", "local", "kalt-code"),
+        );
+    });
+
+    test("local installation detection matches .kalt-code path", async () => {
+        const { isManagedLocalInstallationPath } =
+            await importFreshLocalInstaller();
+
+        expect(
+            isManagedLocalInstallationPath(
+                `${join(homedir(), ".kalt-code", "local")}/node_modules/.bin/kalt-code`,
+            ),
+        ).toBe(true);
+    });
+
+    test("local installation detection still matches legacy .claude path", async () => {
+        const { isManagedLocalInstallationPath } =
+            await importFreshLocalInstaller();
+
+        expect(
+            isManagedLocalInstallationPath(
+                `${join(homedir(), ".claude", "local")}/node_modules/.bin/openclaude`,
+            ),
+        ).toBe(true);
+    });
+
+    test("candidate local install dirs include Kalt Code and legacy Claude paths", async () => {
+        const { getCandidateLocalInstallDirs } =
+            await importFreshLocalInstaller();
+
+        expect(
+            getCandidateLocalInstallDirs({
+                configHomeDir: join(homedir(), ".kalt-code"),
+                homeDir: homedir(),
+            }),
+        ).toEqual([
+            join(homedir(), ".kalt-code", "local"),
+            join(homedir(), ".claude", "local"),
+        ]);
+    });
+
+    test("legacy local installs are detected when they still expose the claude binary", async () => {
+        mock.module("fs/promises", () => ({
+            ...fsPromises,
+            access: async (path: string) => {
+                if (
+                    path ===
+                    join(
+                        homedir(),
+                        ".claude",
+                        "local",
+                        "node_modules",
+                        ".bin",
+                        "claude",
+                    )
+                ) {
+                    return;
+                }
+                throw Object.assign(new Error("ENOENT"), { code: "ENOENT" });
+            },
+        }));
+
+        const { getDetectedLocalInstallDir, localInstallationExists } =
+            await importFreshLocalInstaller();
+
+        expect(await localInstallationExists()).toBe(true);
+        expect(await getDetectedLocalInstallDir()).toBe(
+            join(homedir(), ".claude", "local"),
+        );
+    });
+});

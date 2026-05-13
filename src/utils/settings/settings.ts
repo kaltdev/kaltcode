@@ -299,9 +299,9 @@ export function getRelativeSettingsFilePathForSource(
 ): string {
   switch (source) {
     case 'projectSettings':
-      return '.kaltcode/settings.json'
+      return '.kalt-code/settings.json'
     case 'localSettings':
-      return '.kaltcode/settings.local.json'
+      return '.kalt-code/settings.local.json'
   }
 }
 

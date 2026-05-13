@@ -12,7 +12,6 @@ import { open as fsOpen, readdir, realpath, stat } from 'fs/promises'
 import { homedir } from 'os'
 import { join } from 'path'
 import {
-  DEPRECATED_OPENCLAUDE_CONFIG_DIR_NAME,
   KALTCODE_CONFIG_DIR_ENV,
   KALTCODE_CONFIG_DIR_NAME,
   LEGACY_CLAUDE_CONFIG_DIR_ENV,
@@ -348,14 +347,6 @@ function getSessionStorageConfigHomeDir(): string {
   const homeDir = homedir()
   const kaltCodeDir = join(homeDir, KALTCODE_CONFIG_DIR_NAME)
   if (existsSync(kaltCodeDir)) return kaltCodeDir.normalize('NFC')
-
-  const deprecatedOpenClaudeDir = join(
-    homeDir,
-    DEPRECATED_OPENCLAUDE_CONFIG_DIR_NAME,
-  )
-  if (existsSync(deprecatedOpenClaudeDir)) {
-    return deprecatedOpenClaudeDir.normalize('NFC')
-  }
 
   const legacyClaudeDir = join(homeDir, LEGACY_CLAUDE_CONFIG_DIR_NAME)
   if (existsSync(legacyClaudeDir)) return legacyClaudeDir.normalize('NFC')

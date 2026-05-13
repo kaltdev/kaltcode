@@ -10,8 +10,7 @@ process.env.CLAUDE_CONFIG_DIR = testConfigDir
 const baselineKaltCodeConfigDir = process.env.KALTCODE_CONFIG_DIR
 const baselineClaudeConfigDir = process.env.CLAUDE_CONFIG_DIR
 const homeConfigDirs = new Set([
-  join(homedir(), '.kaltcode').normalize('NFC'),
-  join(homedir(), '.openclaude').normalize('NFC'),
+  join(homedir(), '.kalt-code').normalize('NFC'),
   join(homedir(), '.claude').normalize('NFC'),
 ])
 

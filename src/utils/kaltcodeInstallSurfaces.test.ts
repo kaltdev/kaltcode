@@ -41,13 +41,13 @@ test('install command displays kalt-code.exe path on Windows', async () => {
   )
 })
 
-test('cleanupNpmInstallations removes Kalt Code, deprecated OpenClaude, and legacy Claude local install dirs', async () => {
+test('cleanupNpmInstallations removes Kalt Code and legacy Claude local install dirs', async () => {
   const removedPaths: string[] = []
   ;(globalThis as Record<string, unknown>).MACRO = {
     PACKAGE_URL: '@kaltdev/kaltcode',
   }
-  process.env.KALTCODE_CONFIG_DIR = join(homedir(), '.kaltcode')
-  process.env.CLAUDE_CONFIG_DIR = join(homedir(), '.kaltcode')
+  process.env.KALTCODE_CONFIG_DIR = join(homedir(), '.kalt-code')
+  process.env.CLAUDE_CONFIG_DIR = join(homedir(), '.kalt-code')
 
   mock.module('fs/promises', () => ({
     ...fsPromises,
@@ -66,7 +66,6 @@ test('cleanupNpmInstallations removes Kalt Code, deprecated OpenClaude, and lega
   const { cleanupNpmInstallations } = await importFreshInstaller()
   await cleanupNpmInstallations()
 
-  expect(removedPaths).toContain(join(homedir(), '.kaltcode', 'local'))
-  expect(removedPaths).toContain(join(homedir(), '.openclaude', 'local'))
+  expect(removedPaths).toContain(join(homedir(), '.kalt-code', 'local'))
   expect(removedPaths).toContain(join(homedir(), '.claude', 'local'))
 })

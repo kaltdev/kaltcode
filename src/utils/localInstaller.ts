@@ -6,7 +6,6 @@ import { access, chmod, writeFile } from "fs/promises";
 import { homedir } from "os";
 import { join } from "path";
 import {
-    DEPRECATED_OPENCLAUDE_CONFIG_DIR_NAME,
     KALTCODE_CONFIG_DIR_NAME,
     LEGACY_CLAUDE_CONFIG_DIR_NAME,
     PRODUCT_CLI_NAME,
@@ -28,10 +27,6 @@ function getLocalInstallDir(): string {
     return join(getClaudeConfigHomeDir(), "local");
 }
 
-function getDeprecatedOpenClaudeLocalInstallDir(homeDir = homedir()): string {
-    return join(homeDir, DEPRECATED_OPENCLAUDE_CONFIG_DIR_NAME, "local");
-}
-
 function getLegacyLocalInstallDir(homeDir = homedir()): string {
     return join(homeDir, LEGACY_CLAUDE_CONFIG_DIR_NAME, "local");
 }
@@ -45,7 +40,6 @@ export function getCandidateLocalInstallDirs(options?: {
     return Array.from(
         new Set([
             join(configHomeDir, "local"),
-            getDeprecatedOpenClaudeLocalInstallDir(homeDir),
             getLegacyLocalInstallDir(homeDir),
         ]),
     );
@@ -65,9 +59,6 @@ export function isManagedLocalInstallationPath(execPath: string): boolean {
     return (
         normalizedExecPath.includes(
             `/${KALTCODE_CONFIG_DIR_NAME}/local/node_modules/`,
-        ) ||
-        normalizedExecPath.includes(
-            `/${DEPRECATED_OPENCLAUDE_CONFIG_DIR_NAME}/local/node_modules/`,
         ) ||
         normalizedExecPath.includes(
             `/${LEGACY_CLAUDE_CONFIG_DIR_NAME}/local/node_modules/`,

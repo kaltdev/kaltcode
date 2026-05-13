@@ -2,6 +2,7 @@ import { afterEach, beforeEach, expect, test } from 'bun:test'
 import { mkdtempSync, rmSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
+import { getGlobalClaudeFile, resolveGlobalClaudeFile } from './env.js'
 
 const originalEnv = {
   CLAUDE_CONFIG_DIR: process.env.CLAUDE_CONFIG_DIR,
@@ -16,6 +17,9 @@ beforeEach(() => {
   process.env.CLAUDE_CONFIG_DIR = tempDir
   delete process.env.CLAUDE_CODE_CUSTOM_OAUTH_URL
   delete process.env.USER_TYPE
+  ;(
+    getGlobalClaudeFile as unknown as { cache: { clear: () => void } }
+  ).cache.clear()
 })
 
 afterEach(() => {
@@ -37,33 +41,36 @@ afterEach(() => {
   }
 })
 
-async function importFreshEnvModule() {
-  return import(`./env.js?ts=${Date.now()}-${Math.random()}`)
-}
+// getGlobalClaudeFile — default path plus explicit override compatibility
 
-// getGlobalClaudeFile — three migration branches
-
-test('getGlobalClaudeFile: new install returns .kaltcode.json when neither file exists', async () => {
-  const { getGlobalClaudeFile } = await importFreshEnvModule()
-  expect(getGlobalClaudeFile()).toBe(join(tempDir, '.kaltcode.json'))
+test('getGlobalClaudeFile: new install returns .kalt-code.json when neither file exists', async () => {
+  expect(getGlobalClaudeFile()).toBe(join(tempDir, '.kalt-code.json'))
 })
 
-test('getGlobalClaudeFile: existing user keeps .claude.json when only legacy file exists', async () => {
+test('getGlobalClaudeFile: explicit config dir keeps .claude.json fallback when only legacy file exists', async () => {
   writeFileSync(join(tempDir, '.claude.json'), '{}')
-  const { getGlobalClaudeFile } = await importFreshEnvModule()
   expect(getGlobalClaudeFile()).toBe(join(tempDir, '.claude.json'))
 })
 
-test('getGlobalClaudeFile: deprecated OpenClaude config is used when Kalt Code file is missing', async () => {
+test('getGlobalClaudeFile: deprecated OpenClaude config is ignored when Kalt Code file is missing', async () => {
   writeFileSync(join(tempDir, '.openclaude.json'), '{}')
-  const { getGlobalClaudeFile } = await importFreshEnvModule()
-  expect(getGlobalClaudeFile()).toBe(join(tempDir, '.openclaude.json'))
+  expect(getGlobalClaudeFile()).toBe(join(tempDir, '.kalt-code.json'))
 })
 
-test('getGlobalClaudeFile: migrated user uses .kaltcode.json when both files exist', async () => {
+test('getGlobalClaudeFile: migrated user uses .kalt-code.json when both files exist', async () => {
   writeFileSync(join(tempDir, '.claude.json'), '{}')
-  writeFileSync(join(tempDir, '.openclaude.json'), '{}')
-  writeFileSync(join(tempDir, '.kaltcode.json'), '{}')
-  const { getGlobalClaudeFile } = await importFreshEnvModule()
-  expect(getGlobalClaudeFile()).toBe(join(tempDir, '.kaltcode.json'))
+  writeFileSync(join(tempDir, '.kalt-code.json'), '{}')
+  expect(getGlobalClaudeFile()).toBe(join(tempDir, '.kalt-code.json'))
+})
+
+test('resolveGlobalClaudeFile: failed default migration keeps legacy file when new file is missing', async () => {
+  writeFileSync(join(tempDir, '.claude.json'), '{}')
+
+  expect(
+    resolveGlobalClaudeFile({
+      homeDir: tempDir,
+      migrationSucceeded: false,
+      existsSync: path => path === join(tempDir, '.claude.json'),
+    }),
+  ).toBe(join(tempDir, '.claude.json'))
 })

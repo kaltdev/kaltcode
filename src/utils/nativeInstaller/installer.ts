@@ -38,7 +38,6 @@ import { getMaxVersion, shouldSkipVersion } from "../autoUpdater.js";
 import { registerCleanup } from "../cleanupRegistry.js";
 import { getGlobalConfig, saveGlobalConfig } from "../config.js";
 import {
-    DEPRECATED_OPENCLAUDE_CONFIG_DIR_NAME,
     LEGACY_CLAUDE_CONFIG_DIR_NAME,
 } from "../../constants/product.js";
 import { logForDebugging } from "../debug.js";
@@ -1761,7 +1760,6 @@ export async function cleanupNpmInstallations(): Promise<{
     const localInstallDirs = Array.from(
         new Set([
             join(getClaudeConfigHomeDir(), "local"),
-            join(homedir(), DEPRECATED_OPENCLAUDE_CONFIG_DIR_NAME, "local"),
             join(homedir(), LEGACY_CLAUDE_CONFIG_DIR_NAME, "local"),
         ]),
     );

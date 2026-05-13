@@ -1,27 +1,159 @@
 import memoize from 'lodash-es/memoize.js'
-import { existsSync } from 'fs'
-import { homedir } from 'os'
-import { join } from 'path'
 import {
-  DEPRECATED_OPENCLAUDE_CONFIG_DIR_NAME,
+  copyFileSync,
+  lstatSync,
+  mkdirSync,
+  readlinkSync,
+  readdirSync,
+  statSync,
+  symlinkSync,
+} from 'fs'
+import { homedir } from 'os'
+import { dirname, join } from 'path'
+import {
   KALTCODE_CONFIG_DIR_ENV,
   KALTCODE_CONFIG_DIR_NAME,
   LEGACY_CLAUDE_CONFIG_DIR_ENV,
   LEGACY_CLAUDE_CONFIG_DIR_NAME,
 } from '../constants/product.js'
 
+const LEGACY_GLOBAL_CONFIG_FILE_RE =
+  /^\.claude(?:-(?:custom|local|staging)-oauth)?\.json$/
+
+function getErrnoCode(error: unknown): string | undefined {
+  if (
+    error &&
+    typeof error === 'object' &&
+    'code' in error &&
+    typeof error.code === 'string'
+  ) {
+    return error.code
+  }
+  return undefined
+}
+
+function pathExists(path: string): boolean {
+  try {
+    lstatSync(path)
+    return true
+  } catch (error) {
+    if (getErrnoCode(error) === 'ENOENT') {
+      return false
+    }
+    return true
+  }
+}
+
+function pathIsDirectory(path: string): boolean {
+  try {
+    return lstatSync(path).isDirectory()
+  } catch {
+    return false
+  }
+}
+
+function getSymlinkType(source: string): 'dir' | 'file' | 'junction' {
+  if (process.platform !== 'win32') {
+    return 'file'
+  }
+
+  try {
+    return statSync(source).isDirectory() ? 'junction' : 'file'
+  } catch {
+    return 'file'
+  }
+}
+
+function copyMissingPathSync(source: string, destination: string): void {
+  const sourceStats = lstatSync(source)
+
+  if (sourceStats.isDirectory()) {
+    if (!pathExists(destination)) {
+      // Match fsOperations' recursive mkdir behavior while keeping this module
+      // independent from the config-home resolver it backs.
+      mkdirSync(destination, { recursive: true })
+    } else if (!lstatSync(destination).isDirectory()) {
+      throw new Error(`Cannot migrate ${source}: ${destination} is not a directory`)
+    }
+
+    for (const entry of readdirSync(source)) {
+      copyMissingPathSync(join(source, entry), join(destination, entry))
+    }
+    return
+  }
+
+  if (pathExists(destination)) {
+    return
+  }
+
+  mkdirSync(dirname(destination), { recursive: true })
+
+  if (sourceStats.isSymbolicLink()) {
+    symlinkSync(readlinkSync(source), destination, getSymlinkType(source))
+    return
+  }
+
+  if (sourceStats.isFile()) {
+    copyFileSync(source, destination)
+  }
+}
+
+function getLegacyGlobalConfigFiles(homeDir: string): string[] {
+  try {
+    return readdirSync(homeDir).filter(file =>
+      LEGACY_GLOBAL_CONFIG_FILE_RE.test(file),
+    )
+  } catch (error) {
+    if (getErrnoCode(error) === 'ENOENT') {
+      return []
+    }
+    throw error
+  }
+}
+
+export function migrateLegacyClaudeConfigHome(options?: {
+  configDirEnv?: string
+  legacyConfigDirEnv?: string
+  homeDir?: string
+}): boolean {
+  if (options?.configDirEnv || options?.legacyConfigDirEnv) {
+    return true
+  }
+
+  const homeDir = options?.homeDir ?? homedir()
+  const kaltCodeDir = join(homeDir, KALTCODE_CONFIG_DIR_NAME)
+  const legacyClaudeDir = join(homeDir, LEGACY_CLAUDE_CONFIG_DIR_NAME)
+
+  try {
+    const legacyDirExists = pathIsDirectory(legacyClaudeDir)
+    const legacyGlobalConfigFiles = getLegacyGlobalConfigFiles(homeDir)
+
+    if (!legacyDirExists && legacyGlobalConfigFiles.length === 0) {
+      return true
+    }
+
+    if (legacyDirExists) {
+      copyMissingPathSync(legacyClaudeDir, kaltCodeDir)
+    }
+
+    for (const legacyFile of legacyGlobalConfigFiles) {
+      const kaltCodeFile = legacyFile.replace(/^\.claude/, '.kalt-code')
+      copyMissingPathSync(
+        join(homeDir, legacyFile),
+        join(homeDir, kaltCodeFile),
+      )
+    }
+    return true
+  } catch {
+    return false
+  }
+}
+
 export function resolveKaltCodeConfigHomeDir(options?: {
   configDirEnv?: string
   legacyConfigDirEnv?: string
   homeDir?: string
-  kaltCodeExists?: boolean
-  deprecatedOpenClaudeExists?: boolean
-  /**
-   * @deprecated Use deprecatedOpenClaudeExists. Retained for internal tests and
-   * migration call-sites that have not renamed the option yet.
-   */
-  openClaudeExists?: boolean
-  legacyClaudeExists?: boolean
+  migrationSucceeded?: boolean
 }): string {
   if (options?.configDirEnv) {
     return options.configDirEnv.normalize('NFC')
@@ -32,30 +164,21 @@ export function resolveKaltCodeConfigHomeDir(options?: {
 
   const homeDir = options?.homeDir ?? homedir()
   const kaltCodeDir = join(homeDir, KALTCODE_CONFIG_DIR_NAME)
-  const deprecatedOpenClaudeDir = join(
-    homeDir,
-    DEPRECATED_OPENCLAUDE_CONFIG_DIR_NAME,
-  )
   const legacyClaudeDir = join(homeDir, LEGACY_CLAUDE_CONFIG_DIR_NAME)
-  const kaltCodeExists = options?.kaltCodeExists ?? existsSync(kaltCodeDir)
-  const deprecatedOpenClaudeExists =
-    options?.deprecatedOpenClaudeExists ??
-    options?.openClaudeExists ??
-    existsSync(deprecatedOpenClaudeDir)
-  const legacyClaudeExists =
-    options?.legacyClaudeExists ?? existsSync(legacyClaudeDir)
-
-  if (kaltCodeExists) return kaltCodeDir.normalize('NFC')
-  // Deprecated OpenClaude directory is read as a fallback for upgrade continuity.
-  if (deprecatedOpenClaudeExists) return deprecatedOpenClaudeDir.normalize('NFC')
-  if (legacyClaudeExists) return legacyClaudeDir.normalize('NFC')
+  if (
+    options?.migrationSucceeded === false &&
+    !pathIsDirectory(kaltCodeDir) &&
+    pathExists(legacyClaudeDir)
+  ) {
+    return legacyClaudeDir.normalize('NFC')
+  }
 
   return kaltCodeDir.normalize('NFC')
 }
 
 /**
  * @deprecated Use resolveKaltCodeConfigHomeDir. Kept for internal call-site
- * compatibility while Kalt Code still reads legacy Claude/OpenClaude state.
+ * compatibility while Kalt Code still reads legacy Claude state.
  */
 export function resolveClaudeConfigHomeDir(
   options?: Parameters<typeof resolveKaltCodeConfigHomeDir>[0],
@@ -66,11 +189,20 @@ export function resolveClaudeConfigHomeDir(
 // Memoized: 150+ callers, many on hot paths. Keyed off config env vars so
 // tests that change them get a fresh value without explicit cache.clear.
 export const getClaudeConfigHomeDir = memoize(
-  (): string =>
-    resolveKaltCodeConfigHomeDir({
+  (): string => {
+    const configDirEnv = process.env[KALTCODE_CONFIG_DIR_ENV]
+    const legacyConfigDirEnv = process.env[LEGACY_CLAUDE_CONFIG_DIR_ENV]
+    const migrationSucceeded =
+      configDirEnv || legacyConfigDirEnv
+        ? true
+        : migrateLegacyClaudeConfigHome()
+
+    return resolveKaltCodeConfigHomeDir({
       configDirEnv: process.env[KALTCODE_CONFIG_DIR_ENV],
       legacyConfigDirEnv: process.env[LEGACY_CLAUDE_CONFIG_DIR_ENV],
-    }),
+      migrationSucceeded,
+    })
+  },
   () =>
     `${process.env[KALTCODE_CONFIG_DIR_ENV] ?? ''}\0${
       process.env[LEGACY_CLAUDE_CONFIG_DIR_ENV] ?? ''

@@ -1,65 +1,141 @@
-import { describe, expect, test } from 'bun:test'
-import { join } from 'path'
+import { afterEach, describe, expect, test } from "bun:test";
+import { homedir } from "os";
+import { join } from "path";
 
-import { optionForPermissionSaveDestination } from '../components/permissions/rules/AddPermissionRules.tsx'
-import { isClaudeSettingsPath } from './permissions/filesystem.ts'
-import { getValidationTip } from './settings/validationTips.ts'
+import { isInGlobalClaudeFolder } from "../components/permissions/FilePermissionDialog/permissionOptions.tsx";
+import { optionForPermissionSaveDestination } from "../components/permissions/rules/AddPermissionRules.tsx";
+import {
+    getClaudeSkillScope,
+    isClaudeSettingsPath,
+} from "./permissions/filesystem.ts";
+import { getValidationTip } from "./settings/validationTips.ts";
 
-describe('Kalt Code settings path surfaces', () => {
-  test('isClaudeSettingsPath recognizes project .kaltcode settings files', () => {
-    expect(
-      isClaudeSettingsPath(
-        join(process.cwd(), '.kaltcode', 'settings.json'),
-      ),
-    ).toBe(true)
+const originalConfigDir = process.env.CLAUDE_CONFIG_DIR;
 
-    expect(
-      isClaudeSettingsPath(
-        join(process.cwd(), '.kaltcode', 'settings.local.json'),
-      ),
-    ).toBe(true)
-  })
+afterEach(() => {
+    if (originalConfigDir === undefined) {
+        delete process.env.CLAUDE_CONFIG_DIR;
+    } else {
+        process.env.CLAUDE_CONFIG_DIR = originalConfigDir;
+    }
+});
 
-  test('permission save destinations point user settings to ~/.kaltcode', () => {
-    expect(optionForPermissionSaveDestination('userSettings')).toEqual({
-      label: 'User settings',
-      description: 'Saved in ~/.kaltcode/settings.json',
-      value: 'userSettings',
-    })
-  })
+describe("Kalt Code settings path surfaces", () => {
+    test("isClaudeSettingsPath recognizes project .kalt-code settings files", () => {
+        expect(
+            isClaudeSettingsPath(
+                join(process.cwd(), ".kalt-code", "settings.json"),
+            ),
+        ).toBe(true);
 
-  test('permission save destinations point project settings to .kaltcode', () => {
-    expect(optionForPermissionSaveDestination('projectSettings')).toEqual({
-      label: 'Project settings',
-      description: 'Checked in at .kaltcode/settings.json',
-      value: 'projectSettings',
-    })
+        expect(
+            isClaudeSettingsPath(
+                join(process.cwd(), ".kalt-code", "settings.local.json"),
+            ),
+        ).toBe(true);
+    });
 
-    expect(optionForPermissionSaveDestination('localSettings')).toEqual({
-      label: 'Project settings (local)',
-      description: 'Saved in .kaltcode/settings.local.json',
-      value: 'localSettings',
-    })
-  })
-})
+    test("permission save destinations point user settings to ~/.kalt-code", () => {
+        expect(optionForPermissionSaveDestination("userSettings")).toEqual({
+            label: "User settings",
+            description: "Saved in ~/.kalt-code/settings.json",
+            value: "userSettings",
+        });
+    });
 
-describe('Kalt Code validation tips', () => {
-  test('permissions.defaultMode invalid value keeps suggestion but no Claude docs link', () => {
-    const tip = getValidationTip({
-      path: 'permissions.defaultMode',
-      code: 'invalid_value',
-      enumValues: [
-        'acceptEdits',
-        'bypassPermissions',
-        'default',
-        'dontAsk',
-        'plan',
-      ],
-    })
+    test("permission save destinations point project settings to .kalt-code", () => {
+        expect(optionForPermissionSaveDestination("projectSettings")).toEqual({
+            label: "Project settings",
+            description: "Checked in at .kalt-code/settings.json",
+            value: "projectSettings",
+        });
 
-    expect(tip).toEqual({
-      suggestion:
-        'Valid modes: "acceptEdits" (ask before file changes), "plan" (analysis only), "bypassPermissions" (auto-accept all), or "default" (standard behavior)',
-    })
-  })
-})
+        expect(optionForPermissionSaveDestination("localSettings")).toEqual({
+            label: "Project settings (local)",
+            description: "Saved in .kalt-code/settings.local.json",
+            value: "localSettings",
+        });
+    });
+
+    test("permission dialog treats ~/.kalt-code as the global Claude folder", () => {
+        process.env.CLAUDE_CONFIG_DIR = join(homedir(), ".kalt-code");
+
+        expect(
+            isInGlobalClaudeFolder(
+                join(homedir(), ".kalt-code", "settings.json"),
+            ),
+        ).toBe(true);
+        expect(
+            isInGlobalClaudeFolder(join(homedir(), ".claude", "settings.json")),
+        ).toBe(true);
+    });
+
+    test("permission dialog does not treat arbitrary CLAUDE_CONFIG_DIR as the global Claude folder", () => {
+        process.env.CLAUDE_CONFIG_DIR = join(homedir(), "custom-kalt-code");
+
+        expect(
+            isInGlobalClaudeFolder(
+                join(homedir(), "custom-kalt-code", "settings.json"),
+            ),
+        ).toBe(false);
+    });
+
+    test("global skill scope recognizes ~/.kalt-code and legacy ~/.claude skills", () => {
+        process.env.CLAUDE_CONFIG_DIR = join(homedir(), ".kalt-code");
+
+        expect(
+            getClaudeSkillScope(
+                join(homedir(), ".kalt-code", "skills", "demo", "SKILL.md"),
+            ),
+        ).toEqual({
+            skillName: "demo",
+            pattern: "~/.kalt-code/skills/demo/**",
+        });
+
+        expect(
+            getClaudeSkillScope(
+                join(homedir(), ".claude", "skills", "legacy", "SKILL.md"),
+            ),
+        ).toEqual({
+            skillName: "legacy",
+            pattern: "~/.claude/skills/legacy/**",
+        });
+    });
+
+    test("global skill scope does not emit fixed rules for arbitrary CLAUDE_CONFIG_DIR skills", () => {
+        process.env.CLAUDE_CONFIG_DIR = join(homedir(), "custom-kalt-code");
+
+        expect(
+            getClaudeSkillScope(
+                join(
+                    homedir(),
+                    "custom-kalt-code",
+                    "skills",
+                    "demo",
+                    "SKILL.md",
+                ),
+            ),
+        ).toBe(null);
+    });
+});
+
+describe("Kalt Code validation tips", () => {
+    test("permissions.defaultMode invalid value keeps suggestion but no Claude docs link", () => {
+        const tip = getValidationTip({
+            path: "permissions.defaultMode",
+            code: "invalid_value",
+            enumValues: [
+                "acceptEdits",
+                "bypassPermissions",
+                "default",
+                "dontAsk",
+                "plan",
+            ],
+        });
+
+        expect(tip).toEqual({
+            suggestion:
+                'Valid modes: "acceptEdits" (ask before file changes), "plan" (analysis only), "bypassPermissions" (auto-accept all), or "default" (standard behavior)',
+        });
+    });
+});

@@ -32,7 +32,7 @@ export function optionForPermissionSaveDestination(saveDestination: EditableSett
     case 'userSettings':
       return {
         label: 'User settings',
-        description: `Saved in ~/.kaltcode/settings.json`,
+        description: `Saved in ~/.kalt-code/settings.json`,
         value: saveDestination
       };
   }
