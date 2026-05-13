@@ -17,6 +17,7 @@ import { getFsImplementation } from "./fsOperations.js";
 import { which } from "./which.js";
 
 type Platform = "win32" | "darwin" | "linux";
+import { createCombinedAbortSignal } from './combinedAbortSignal.js'
 export function resolveGlobalClaudeFile(options: {
     configDirEnv?: string;
     legacyConfigDirEnv?: string;
@@ -88,9 +89,16 @@ export const getGlobalClaudeFile = memoize((): string => {
 const hasInternetAccess = memoize(async (): Promise<boolean> => {
     try {
         const { default: axiosClient } = await import("axios");
-        await axiosClient.head("http://1.1.1.1", {
-            signal: AbortSignal.timeout(1000),
+        const { signal, cleanup } = createCombinedAbortSignal(undefined, {
+            timeoutMs: 1000,
         });
+        try {
+            await axiosClient.head("http://1.1.1.1", {
+                signal,
+            });
+        } finally {
+            cleanup();
+        }
         return true;
     } catch {
         return false;

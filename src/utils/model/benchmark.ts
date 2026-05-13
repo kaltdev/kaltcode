@@ -18,6 +18,7 @@ export interface BenchmarkResult {
 }
 
 const TEST_PROMPT = 'Write a short hello world in Python.'
+import { createCombinedAbortSignal } from '../combinedAbortSignal.js'
 const MAX_TOKENS = 50
 const TIMEOUT_MS = 30000
 
@@ -69,6 +70,10 @@ export async function benchmarkModel(
   let totalTokens = 0
   let firstTokenMs: number | null = null
 
+  const { signal, cleanup } = createCombinedAbortSignal(undefined, {
+    timeoutMs: TIMEOUT_MS,
+  })
+
   try {
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -82,7 +87,7 @@ export async function benchmarkModel(
         max_tokens: MAX_TOKENS,
         stream: true,
       }),
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      signal,
     })
 
     if (!response.ok) {
@@ -163,6 +168,8 @@ export async function benchmarkModel(
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
     }
+  } finally {
+    cleanup()
   }
 }
 

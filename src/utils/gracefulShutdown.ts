@@ -130,6 +130,7 @@ function cleanupTerminalModes(skipUnmount: boolean = false): void {
     if (!isEnvTruthy(process.env.KALT_CODE_DISABLE_TERMINAL_TITLE)) {
       if (process.platform === 'win32') {
         process.title = ''
+import { createCombinedAbortSignal } from './combinedAbortSignal.js'
       } else {
         writeSync(1, CLEAR_TERMINAL_TITLE)
       }
@@ -480,11 +481,18 @@ export async function gracefulShutdown(
   // overall execution via a single budget (KALT_CODE_SESSIONEND_HOOKS_TIMEOUT_MS,
   // default 1.5s). hook.timeout in settings is respected up to this cap.
   try {
-    await executeSessionEndHooks(reason, {
-      ...options,
-      signal: AbortSignal.timeout(sessionEndTimeoutMs),
+    const { signal, cleanup } = createCombinedAbortSignal(undefined, {
       timeoutMs: sessionEndTimeoutMs,
     })
+    try {
+      await executeSessionEndHooks(reason, {
+        ...options,
+        signal,
+        timeoutMs: sessionEndTimeoutMs,
+      })
+    } finally {
+      cleanup()
+    }
   } catch {
     // Ignore SessionEnd hook exceptions (including AbortError on timeout)
   }

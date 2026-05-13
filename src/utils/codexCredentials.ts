@@ -8,6 +8,7 @@ import {
   parseChatgptAccountId,
   decodeJwtPayload,
 } from '../services/api/codexOAuthShared.js'
+import { createCombinedAbortSignal } from './combinedAbortSignal.js'
 
 export const CODEX_STORAGE_KEY = 'codex' as const
 const CODEX_TOKEN_REFRESH_SKEW_MS = 60_000
@@ -310,14 +311,23 @@ export async function refreshCodexAccessTokenIfNeeded(options?: {
         refresh_token: current.refreshToken,
       })
 
-      const response = await fetch(CODEX_REFRESH_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body,
-        signal: AbortSignal.timeout(15_000),
+      const { signal, cleanup } = createCombinedAbortSignal(undefined, {
+        timeoutMs: 15_000,
       })
+
+      let response: Response
+      try {
+        response = await fetch(CODEX_REFRESH_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body,
+          signal,
+        })
+      } finally {
+        cleanup()
+      }
 
       if (!response.ok) {
         const bodyText = await response.text().catch(() => '')

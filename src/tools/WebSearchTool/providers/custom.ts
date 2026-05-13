@@ -34,6 +34,7 @@ import {
     type ProviderOutput,
     type SearchHit,
 } from "./types.js";
+import { createCombinedAbortSignal } from "../../../utils/combinedAbortSignal.js";
 
 // ---------------------------------------------------------------------------
 // Built-in provider presets
@@ -655,18 +656,15 @@ async function fetchWithRetry(
     let lastStatus: number | undefined;
 
     for (let attempt = 0; attempt < 2; attempt++) {
-        // Compose timeout with caller signal via AbortSignal.any so each attempt
-        // has a fresh timeout and we don't leak an abort listener on `signal`
-        // (the previous implementation added one per attempt and never removed
-        // it, and the listener kept a reference to a stale AbortController).
-        const timeoutSignal = AbortSignal.timeout(timeoutMs);
-        const combined = signal
-            ? AbortSignal.any([signal, timeoutSignal])
-            : timeoutSignal;
+        // Compose timeout with caller signal per attempt and clean it up as
+        // soon as the request settles so timeout timers do not linger.
+        const combined = createCombinedAbortSignal(signal, {
+            timeoutMs,
+        });
 
         lastStatus = undefined;
         try {
-            const res = await fetch(url, { ...init, signal: combined });
+            const res = await fetch(url, { ...init, signal: combined.signal });
 
             if (!res.ok) {
                 lastStatus = res.status;
@@ -681,8 +679,8 @@ async function fetchWithRetry(
             // Caller-initiated abort wins — propagate without retry or rewrite.
             if (signal?.aborted) throw lastErr;
 
-            // Timeout (TimeoutError on Bun/Node, or AbortError with timeoutSignal aborted).
-            if (timeoutSignal.aborted) {
+            // Timeout (TimeoutError on Bun/Node, or AbortError with timeout signal aborted).
+            if (combined.signal.aborted && !signal?.aborted) {
                 throw new Error(`Custom search timed out after ${timeoutSec}s`);
             }
 
@@ -691,10 +689,11 @@ async function fetchWithRetry(
                 attempt === 0 &&
                 (lastStatus === undefined || lastStatus >= 500)
             ) {
-                await new Promise((r) => setTimeout(r, 500));
                 continue;
             }
             throw lastErr;
+        } finally {
+            combined.cleanup();
         }
     }
     throw lastErr!;
