@@ -1,6 +1,6 @@
 {
     "name": "@kaltdev/kaltcode",
-    "version": "0.9.2",
+    "version": "0.10.0",
     "description": "Kalt Code opens coding-agent workflows to any LLM — OpenAI, Gemini, DeepSeek, Ollama, and 200+ models",
     "type": "module",
     "bin": {
