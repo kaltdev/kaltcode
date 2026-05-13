@@ -11,7 +11,7 @@ import {
   isClaudeAISubscriber,
 } from './auth.js'
 import { getAPIProvider } from './model/providers.js'
-import { getClaudeCodeUserAgent } from './userAgent.js'
+import { getKaltCodeUserAgent } from './userAgent.js'
 import { getWorkload } from './workloadContext.js'
 
 // WARNING: We rely on `kalt-code` in the user agent for log filtering.
@@ -59,7 +59,7 @@ export function getWebFetchUserAgent(): string {
     getAPIProvider() === 'firstParty'
       ? 'https://support.anthropic.com/'
       : 'https://github.com/kaltdev/kalt-code'
-  return `Claude-User (${getClaudeCodeUserAgent()}; +${supportUrl})`
+  return `Claude-User (${getKaltCodeUserAgent()}; +${supportUrl})`
 }
 
 export type AuthHeaders = {
