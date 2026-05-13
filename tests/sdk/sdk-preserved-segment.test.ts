@@ -3,13 +3,19 @@ import { randomUUID } from 'crypto'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
-import { getProjectDir } from '../../src/utils/sessionStoragePortable.js'
+import { sanitizePath } from '../../src/utils/sessionStoragePortable.js'
+import { getClaudeConfigHomeDir } from '../../src/utils/envUtils.js'
 import { query } from '../../src/entrypoints/sdk/index.js'
 import { unstable_v2_resumeSession } from '../../src/entrypoints/sdk/index.js'
 
 function applyTestConfigDir(): void {
   process.env.KALTCODE_CONFIG_DIR = testConfigDir
   process.env.CLAUDE_CONFIG_DIR = testConfigDir
+  clearConfigHomeDirCache()
+}
+
+function getTestProjectDir(projectDir: string): string {
+  return join(testConfigDir, 'projects', sanitizePath(projectDir))
 }
 
 /**
@@ -32,7 +38,7 @@ function createCompactTranscriptWithPreservedSegment(
   postBoundaryLength: number = 2,
 ): string {
   applyTestConfigDir()
-  const sessionDir = getProjectDir(dir)
+  const sessionDir = getTestProjectDir(dir)
   mkdirSync(sessionDir, { recursive: true })
   const filePath = join(sessionDir, `${sessionId}.jsonl`)
 
@@ -170,8 +176,14 @@ afterEach(() => {
   } else {
     process.env.CLAUDE_CONFIG_DIR = originalClaudeConfigDir
   }
+  clearConfigHomeDirCache()
   rmSync(testConfigDir, { recursive: true, force: true })
 })
+
+function clearConfigHomeDirCache(): void {
+  ;(getClaudeConfigHomeDir as unknown as { cache?: { clear?: () => void } })
+    .cache?.clear?.()
+}
 
 describe('Compact preserved segment regression', () => {
   test('query({ sessionId }) preserves segment + post-boundary, skips stale', async () => {
@@ -255,7 +267,7 @@ describe('Compact preserved segment regression', () => {
 
     // Create transcript with broken preserved segment (missing anchor)
     applyTestConfigDir()
-    const sessionDir = getProjectDir(dir)
+    const sessionDir = getTestProjectDir(dir)
     mkdirSync(sessionDir, { recursive: true })
     const filePath = join(sessionDir, `${sessionId}.jsonl`)
 
@@ -346,7 +358,7 @@ describe('Compact preserved segment regression', () => {
     const sessionId = randomUUID()
 
     applyTestConfigDir()
-    const sessionDir = getProjectDir(dir)
+    const sessionDir = getTestProjectDir(dir)
     mkdirSync(sessionDir, { recursive: true })
     const filePath = join(sessionDir, `${sessionId}.jsonl`)
 

@@ -2,7 +2,8 @@ import { mkdirSync, realpathSync, rmSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
 import { randomUUID } from 'crypto'
-import { getProjectDir } from '../../../src/utils/sessionStoragePortable.js'
+import { sanitizePath } from '../../../src/utils/sessionStoragePortable.js'
+import { getClaudeConfigHomeDir } from '../../../src/utils/envUtils.js'
 import type { Query } from '../../../src/entrypoints/sdk/index.js'
 
 let tempDirLockPromise: Promise<void> | null = null
@@ -40,6 +41,7 @@ export async function withTempDir<T>(
   const previousSimpleMode = process.env.CLAUDE_CODE_SIMPLE
   process.env.KALTCODE_CONFIG_DIR = dir
   process.env.CLAUDE_CONFIG_DIR = dir
+  clearConfigHomeDirCache()
   process.env.CLAUDE_CODE_SIMPLE = '1'
   try {
     return await fn(dir)
@@ -54,6 +56,7 @@ export async function withTempDir<T>(
     } else {
       process.env.CLAUDE_CONFIG_DIR = previousConfigDir
     }
+    clearConfigHomeDirCache()
     if (previousSimpleMode === undefined) {
       delete process.env.CLAUDE_CODE_SIMPLE
     } else {
@@ -76,8 +79,9 @@ export function createSessionJsonl(
   sessionId: string,
   entries: Array<Record<string, unknown>>,
 ): string {
-  process.env.KALTCODE_CONFIG_DIR = process.env.KALTCODE_CONFIG_DIR ?? cwd
-  process.env.CLAUDE_CONFIG_DIR = process.env.CLAUDE_CONFIG_DIR ?? cwd
+  process.env.KALTCODE_CONFIG_DIR = cwd
+  process.env.CLAUDE_CONFIG_DIR = cwd
+  clearConfigHomeDirCache()
   const canonicalCwd = (() => {
     try {
       return realpathSync(cwd)
@@ -85,7 +89,7 @@ export function createSessionJsonl(
       return cwd
     }
   })()
-  const sessionDir = getProjectDir(canonicalCwd)
+  const sessionDir = join(cwd, 'projects', sanitizePath(canonicalCwd))
   mkdirSync(sessionDir, { recursive: true })
   const filePath = join(sessionDir, `${sessionId}.jsonl`)
   const lines = entries.map(e => JSON.stringify(e))
@@ -191,3 +195,8 @@ export async function collectMessages(q: Query): Promise<unknown[]> {
  * Creates a UUID regex pattern for validation.
  */
 export const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function clearConfigHomeDirCache(): void {
+  ;(getClaudeConfigHomeDir as unknown as { cache?: { clear?: () => void } })
+    .cache?.clear?.()
+}

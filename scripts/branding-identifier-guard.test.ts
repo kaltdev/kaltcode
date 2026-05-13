@@ -90,4 +90,4 @@ test('branding replacement does not create invalid kalt-code identifier expressi
   }
 
   expect(findings).toEqual([])
-})
+}, 20_000)

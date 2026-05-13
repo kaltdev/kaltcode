@@ -13,7 +13,8 @@ import {
   forkSession,
 } from '../../src/entrypoints/sdk/index.js'
 import { readJSONLFile } from '../../src/utils/json.js'
-import { getProjectDir } from '../../src/utils/sessionStoragePortable.js'
+import { sanitizePath } from '../../src/utils/sessionStoragePortable.js'
+import { getClaudeConfigHomeDir } from '../../src/utils/envUtils.js'
 
 const originalKaltCodeConfigDir = process.env.KALTCODE_CONFIG_DIR
 const originalClaudeConfigDir = process.env.CLAUDE_CONFIG_DIR
@@ -23,6 +24,11 @@ const test = bunTest.serial
 function applyTestConfigDir(): void {
   process.env.KALTCODE_CONFIG_DIR = testConfigDir
   process.env.CLAUDE_CONFIG_DIR = testConfigDir
+  clearConfigHomeDirCache()
+}
+
+function getTestProjectDir(projectDir: string): string {
+  return join(testConfigDir, 'projects', sanitizePath(projectDir))
 }
 
 beforeEach(() => {
@@ -41,8 +47,14 @@ afterEach(() => {
   } else {
     process.env.CLAUDE_CONFIG_DIR = originalClaudeConfigDir
   }
+  clearConfigHomeDirCache()
   rmSync(testConfigDir, { recursive: true, force: true })
 })
+
+function clearConfigHomeDirCache(): void {
+  ;(getClaudeConfigHomeDir as unknown as { cache?: { clear?: () => void } })
+    .cache?.clear?.()
+}
 
 describe('SDK session functions', () => {
   test('listSessions returns array', async () => {
@@ -87,7 +99,7 @@ describe('forkSession metadata preservation (COR-2)', () => {
 
   beforeEach(() => {
     applyTestConfigDir()
-    sessionDir = getProjectDir(testProjectDir)
+    sessionDir = getTestProjectDir(testProjectDir)
     mkdirSync(sessionDir, { recursive: true })
   })
 
@@ -158,7 +170,7 @@ describe('renameSession', () => {
 
   beforeEach(() => {
     applyTestConfigDir()
-    sessionDir = getProjectDir(testProjectDir)
+    sessionDir = getTestProjectDir(testProjectDir)
     mkdirSync(sessionDir, { recursive: true })
   })
 
@@ -206,7 +218,7 @@ describe('tagSession', () => {
 
   beforeEach(() => {
     applyTestConfigDir()
-    sessionDir = getProjectDir(testProjectDir)
+    sessionDir = getTestProjectDir(testProjectDir)
     mkdirSync(sessionDir, { recursive: true })
   })
 
@@ -268,7 +280,7 @@ describe('deleteSession', () => {
 
   beforeEach(() => {
     applyTestConfigDir()
-    sessionDir = getProjectDir(testProjectDir)
+    sessionDir = getTestProjectDir(testProjectDir)
     mkdirSync(sessionDir, { recursive: true })
   })
 
@@ -335,7 +347,7 @@ describe('E2E: session lifecycle — create → read → mutate → fork → del
 
   beforeEach(() => {
     applyTestConfigDir()
-    sessionDir = getProjectDir(testProjectDir)
+    sessionDir = getTestProjectDir(testProjectDir)
     mkdirSync(sessionDir, { recursive: true })
   })
 
