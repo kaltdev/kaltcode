@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.10.0](https://github.com/kaltdev/kalt-code/compare/v0.9.2...v0.10.0) (2026-05-12)
+
+
+### Features
+
+* **providers:** add Venice as a first-class provider with dedicated route detection and `getAPIProvider()` support
+* **plugins:** symlink boundary enforcement for skill directories — skills resolving outside the plugin root are now correctly filtered
+* **security:** heredoc substitution hardening — nested heredoc blocks are detected and rejected to prevent shell injection
+
+
+### Bug Fixes
+
+* **plugins:** add missing `resolveExistingPluginComponentPath` import in skill loader, fixing empty skill lists for inline plugins
+* **providers:** fix `getAPIProvider()` returning `"openai"` instead of `"venice"` when Venice route is active
+* **security:** `stripSafeHeredocSubstitutions()` now returns `null` for nested heredoc patterns instead of incorrectly stripping them
+* **integrations:** regenerate stale integration artifacts to match current vendor/gateway descriptors
+
+
 ## [0.9.2](https://github.com/Gitlawb/openclaude/compare/v0.9.1...v0.9.2) (2026-05-06)
 
 
