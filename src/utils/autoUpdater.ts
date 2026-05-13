@@ -8,6 +8,7 @@ import {
     type AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
     logEvent,
 } from "src/services/analytics/index.js";
+import { createCombinedAbortSignal } from "./combinedAbortSignal.js";
 import { type ReleaseChannel, saveGlobalConfig } from "./config.js";
 import { getAPIProvider } from "./model/providers.js";
 import { logForDebugging } from "./debug.js";
@@ -29,8 +30,7 @@ import {
 import { jsonParse } from "./slowOperations.js";
 
 const GCS_BUCKET_URL =
-    "https://storage.googleapis.com/kalt-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/kalt-code-releases";;
-import { createCombinedAbortSignal } from './combinedAbortSignal.js'
+    "https://storage.googleapis.com/kalt-code-dist-86c565f3-f756-42ad-8dfa-d59b1c096819/kalt-code-releases";
 
 class AutoUpdaterError extends ClaudeError {}
 
@@ -615,5 +615,4 @@ async function removeClaudeAliasesFromShellConfigs(): Promise<void> {
             );
         }
     }
-    import { createCombinedAbortSignal } from "./combinedAbortSignal.js";
 }

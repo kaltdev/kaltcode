@@ -534,8 +534,8 @@ import { AUTO_MODE_DESCRIPTION } from "src/components/AutoModeOptInDialog.js";
 import { useLspInitializationNotification } from "src/hooks/notifs/useLspInitializationNotification.js";
 import { useLspPluginRecommendation } from "src/hooks/useLspPluginRecommendation.js";
 import { LspRecommendationMenu } from "src/components/LspRecommendation/LspRecommendationMenu.js";
-import { useClaudeCodeHintRecommendation } from "src/hooks/useClaudeCodeHintRecommendation.js";
-import { PluginHintMenu } from "src/components/ClaudeCodeHint/PluginHintMenu.js";
+import { useKaltCodeHintRecommendation } from "src/hooks/useKaltCodeHintRecommendation.js";
+import { PluginHintMenu } from "src/components/KaltCodeHint/PluginHintMenu.js";
 import {
     DesktopUpsellStartup,
     shouldShowDesktopUpsellStartup,
@@ -1212,7 +1212,7 @@ export function REPL({
     const {
         recommendation: hintRecommendation,
         handleResponse: handleHintResponse,
-    } = useClaudeCodeHintRecommendation();
+    } = useKaltCodeHintRecommendation();
 
     // Memoize the combined initial tools array to prevent reference changes
     const combinedInitialTools = useMemo(() => {

@@ -37,6 +37,7 @@ import {
 } from '../services/analytics/index.js'
 import type { AppState } from '../state/AppState.js'
 import { runCleanupFunctions } from './cleanupRegistry.js'
+import { createCombinedAbortSignal } from './combinedAbortSignal.js'
 import { logForDebugging } from './debug.js'
 import { logForDiagnosticsNoPII } from './diagLogs.js'
 import { isEnvTruthy } from './envUtils.js'
@@ -130,7 +131,6 @@ function cleanupTerminalModes(skipUnmount: boolean = false): void {
     if (!isEnvTruthy(process.env.KALT_CODE_DISABLE_TERMINAL_TITLE)) {
       if (process.platform === 'win32') {
         process.title = ''
-import { createCombinedAbortSignal } from './combinedAbortSignal.js'
       } else {
         writeSync(1, CLEAR_TERMINAL_TITLE)
       }

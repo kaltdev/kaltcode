@@ -304,7 +304,7 @@ import {
     dedupClaudeAiMcpServers,
     doesEnterpriseMcpConfigExist,
     filterMcpServersByPolicy,
-    getClaudeCodeMcpConfigs,
+    getKaltCodeMcpConfigs,
     getMcpServerSignature,
     parseMcpConfig,
     parseMcpConfigFromFilePath,
@@ -2438,7 +2438,7 @@ async function run(): Promise<CommanderCommand> {
                     // Enforce managed policy (allowedMcpServers / deniedMcpServers) on
                     // --mcp-config servers. Without this, the CLI flag bypasses the
                     // enterprise allowlist that user/project/local configs go through in
-                    // getClaudeCodeMcpConfigs — callers spread dynamicMcpConfig back on
+                    // getKaltCodeMcpConfigs — callers spread dynamicMcpConfig back on
                     // top of filtered results. Filter here at the source so all
                     // downstream consumers see the policy-filtered set.
                     const { allowed, blocked } =
@@ -2811,7 +2811,7 @@ async function run(): Promise<CommanderCommand> {
                     : Promise.resolve({});
 
             // Kick off MCP config loading early (safe - just reads files, no execution).
-            // Both interactive and -p use getClaudeCodeMcpConfigs (local file reads only).
+            // Both interactive and -p use getKaltCodeMcpConfigs (local file reads only).
             // The local promise is awaited later (before prefetchAllMcpResources) to
             // overlap config I/O with setup(), commands loading, and trust dialog.
             logForDebugging("[STARTUP] Loading MCP configs...");
@@ -2825,7 +2825,7 @@ async function run(): Promise<CommanderCommand> {
                     ? Promise.resolve({
                           servers: {} as Record<string, ScopedMcpServerConfig>,
                       })
-                    : getClaudeCodeMcpConfigs(dynamicMcpConfig)
+                    : getKaltCodeMcpConfigs(dynamicMcpConfig)
             ).then((result) => {
                 mcpConfigResolvedMs = Date.now() - mcpConfigStart;
                 return result;
