@@ -99,16 +99,6 @@ OpenRouter model availability changes over time. If a model stops working, try a
 
 ### Ollama
 
-Using `ollama launch` (recommended if you have Ollama installed):
-
-```bash
-ollama launch kalt-code --model llama3.3:70b
-```
-
-This handles all environment setup automatically — no env vars needed. Works with any local or cloud model available in your Ollama instance.
-
-Using environment variables manually:
-
 ```bash
 ollama pull llama3.3:70b
 
@@ -116,24 +106,6 @@ export CLAUDE_CODE_USE_OPENAI=1
 export OPENAI_BASE_URL=http://localhost:11434/v1
 export OPENAI_MODEL=llama3.3:70b
 ```
-
-### Atomic Chat (local, Apple Silicon)
-
-```bash
-export CLAUDE_CODE_USE_OPENAI=1
-export OPENAI_BASE_URL=http://127.0.0.1:1337/v1
-export OPENAI_MODEL=your-model-name
-```
-
-No API key is needed for Atomic Chat local models.
-
-Or use the profile launcher:
-
-```bash
-bun run dev:atomic-chat
-```
-
-Download Atomic Chat from [atomic.chat](https://atomic.chat/). The app must be running with a model loaded before launching.
 
 ### LM Studio
 
