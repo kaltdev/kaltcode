@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.11.0](https://github.com/kaltdev/kaltcode/compare/0.10.0...v0.11.0) (2026-05-14)
+
+
+### Features
+
+* Add initial project files ([e009776](https://github.com/kaltdev/kaltcode/commit/e0097769df69ff521b56d47ce35d957647c429b7))
+* add knowledge graph storage providers and improve test isolation ([180de3c](https://github.com/kaltdev/kaltcode/commit/180de3cc2932df76efc21d413b51c02ae5dea7f1))
+* add knowledge graph storage providers and improve test isolation ([#6](https://github.com/kaltdev/kaltcode/issues/6)) ([180de3c](https://github.com/kaltdev/kaltcode/commit/180de3cc2932df76efc21d413b51c02ae5dea7f1))
+* clean up timeout abort signal ([#7](https://github.com/kaltdev/kaltcode/issues/7)) ([2c496ff](https://github.com/kaltdev/kaltcode/commit/2c496ff395db74d74b6646e40e2b1871dd5f292c))
+* **commands:** Add isCommand type guard and filter invalid entries ([13b1962](https://github.com/kaltdev/kaltcode/commit/13b1962d4fa82071538db56be91cc182742ae7c2))
+* **groq:** Discover and filter Groq models ([735f85a](https://github.com/kaltdev/kaltcode/commit/735f85aa5b5470a22fcc29bf7839f9fe6522bab7))
+* **nvidia:** Add new NIM model options ([21dda81](https://github.com/kaltdev/kaltcode/commit/21dda8138a81c419b3e3bc67f8cdd62472c88aa1))
+* **provider:** add free KaltCode Opengateway as default fallback ([e3e5ba3](https://github.com/kaltdev/kaltcode/commit/e3e5ba3f750bfd63795162ae042535cb4f6efac1))
+* **provider:** Add Xiaomi MiMo support ([8cc74f0](https://github.com/kaltdev/kaltcode/commit/8cc74f02ae5e776f76fbc68088945b9e63477712))
+* **provider:** Streamline preset setup flow ([1c7aabe](https://github.com/kaltdev/kaltcode/commit/1c7aabe4330cd7d85db314b99f4b1f32483671bf))
+
+
+### Bug Fixes
+
+* **abort:** Clean up timeout abort signals ([0912226](https://github.com/kaltdev/kaltcode/commit/09122268112052d5c2822d0e60afcf7c89c9aed1))
+* Add type annotations and format with consistent style ([df6e39d](https://github.com/kaltdev/kaltcode/commit/df6e39d8694179eb75abc8c92871682673ff02ee))
+* **agent:** prevent mid-flight peeking and taking over of forks ([6809d3d](https://github.com/kaltdev/kaltcode/commit/6809d3df3abeb63141f38150b8aaee839c5d59d9))
+* **api:** Hint re-auth for expired OAuth tokens ([994f0a8](https://github.com/kaltdev/kaltcode/commit/994f0a854ee713f016f9067631eb57dc2f7720e6))
+* **api:** Redact URLs in fetch errors ([a7e22d6](https://github.com/kaltdev/kaltcode/commit/a7e22d6f14a39a1001bcd0d9f5e3058076e124d9))
+* **codex:** infer type for untyped MCP tool schemas ([f7bd90f](https://github.com/kaltdev/kaltcode/commit/f7bd90f99e13cb4e9fdc3850c1d4e1319acd648e))
+* **gpt:** Lower GPT-5.5 context window for Codex ([5eb414a](https://github.com/kaltdev/kaltcode/commit/5eb414aaae97240e27c1b14b8dc8ce61b95ecb4b))
+* **pr:** Increase git diff output buffer ([4280cbe](https://github.com/kaltdev/kaltcode/commit/4280cbeafa9a79439b1e5cbb8358126884723b56))
+* rename internal executable identifiers ([ff8e0fa](https://github.com/kaltdev/kaltcode/commit/ff8e0faf3cf3919b85eeb434bb472e7bf2058f62))
+* repair broken branding identifiers ([f3d9928](https://github.com/kaltdev/kaltcode/commit/f3d99288414ef26d8d2f7a5653e57149b8adeb03))
+* **utils:** Clean up combined abort signal handling ([1ae2cbd](https://github.com/kaltdev/kaltcode/commit/1ae2cbdb91cd06378df1d34acd9ac2eee128660b))
+
 ## [0.10.0](https://github.com/kaltdev/kaltcode/compare/v0.9.2...v0.10.0) (2026-05-12)
 
 
