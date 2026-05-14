@@ -22,6 +22,7 @@ export type LegacyAPIProvider =
     | "minimax"
     | "mistral"
     | "xai"
+    | "xiaomi-mimo"
     | "venice";
 
 // Backward-compatible public alias. Keep importing APIProvider where callers
@@ -50,6 +51,8 @@ export function getAPIProvider(): LegacyAPIProvider {
             return "nvidia-nim";
         case "minimax":
             return "minimax";
+        case "xiaomi-mimo":
+            return "xiaomi-mimo";
         case "xai":
             return "xai";
         case "venice":

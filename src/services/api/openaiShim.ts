@@ -901,7 +901,7 @@ function convertTools(
     const isGemini = isGeminiMode();
     const strict =
         !isGemini &&
-        !isEnvTruthy(process.env.OPENCLAUDE_DISABLE_STRICT_TOOLS) &&
+        !isEnvTruthy(process.env.KALTCODE_DISABLE_STRICT_TOOLS) &&
         !options.skipStrict;
 
     return tools
@@ -1109,13 +1109,13 @@ async function* openaiStreamToAnthropic(
                 signal.addEventListener("abort", abortCleanup, { once: true });
             }
 
-            reader!.read().then(
+            reader.read().then(
                 (result) => {
                     clearTimeout(timeoutId);
                     if (signal && abortCleanup)
                         signal.removeEventListener("abort", abortCleanup);
                     if (result.value) lastDataTime = Date.now();
-                    resolve(result as ReadableStreamReadResult<Uint8Array>);
+                    resolve(result);
                 },
                 (err) => {
                     clearTimeout(timeoutId);
@@ -1290,7 +1290,7 @@ async function* openaiStreamToAnthropic(
                                             ?.thought_signature
                                             ? {
                                                   signature: (
-                                                      tc.extra_content!
+                                                      tc.extra_content
                                                           .google as any
                                                   ).thought_signature,
                                               }
@@ -2265,12 +2265,15 @@ class OpenAIShimMessages {
             ? "nvidia-nim"
             : request.baseUrl.includes("minimax")
               ? "minimax"
-              : request.baseUrl.includes("localhost:11434") ||
-                  request.baseUrl.includes("localhost:11435")
-                ? "ollama"
-                : request.baseUrl.includes("anthropic")
-                  ? "anthropic"
-                  : "openai";
+              : request.baseUrl.includes("xiaomimimo") ||
+                  request.baseUrl.includes("mimo-v2")
+                ? "xiaomi-mimo"
+                : request.baseUrl.includes("localhost:11434") ||
+                    request.baseUrl.includes("localhost:11435")
+                  ? "ollama"
+                  : request.baseUrl.includes("anthropic")
+                    ? "anthropic"
+                    : "openai";
         const { correlationId, startTime } = logApiCallStart(
             provider,
             request.resolvedModel,
@@ -2311,11 +2314,7 @@ class OpenAIShimMessages {
                 throwClassifiedTransportError(error, requestUrl, failure);
             }
 
-            // At this point response is guaranteed to be defined:
-            // the catch block above either throws or continues.
-            const resp = response!;
-
-            if (resp.ok) {
+            if (response.ok) {
                 let tokensIn = 0;
                 let tokensOut = 0;
                 // Skip clone() for streaming responses - it blocks until full body is received,
@@ -2323,7 +2322,7 @@ class OpenAIShimMessages {
                 // stream_options: { include_usage: true } and can be extracted from the stream.
                 if (!params.stream) {
                     try {
-                        const clone = resp.clone();
+                        const clone = response.clone();
                         const data = await clone.json();
                         tokensIn = data.usage?.prompt_tokens ?? 0;
                         tokensOut = data.usage?.completion_tokens ?? 0;
@@ -2340,11 +2339,15 @@ class OpenAIShimMessages {
                     tokensOut,
                     false,
                 );
-                return resp;
+                return response;
             }
 
-            if (isGithub && resp.status === 429 && attempt < maxAttempts - 1) {
-                await resp.text().catch(() => {});
+            if (
+                isGithub &&
+                response.status === 429 &&
+                attempt < maxAttempts - 1
+            ) {
+                await response.text().catch(() => {});
                 const delaySec = Math.min(
                     GITHUB_429_BASE_DELAY_SEC * 2 ** attempt,
                     GITHUB_429_MAX_DELAY_SEC,
@@ -2354,15 +2357,17 @@ class OpenAIShimMessages {
             }
             // Read body exactly once here — Response body is a stream that can only
             // be consumed a single time.
-            const errorBody = await resp.text().catch(() => "unknown error");
+            const errorBody = await response
+                .text()
+                .catch(() => "unknown error");
             const rateHint =
-                isGithub && resp.status === 429
-                    ? formatRetryAfterHint(resp)
+                isGithub && response.status === 429
+                    ? formatRetryAfterHint(response)
                     : "";
 
             // If GitHub Copilot returns error about /chat/completions,
             // try the /responses endpoint (needed for GPT-5+ models)
-            if (isGithub && resp.status === 400) {
+            if (isGithub && response.status === 400) {
                 if (
                     errorBody.includes("/chat/completions") ||
                     errorBody.includes("not accessible")
@@ -2383,7 +2388,6 @@ class OpenAIShimMessages {
                         );
                     } catch (error) {
                         throwClassifiedTransportError(error, responsesUrl);
-                        throw error; // unreachable, helps TypeScript control flow
                     }
 
                     if (responsesResponse.ok) {
@@ -2415,7 +2419,7 @@ class OpenAIShimMessages {
             }
 
             const failure = classifyOpenAIHttpFailure({
-                status: resp.status,
+                status: response.status,
                 body: errorBody,
             });
 
@@ -2460,10 +2464,10 @@ class OpenAIShimMessages {
                 /* raw text */
             }
             throwClassifiedHttpError(
-                resp.status,
+                response.status,
                 errorBody,
                 errorResponse,
-                resp.headers as unknown as Headers,
+                response.headers as unknown as Headers,
                 requestUrl,
                 rateHint,
                 failure,
@@ -2565,7 +2569,7 @@ class OpenAIShimMessages {
                     // Extract Gemini signature from extra_content
                     ...((tc.extra_content?.google as any)?.thought_signature
                         ? {
-                              signature: (tc.extra_content!.google as any)
+                              signature: (tc.extra_content.google as any)
                                   .thought_signature,
                           }
                         : {}),

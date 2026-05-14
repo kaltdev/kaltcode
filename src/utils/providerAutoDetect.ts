@@ -29,62 +29,63 @@
  * and the presence of a persisted profile file.
  */
 
-import { existsSync } from 'fs'
-import { homedir } from 'os'
-import { join } from 'path'
+import { existsSync } from "fs";
+import { homedir } from "os";
+import { join } from "path";
 
 export type DetectedProviderKind =
-  | 'anthropic'
-  | 'codex'
-  | 'github'
-  | 'openai'
-  | 'gemini'
-  | 'mistral'
-  | 'minimax'
-  | 'xai'
-  | 'ollama'
-  | 'lm-studio'
+    | "anthropic"
+    | "codex"
+    | "github"
+    | "openai"
+    | "gemini"
+    | "mistral"
+    | "minimax"
+    | "xiaomi-mimo"
+    | "xai"
+    | "ollama"
+    | "lm-studio";
 
 export type DetectedProvider = {
-  kind: DetectedProviderKind
-  /** One-line human-readable reason, e.g. "ANTHROPIC_API_KEY set". */
-  source: string
-  /** Present when the detection already resolved a usable base URL. */
-  baseUrl?: string
-  /** Present when detection also narrowed down a specific model. */
-  model?: string
-}
+    kind: DetectedProviderKind;
+    /** One-line human-readable reason, e.g. "ANTHROPIC_API_KEY set". */
+    source: string;
+    /** Present when the detection already resolved a usable base URL. */
+    baseUrl?: string;
+    /** Present when detection also narrowed down a specific model. */
+    model?: string;
+};
 
-type EnvLike = NodeJS.ProcessEnv | Record<string, string | undefined>
+type EnvLike = NodeJS.ProcessEnv | Record<string, string | undefined>;
 
 function envHasNonEmpty(env: EnvLike, key: string): boolean {
-  const value = env[key]
-  return typeof value === 'string' && value.trim().length > 0
+    const value = env[key];
+    return typeof value === "string" && value.trim().length > 0;
 }
 
 function firstSet(env: EnvLike, keys: readonly string[]): string | undefined {
-  for (const key of keys) {
-    if (envHasNonEmpty(env, key)) return key
-  }
-  return undefined
+    for (const key of keys) {
+        if (envHasNonEmpty(env, key)) return key;
+    }
+    return undefined;
 }
 
 function defaultHasCodexAuthFile(): boolean {
-  const paths = [
-    process.env.CODEX_AUTH_PATH,
-    join(homedir(), '.codex', 'auth.json'),
-  ]
-  return paths.some(p => p && existsSync(p))
+    const paths = [
+        process.env.CODEX_AUTH_PATH,
+        join(homedir(), ".codex", "auth.json"),
+    ];
+    return paths.some((p) => p && existsSync(p));
 }
 
 export type DetectProviderFromEnvOptions = {
-  env?: EnvLike
-  /**
-   * Override Codex auth-file detection. Primarily for tests — the default
-   * implementation checks ~/.codex/auth.json and CODEX_AUTH_PATH on disk.
-   */
-  hasCodexAuth?: () => boolean
-}
+    env?: EnvLike;
+    /**
+     * Override Codex auth-file detection. Primarily for tests — the default
+     * implementation checks ~/.codex/auth.json and CODEX_AUTH_PATH on disk.
+     */
+    hasCodexAuth?: () => boolean;
+};
 
 /**
  * Synchronous env-only scan. Returns the highest-priority env-provided
@@ -93,109 +94,121 @@ export type DetectProviderFromEnvOptions = {
  * one of the standard API-key env vars.
  */
 function isOptionsObject(
-  value: EnvLike | DetectProviderFromEnvOptions | undefined,
+    value: EnvLike | DetectProviderFromEnvOptions | undefined,
 ): value is DetectProviderFromEnvOptions {
-  if (!value || typeof value !== 'object') return false
-  if ('hasCodexAuth' in value && typeof value.hasCodexAuth === 'function') {
-    return true
-  }
-  if ('env' in value && typeof (value as { env?: unknown }).env === 'object') {
-    return true
-  }
-  return false
+    if (!value || typeof value !== "object") return false;
+    if ("hasCodexAuth" in value && typeof value.hasCodexAuth === "function") {
+        return true;
+    }
+    if (
+        "env" in value &&
+        typeof (value as { env?: unknown }).env === "object"
+    ) {
+        return true;
+    }
+    return false;
 }
 
 export function detectProviderFromEnv(
-  envOrOptions: EnvLike | DetectProviderFromEnvOptions = process.env,
+    envOrOptions: EnvLike | DetectProviderFromEnvOptions = process.env,
 ): DetectedProvider | null {
-  const options: DetectProviderFromEnvOptions = isOptionsObject(envOrOptions)
-    ? envOrOptions
-    : { env: envOrOptions as EnvLike }
-  const env = options.env ?? process.env
-  const hasCodexAuth = options.hasCodexAuth ?? defaultHasCodexAuthFile
-  if (envHasNonEmpty(env, 'ANTHROPIC_API_KEY')) {
-    return { kind: 'anthropic', source: 'ANTHROPIC_API_KEY set' }
-  }
-
-  if (
-    envHasNonEmpty(env, 'CODEX_API_KEY') ||
-    envHasNonEmpty(env, 'CHATGPT_ACCOUNT_ID') ||
-    envHasNonEmpty(env, 'CODEX_ACCOUNT_ID') ||
-    hasCodexAuth()
-  ) {
-    const sourceEnv =
-      firstSet(env, ['CODEX_API_KEY', 'CHATGPT_ACCOUNT_ID', 'CODEX_ACCOUNT_ID'])
-    return {
-      kind: 'codex',
-      source: sourceEnv ? `${sourceEnv} set` : '~/.codex/auth.json present',
+    const options: DetectProviderFromEnvOptions = isOptionsObject(envOrOptions)
+        ? envOrOptions
+        : { env: envOrOptions as EnvLike };
+    const env = options.env ?? process.env;
+    const hasCodexAuth = options.hasCodexAuth ?? defaultHasCodexAuthFile;
+    if (envHasNonEmpty(env, "ANTHROPIC_API_KEY")) {
+        return { kind: "anthropic", source: "ANTHROPIC_API_KEY set" };
     }
-  }
 
-  const githubKey = firstSet(env, ['GITHUB_TOKEN', 'GH_TOKEN'])
-  if (githubKey) {
-    return {
-      kind: 'github',
-      source: `${githubKey} set (GitHub Copilot)`,
+    if (
+        envHasNonEmpty(env, "CODEX_API_KEY") ||
+        envHasNonEmpty(env, "CHATGPT_ACCOUNT_ID") ||
+        envHasNonEmpty(env, "CODEX_ACCOUNT_ID") ||
+        hasCodexAuth()
+    ) {
+        const sourceEnv = firstSet(env, [
+            "CODEX_API_KEY",
+            "CHATGPT_ACCOUNT_ID",
+            "CODEX_ACCOUNT_ID",
+        ]);
+        return {
+            kind: "codex",
+            source: sourceEnv
+                ? `${sourceEnv} set`
+                : "~/.codex/auth.json present",
+        };
     }
-  }
 
-  const openaiKey = firstSet(env, ['OPENAI_API_KEYS', 'OPENAI_API_KEY'])
-  if (openaiKey) {
-    return {
-      kind: 'openai',
-      source: `${openaiKey} set`,
-      baseUrl: env.OPENAI_BASE_URL ?? env.OPENAI_API_BASE,
+    const githubKey = firstSet(env, ["GITHUB_TOKEN", "GH_TOKEN"]);
+    if (githubKey) {
+        return {
+            kind: "github",
+            source: `${githubKey} set (GitHub Copilot)`,
+        };
     }
-  }
 
-  const geminiKey = firstSet(env, ['GEMINI_API_KEY', 'GOOGLE_API_KEY'])
-  if (geminiKey) {
-    return { kind: 'gemini', source: `${geminiKey} set` }
-  }
+    const openaiKey = firstSet(env, ["OPENAI_API_KEYS", "OPENAI_API_KEY"]);
+    if (openaiKey) {
+        return {
+            kind: "openai",
+            source: `${openaiKey} set`,
+            baseUrl: env.OPENAI_BASE_URL ?? env.OPENAI_API_BASE,
+        };
+    }
 
-  if (envHasNonEmpty(env, 'MISTRAL_API_KEY')) {
-    return { kind: 'mistral', source: 'MISTRAL_API_KEY set' }
-  }
+    const geminiKey = firstSet(env, ["GEMINI_API_KEY", "GOOGLE_API_KEY"]);
+    if (geminiKey) {
+        return { kind: "gemini", source: `${geminiKey} set` };
+    }
 
-  if (envHasNonEmpty(env, 'MINIMAX_API_KEY')) {
-    return { kind: 'minimax', source: 'MINIMAX_API_KEY set' }
-  }
+    if (envHasNonEmpty(env, "MISTRAL_API_KEY")) {
+        return { kind: "mistral", source: "MISTRAL_API_KEY set" };
+    }
 
-  if (envHasNonEmpty(env, 'XAI_API_KEY')) {
-    return { kind: 'xai', source: 'XAI_API_KEY set' }
-  }
+    if (envHasNonEmpty(env, "MINIMAX_API_KEY")) {
+        return { kind: "minimax", source: "MINIMAX_API_KEY set" };
+    }
 
-  return null
+    if (envHasNonEmpty(env, "MIMO_API_KEY")) {
+        return { kind: "xiaomi-mimo", source: "MIMO_API_KEY set" };
+    }
+
+    if (envHasNonEmpty(env, "XAI_API_KEY")) {
+        return { kind: "xai", source: "XAI_API_KEY set" };
+    }
+
+    return null;
 }
 
 type LocalProbe = {
-  kind: DetectedProviderKind
-  url: string
-  timeoutMs: number
-  source: string
-  baseUrl: string
-}
+    kind: DetectedProviderKind;
+    url: string;
+    timeoutMs: number;
+    source: string;
+    baseUrl: string;
+};
 
-const DEFAULT_LOCAL_PROBE_TIMEOUT_MS = 1200
+const DEFAULT_LOCAL_PROBE_TIMEOUT_MS = 1200;
 
 async function probeReachable(
-  url: string,
-  timeoutMs: number,
-  fetchImpl: typeof fetch,
+    url: string,
+    timeoutMs: number,
+    fetchImpl: typeof fetch,
 ): Promise<boolean> {
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), timeoutMs)
-  try {
-    const response = await fetchImpl(url, {
-      method: 'GET',
-      signal: controller.signal,
-    })
-    return response.ok
-  } catch {
-    return false
-  } finally {
-    clearTimeout(timer)
-  }
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const response = await fetchImpl(url, {
+            method: "GET",
+            signal: controller.signal,
+        });
+        return response.ok;
+    } catch {
+        return false;
+    } finally {
+        clearTimeout(timer);
+    }
 }
 
 /**
@@ -204,58 +217,60 @@ async function probeReachable(
  * so slow-but-preferred services still win over fast-but-lower-priority ones.
  */
 export async function detectLocalService(options?: {
-  env?: EnvLike
-  fetchImpl?: typeof fetch
-  timeoutMs?: number
+    env?: EnvLike;
+    fetchImpl?: typeof fetch;
+    timeoutMs?: number;
 }): Promise<DetectedProvider | null> {
-  const env = options?.env ?? process.env
-  const fetchImpl = options?.fetchImpl ?? globalThis.fetch
-  const timeoutMs = options?.timeoutMs ?? DEFAULT_LOCAL_PROBE_TIMEOUT_MS
+    const env = options?.env ?? process.env;
+    const fetchImpl = options?.fetchImpl ?? globalThis.fetch;
+    const timeoutMs = options?.timeoutMs ?? DEFAULT_LOCAL_PROBE_TIMEOUT_MS;
 
-  const ollamaBase = (env.OLLAMA_BASE_URL ?? 'http://localhost:11434').replace(
-    /\/+$/,
-    '',
-  )
-  const lmStudioBase = (env.LM_STUDIO_BASE_URL ?? 'http://localhost:1234').replace(
-    /\/+$/,
-    '',
-  )
+    const ollamaBase = (
+        env.OLLAMA_BASE_URL ?? "http://localhost:11434"
+    ).replace(/\/+$/, "");
+    const lmStudioBase = (
+        env.LM_STUDIO_BASE_URL ?? "http://localhost:1234"
+    ).replace(/\/+$/, "");
 
-  const probes: LocalProbe[] = [
-    {
-      kind: 'ollama',
-      url: `${ollamaBase}/api/tags`,
-      timeoutMs,
-      source: `Ollama reachable at ${ollamaBase}`,
-      baseUrl: ollamaBase,
-    },
-    {
-      kind: 'lm-studio',
-      url: `${lmStudioBase}/v1/models`,
-      timeoutMs,
-      source: `LM Studio reachable at ${lmStudioBase}`,
-      baseUrl: lmStudioBase,
-    },
-  ]
+    const probes: LocalProbe[] = [
+        {
+            kind: "ollama",
+            url: `${ollamaBase}/api/tags`,
+            timeoutMs,
+            source: `Ollama reachable at ${ollamaBase}`,
+            baseUrl: ollamaBase,
+        },
+        {
+            kind: "lm-studio",
+            url: `${lmStudioBase}/v1/models`,
+            timeoutMs,
+            source: `LM Studio reachable at ${lmStudioBase}`,
+            baseUrl: lmStudioBase,
+        },
+    ];
 
-  const results = await Promise.all(
-    probes.map(async probe => ({
-      probe,
-      reachable: await probeReachable(probe.url, probe.timeoutMs, fetchImpl),
-    })),
-  )
+    const results = await Promise.all(
+        probes.map(async (probe) => ({
+            probe,
+            reachable: await probeReachable(
+                probe.url,
+                probe.timeoutMs,
+                fetchImpl,
+            ),
+        })),
+    );
 
-  for (const { probe, reachable } of results) {
-    if (reachable) {
-      return {
-        kind: probe.kind,
-        source: probe.source,
-        baseUrl: probe.baseUrl,
-      }
+    for (const { probe, reachable } of results) {
+        if (reachable) {
+            return {
+                kind: probe.kind,
+                source: probe.source,
+                baseUrl: probe.baseUrl,
+            };
+        }
     }
-  }
 
-  return null
+    return null;
 }
 
 /**
@@ -263,27 +278,27 @@ export async function detectLocalService(options?: {
  * (async, ~1-2s worst case) only if nothing was found in env.
  */
 export async function detectBestProvider(options?: {
-  env?: EnvLike
-  fetchImpl?: typeof fetch
-  timeoutMs?: number
-  /** Skip local-service probes — useful for tests or offline smoke checks. */
-  skipLocal?: boolean
-  /** Override for Codex auth-file detection. See detectProviderFromEnv. */
-  hasCodexAuth?: () => boolean
+    env?: EnvLike;
+    fetchImpl?: typeof fetch;
+    timeoutMs?: number;
+    /** Skip local-service probes — useful for tests or offline smoke checks. */
+    skipLocal?: boolean;
+    /** Override for Codex auth-file detection. See detectProviderFromEnv. */
+    hasCodexAuth?: () => boolean;
 }): Promise<DetectedProvider | null> {
-  const env = options?.env ?? process.env
+    const env = options?.env ?? process.env;
 
-  const fromEnv = detectProviderFromEnv({
-    env,
-    hasCodexAuth: options?.hasCodexAuth,
-  })
-  if (fromEnv) return fromEnv
+    const fromEnv = detectProviderFromEnv({
+        env,
+        hasCodexAuth: options?.hasCodexAuth,
+    });
+    if (fromEnv) return fromEnv;
 
-  if (options?.skipLocal) return null
+    if (options?.skipLocal) return null;
 
-  return detectLocalService({
-    env,
-    fetchImpl: options?.fetchImpl,
-    timeoutMs: options?.timeoutMs,
-  })
+    return detectLocalService({
+        env,
+        fetchImpl: options?.fetchImpl,
+        timeoutMs: options?.timeoutMs,
+    });
 }

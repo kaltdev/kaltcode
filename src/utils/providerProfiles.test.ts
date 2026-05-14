@@ -68,6 +68,7 @@ const RESTORED_KEYS = [
     "BANKR_MODEL",
     "XAI_API_KEY",
     "VENICE_API_KEY",
+    "MIMO_API_KEY",
     "HICAP_API_KEY",
 ] as const;
 
@@ -218,6 +219,19 @@ function buildVeniceProfile(
         baseUrl: "https://api.venice.ai/api/v1",
         model: "venice-uncensored",
         apiKey: "venice-test-key",
+        ...overrides,
+    });
+}
+
+function buildXiaomiMimoProfile(
+    overrides: Partial<ProviderProfile> = {},
+): ProviderProfile {
+    return buildProfile({
+        provider: "xiaomi-mimo",
+        name: "Xiaomi MiMo",
+        baseUrl: "https://api.xiaomimimo.com/v1",
+        model: "mimo-v2.5-pro",
+        apiKey: "mimo-test-key",
         ...overrides,
     });
 }
@@ -511,6 +525,45 @@ describe("applyProviderProfileToProcessEnv", () => {
         expect(process.env.OPENAI_AUTH_SCHEME).toBeUndefined();
         expect(process.env.OPENAI_AUTH_HEADER_VALUE).toBeUndefined();
         expect(process.env.ANTHROPIC_CUSTOM_HEADERS).toBeUndefined();
+    });
+
+    test("xiaomi mimo profile applies OpenAI-compatible env with MIMO_API_KEY mirror", async () => {
+        const { applyProviderProfileToProcessEnv } =
+            await importFreshProviderProfileModules();
+        process.env.CLAUDE_CODE_USE_GEMINI = "1";
+
+        applyProviderProfileToProcessEnv(buildXiaomiMimoProfile());
+        const { getAPIProvider: getFreshAPIProvider } =
+            await importFreshProvidersModule();
+
+        expect(process.env.CLAUDE_CODE_USE_GEMINI).toBeUndefined();
+        expect(String(process.env.CLAUDE_CODE_USE_OPENAI)).toBe("1");
+        expect(process.env.OPENAI_BASE_URL).toBe(
+            "https://api.xiaomimimo.com/v1",
+        );
+        expect(process.env.OPENAI_MODEL).toBe("mimo-v2.5-pro");
+        expect(process.env.OPENAI_API_KEY).toBe("mimo-test-key");
+        expect(process.env.MIMO_API_KEY).toBe("mimo-test-key");
+        expect(getFreshAPIProvider()).toBe("xiaomi-mimo");
+    });
+
+    test("xiaomi mimo profile normalizes stale docs endpoint to resolving API host", async () => {
+        const { applyProviderProfileToProcessEnv } =
+            await importFreshProviderProfileModules();
+
+        applyProviderProfileToProcessEnv(
+            buildXiaomiMimoProfile({
+                baseUrl: "https://api.mimo-v2.com/v1",
+            }),
+        );
+        const { getAPIProvider: getFreshAPIProvider } =
+            await importFreshProvidersModule();
+
+        expect(process.env.OPENAI_BASE_URL).toBe(
+            "https://api.xiaomimimo.com/v1",
+        );
+        expect(process.env.MIMO_API_KEY).toBe("mimo-test-key");
+        expect(getFreshAPIProvider()).toBe("xiaomi-mimo");
     });
 
     test("legacy OpenAI profile on restricted route ignores advanced settings", async () => {
@@ -1133,22 +1186,38 @@ describe("getProviderPresetDefaults", () => {
         expect(defaults.model).toBe("MiniMax-M2.7");
         expect(defaults.requiresApiKey).toBe(true);
     });
-    
-    test('xai preset ignores stale generic OpenAI model when creating defaults', async () => {
-        const { getProviderPresetDefaults } = await importFreshProviderProfileModules()
-        process.env.OPENAI_MODEL = 'gpt-5.4'
-        process.env.OPENAI_BASE_URL = 'https://api.openai.com/v1'
-        process.env.XAI_API_KEY = 'xai-live-key'
-    
-        const defaults = getProviderPresetDefaults('xai')
-    
-        expect(defaults.provider).toBe('xai')
-        expect(defaults.name).toBe('xAI')
-        expect(defaults.baseUrl).toBe('https://api.x.ai/v1')
-        expect(defaults.model).toBe('grok-4.3')
-        expect(defaults.apiKey).toBe('xai-live-key')
-        expect(defaults.requiresApiKey).toBe(true)
-      })
+
+    test("xiaomi mimo preset defaults to the official Xiaomi MiMo endpoint", async () => {
+        const { getProviderPresetDefaults } =
+            await importFreshProviderProfileModules();
+        process.env.MIMO_API_KEY = "mimo-live-key";
+
+        const defaults = getProviderPresetDefaults("xiaomi-mimo");
+
+        expect(defaults.provider).toBe("xiaomi-mimo");
+        expect(defaults.name).toBe("Xiaomi MiMo");
+        expect(defaults.baseUrl).toBe("https://api.xiaomimimo.com/v1");
+        expect(defaults.model).toBe("mimo-v2.5-pro");
+        expect(defaults.apiKey).toBe("mimo-live-key");
+        expect(defaults.requiresApiKey).toBe(true);
+    });
+
+    test("xai preset ignores stale generic OpenAI model when creating defaults", async () => {
+        const { getProviderPresetDefaults } =
+            await importFreshProviderProfileModules();
+        process.env.OPENAI_MODEL = "gpt-5.4";
+        process.env.OPENAI_BASE_URL = "https://api.openai.com/v1";
+        process.env.XAI_API_KEY = "xai-live-key";
+
+        const defaults = getProviderPresetDefaults("xai");
+
+        expect(defaults.provider).toBe("xai");
+        expect(defaults.name).toBe("xAI");
+        expect(defaults.baseUrl).toBe("https://api.x.ai/v1");
+        expect(defaults.model).toBe("grok-4.3");
+        expect(defaults.apiKey).toBe("xai-live-key");
+        expect(defaults.requiresApiKey).toBe(true);
+    });
 
     test("zai preset defaults to Z.AI GLM Coding Plan endpoint", async () => {
         const { getProviderPresetDefaults } =
@@ -1354,6 +1423,54 @@ describe("setActiveProviderProfile", () => {
                 OPENAI_BASE_URL: "https://api.deepseek.com/v1",
                 OPENAI_MODEL: "deepseek-chat",
                 OPENAI_API_KEY: "sk-deepseek-live",
+            });
+        } finally {
+            process.chdir(originalCwd);
+            rmSync(tempDir, { recursive: true, force: true });
+            rmSync(configDir, { recursive: true, force: true });
+        }
+    });
+
+    test("persists Xiaomi MiMo profiles using a legacy-compatible openai startup profile", async () => {
+        const tempDir = mkdtempSync(join(tmpdir(), "kalt-code-provider-"));
+        const configDir = mkdtempSync(
+            join(tmpdir(), "kalt-code-provider-config-"),
+        );
+        process.chdir(tempDir);
+        applyTestConfigDir(configDir);
+
+        try {
+            const { setActiveProviderProfile } =
+                await importFreshProviderProfileModules();
+            const mimoProfile = buildXiaomiMimoProfile({
+                baseUrl: "https://api.mimo-v2.com/v1",
+                id: "mimo_prof",
+                model: "mimo-v2.5-pro, mimo-v2-flash",
+            });
+
+            saveMockGlobalConfig((current) => ({
+                ...current,
+                providerProfiles: [mimoProfile],
+            }));
+
+            const result = setActiveProviderProfile("mimo_prof");
+            const persisted = JSON.parse(
+                readFileSync(
+                    join(configDir, STARTUP_PROFILE_FILE_NAME),
+                    "utf8",
+                ),
+            );
+
+            expect(result?.id).toBe("mimo_prof");
+            expect(existsSync(join(tempDir, STARTUP_PROFILE_FILE_NAME))).toBe(
+                false,
+            );
+            expect(persisted.profile).toBe("openai");
+            expect(persisted.env).toEqual({
+                OPENAI_BASE_URL: "https://api.xiaomimimo.com/v1",
+                OPENAI_MODEL: "mimo-v2.5-pro",
+                OPENAI_API_KEY: "mimo-test-key",
+                MIMO_API_KEY: "mimo-test-key",
             });
         } finally {
             process.chdir(originalCwd);

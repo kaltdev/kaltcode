@@ -137,6 +137,7 @@ const PRESET_ORDER = [
     "Together AI",
     "Venice",
     "xAI",
+    "Xiaomi MiMo",
     "Z.AI - GLM Coding Plan",
     "Custom",
 ] as const;
@@ -211,28 +212,29 @@ function mockProviderProfilesModule(options?: {
                     model: "custom-model",
                     apiKey: "",
                     requiresApiKey: true,
-                            }
-                          }
+                };
+            }
 
-                          if (preset === 'azure-openai') {
-                            return {
-                              provider: 'azure-openai',
-                              name: 'Azure OpenAI',
-                              baseUrl: 'https://YOUR-RESOURCE-NAME.openai.azure.com/openai/v1',
-                              model: 'YOUR-DEPLOYMENT-NAME',
-                              apiKey: '',
-                              requiresApiKey: true,
-                            }
-                          }
+            if (preset === "azure-openai") {
+                return {
+                    provider: "azure-openai",
+                    name: "Azure OpenAI",
+                    baseUrl:
+                        "https://YOUR-RESOURCE-NAME.openai.azure.com/openai/v1",
+                    model: "YOUR-DEPLOYMENT-NAME",
+                    apiKey: "",
+                    requiresApiKey: true,
+                };
+            }
 
-                          if (preset === 'openai') {
-                            return {
-                              provider: 'openai',
-                              name: 'OpenAI',
-                              baseUrl: 'https://api.openai.com/v1',
-                              model: 'gpt-5.4',
-                              apiKey: '',
-                              requiresApiKey: true,
+            if (preset === "openai") {
+                return {
+                    provider: "openai",
+                    name: "OpenAI",
+                    baseUrl: "https://api.openai.com/v1",
+                    model: "gpt-5.4",
+                    apiKey: "",
+                    requiresApiKey: true,
                 };
             }
 
@@ -243,7 +245,7 @@ function mockProviderProfilesModule(options?: {
                     baseUrl: "https://api.minimax.io/v1",
                     model: "MiniMax-M2.7",
                     apiKey: "",
-                     requiresApiKey: true,
+                    requiresApiKey: true,
                 };
             }
 
@@ -254,7 +256,7 @@ function mockProviderProfilesModule(options?: {
                     baseUrl: "https://api.hicap.ai/v1",
                     model: "claude-opus-4.7",
                     apiKey: "",
-                     requiresApiKey: true,
+                    requiresApiKey: true,
                 };
             }
 
@@ -264,7 +266,7 @@ function mockProviderProfilesModule(options?: {
                 baseUrl: "http://localhost:11434/v1",
                 model: "mock-model",
                 apiKey: "",
-                 requiresApiKey: true,
+                requiresApiKey: true,
             };
         },
         getProviderProfiles: options?.getProviderProfiles ?? (() => []),
@@ -666,7 +668,7 @@ test("ProviderManager shows API mode picker for custom OpenAI-compatible provide
     }
 });
 
-test('ProviderManager keeps full setup flow for presets with placeholder endpoint defaults', async () => {
+test("ProviderManager keeps full setup flow for presets with placeholder endpoint defaults", async () => {
     mockProviderManagerDependencies(
         () => undefined,
         async () => undefined,
@@ -690,96 +692,106 @@ test('ProviderManager keeps full setup flow for presets with placeholder endpoin
 
         await navigateToPreset(mounted.stdin, "Azure OpenAI");
         mounted.stdin.write("\r");
-        const nameOutput = await waitForFrameOutput(mounted.getOutput, frame =>
+        const nameOutput = await waitForFrameOutput(
+            mounted.getOutput,
+            (frame) =>
                 frame.includes("Create provider profile") &&
                 frame.includes("Provider name"),
         );
-        expect(nameOutput).toContain('Azure OpenAI')
-           expect(nameOutput).not.toContain('Step 1 of 2: Default model')
+        expect(nameOutput).toContain("Azure OpenAI");
+        expect(nameOutput).not.toContain("Step 1 of 2: Default model");
 
         mounted.stdin.write("\r");
-        const baseUrlOutput = await waitForFrameOutput(mounted.getOutput, frame =>
-            frame.includes("Base URL"),
+        const baseUrlOutput = await waitForFrameOutput(
+            mounted.getOutput,
+            (frame) => frame.includes("Base URL"),
         );
-        expect(baseUrlOutput).toContain('YOUR-RESOURCE-NAME')
-          } finally {
-            await mounted.dispose()
-          }
-        })
-
-        test('ProviderManager asks for model and API key when adding OpenAI preset', async () => {
-          const addProviderProfile = mock((payload: any) => ({
-            id: 'openai_profile',
-            ...payload,
-          }))
-
-          mockProviderManagerDependencies(() => undefined, async () => undefined, {
-            addProviderProfile,
-          })
-
-          const nonce = `${Date.now()}-${Math.random()}`
-          const { ProviderManager } = await import(`./ProviderManager.js?ts=${nonce}`)
-          const mounted = await mountProviderManager(ProviderManager)
-
-          try {
-            await waitForFrameOutput(mounted.getOutput, frame =>
-              frame.includes('Provider manager'),
-            )
-
-        mounted.stdin.write("\r");
-        await waitForFrameOutput(mounted.getOutput, (frame) =>
-            frame.includes("Choose provider preset"),
-        );
-              await navigateToPreset(mounted.stdin, 'OpenAI')
-              mounted.stdin.write("\r");
-              const modelOutput = await waitForFrameOutput(mounted.getOutput, frame =>
-                    frame.includes('Create provider profile') &&
-                    frame.includes('Step 1 of 2: Default model'),
-                  )
-
-              expect(modelOutput).toContain('OpenAI')
-                 expect(modelOutput).toContain('gpt-5.4')
-                 expect(modelOutput).not.toContain('Provider name')
-                 expect(modelOutput).not.toContain('Base URL')
-                 expect(modelOutput).not.toContain('API mode')
-                 expect(modelOutput).not.toContain('Custom headers')
-
-                 mounted.stdin.write('\r')
-                 const keyOutput = await waitForFrameOutput(mounted.getOutput, frame =>
-                   frame.includes('Step 2 of 2: API key'),
-                 )
-                 expect(keyOutput).not.toContain('Provider name')
-                 expect(keyOutput).not.toContain('Base URL')
-                 expect(keyOutput).not.toContain('API mode')
-                 expect(keyOutput).not.toContain('Custom headers')
-
-                 mounted.stdin.write('sk-openai-test')
-                 await Bun.sleep(25)
-                 mounted.stdin.write('\r')
-
-                 await waitForCondition(() => addProviderProfile.mock.calls.length > 0)
-                 expect(addProviderProfile).toHaveBeenCalledWith(
-                   expect.objectContaining({
-                     provider: 'openai',
-                     name: 'OpenAI',
-                     baseUrl: 'https://api.openai.com/v1',
-                     model: 'gpt-5.4',
-                     apiKey: 'sk-openai-test',
-                     apiFormat: 'responses',
-                   }),
-                   expect.objectContaining({ makeActive: true }),
-        );
-
+        expect(baseUrlOutput).toContain("YOUR-RESOURCE-NAME");
     } finally {
         await mounted.dispose();
     }
 });
 
-        test('ProviderManager saves OpenAI preset GPT-5 models with Responses API', async () => {
-          const addProviderProfile = mock((payload: any) => ({
-            id: 'openai_profile',
-            ...payload,
-          }))
+test("ProviderManager asks for model and API key when adding OpenAI preset", async () => {
+    const addProviderProfile = mock((payload: any) => ({
+        id: "openai_profile",
+        ...payload,
+    }));
+
+    mockProviderManagerDependencies(
+        () => undefined,
+        async () => undefined,
+        {
+            addProviderProfile,
+        },
+    );
+
+    const nonce = `${Date.now()}-${Math.random()}`;
+    const { ProviderManager } = await import(
+        `./ProviderManager.js?ts=${nonce}`
+    );
+    const mounted = await mountProviderManager(ProviderManager);
+
+    try {
+        await waitForFrameOutput(mounted.getOutput, (frame) =>
+            frame.includes("Provider manager"),
+        );
+
+        mounted.stdin.write("\r");
+        await waitForFrameOutput(mounted.getOutput, (frame) =>
+            frame.includes("Choose provider preset"),
+        );
+        await navigateToPreset(mounted.stdin, "OpenAI");
+        mounted.stdin.write("\r");
+        const modelOutput = await waitForFrameOutput(
+            mounted.getOutput,
+            (frame) =>
+                frame.includes("Create provider profile") &&
+                frame.includes("Step 1 of 2: Default model"),
+        );
+
+        expect(modelOutput).toContain("OpenAI");
+        expect(modelOutput).toContain("gpt-5.4");
+        expect(modelOutput).not.toContain("Provider name");
+        expect(modelOutput).not.toContain("Base URL");
+        expect(modelOutput).not.toContain("API mode");
+        expect(modelOutput).not.toContain("Custom headers");
+
+        mounted.stdin.write("\r");
+        const keyOutput = await waitForFrameOutput(mounted.getOutput, (frame) =>
+            frame.includes("Step 2 of 2: API key"),
+        );
+        expect(keyOutput).not.toContain("Provider name");
+        expect(keyOutput).not.toContain("Base URL");
+        expect(keyOutput).not.toContain("API mode");
+        expect(keyOutput).not.toContain("Custom headers");
+
+        mounted.stdin.write("sk-openai-test");
+        await Bun.sleep(25);
+        mounted.stdin.write("\r");
+
+        await waitForCondition(() => addProviderProfile.mock.calls.length > 0);
+        expect(addProviderProfile).toHaveBeenCalledWith(
+            expect.objectContaining({
+                provider: "openai",
+                name: "OpenAI",
+                baseUrl: "https://api.openai.com/v1",
+                model: "gpt-5.4",
+                apiKey: "sk-openai-test",
+                apiFormat: "responses",
+            }),
+            expect.objectContaining({ makeActive: true }),
+        );
+    } finally {
+        await mounted.dispose();
+    }
+});
+
+test("ProviderManager saves OpenAI preset GPT-5 models with Responses API", async () => {
+    const addProviderProfile = mock((payload: any) => ({
+        id: "openai_profile",
+        ...payload,
+    }));
     mockProviderManagerDependencies(
         () => undefined,
         async () => undefined,
@@ -809,130 +821,142 @@ test('ProviderManager keeps full setup flow for presets with placeholder endpoin
         await waitForFrameOutput(mounted.getOutput, (frame) =>
             frame.includes("Step 1 of 2: Default model"),
         );
-        mounted.stdin.write('\u0015')
-            await Bun.sleep(25)
-            mounted.stdin.write('gpt-5.5')
-            await waitForFrameOutput(mounted.getOutput, frame =>
-              frame.includes('gpt-5.5'),
-            )
+        mounted.stdin.write("\u0015");
+        await Bun.sleep(25);
+        mounted.stdin.write("gpt-5.5");
+        await waitForFrameOutput(mounted.getOutput, (frame) =>
+            frame.includes("gpt-5.5"),
+        );
 
         mounted.stdin.write("\r");
         await waitForFrameOutput(mounted.getOutput, (frame) =>
-          frame.includes('Step 2 of 2: API key'),
-              )
+            frame.includes("Step 2 of 2: API key"),
+        );
 
-              mounted.stdin.write('sk-openai-test')
-              await Bun.sleep(25)
-              mounted.stdin.write('\r')
+        mounted.stdin.write("sk-openai-test");
+        await Bun.sleep(25);
+        mounted.stdin.write("\r");
 
-              await waitForCondition(() => addProviderProfile.mock.calls.length > 0)
-              expect(addProviderProfile).toHaveBeenCalledWith(
-                expect.objectContaining({
-                  provider: 'openai',
-                  model: 'gpt-5.5',
-                  apiFormat: 'responses',
-                }),
-                expect.objectContaining({ makeActive: true }),
+        await waitForCondition(() => addProviderProfile.mock.calls.length > 0);
+        expect(addProviderProfile).toHaveBeenCalledWith(
+            expect.objectContaining({
+                provider: "openai",
+                model: "gpt-5.5",
+                apiFormat: "responses",
+            }),
+            expect.objectContaining({ makeActive: true }),
         );
     } finally {
-        await mounted.dispose()
-      }
-    })
+        await mounted.dispose();
+    }
+});
 
-    test('ProviderManager skips advanced setup fields when adding MiniMax preset', async () => {
-      mockProviderManagerDependencies(() => undefined, async () => undefined)
+test("ProviderManager skips advanced setup fields when adding MiniMax preset", async () => {
+    mockProviderManagerDependencies(
+        () => undefined,
+        async () => undefined,
+    );
 
-      const nonce = `${Date.now()}-${Math.random()}`
-      const { ProviderManager } = await import(`./ProviderManager.js?ts=${nonce}`)
-      const mounted = await mountProviderManager(ProviderManager)
+    const nonce = `${Date.now()}-${Math.random()}`;
+    const { ProviderManager } = await import(
+        `./ProviderManager.js?ts=${nonce}`
+    );
+    const mounted = await mountProviderManager(ProviderManager);
 
-      try {
-        await waitForFrameOutput(mounted.getOutput, frame =>
-          frame.includes('Provider manager'),
-        )
+    try {
+        await waitForFrameOutput(mounted.getOutput, (frame) =>
+            frame.includes("Provider manager"),
+        );
         mounted.stdin.write("\r");
         await waitForFrameOutput(mounted.getOutput, (frame) =>
             frame.includes("Choose provider preset"),
-          );
-          await navigateToPreset(mounted.stdin, 'MiniMax')
-            mounted.stdin.write('\r')
-            const modelOutput = await waitForFrameOutput(mounted.getOutput, frame =>
-              frame.includes('Create provider profile') &&
-              frame.includes('Step 1 of 2: Default model'),
-            )
+        );
+        await navigateToPreset(mounted.stdin, "MiniMax");
+        mounted.stdin.write("\r");
+        const modelOutput = await waitForFrameOutput(
+            mounted.getOutput,
+            (frame) =>
+                frame.includes("Create provider profile") &&
+                frame.includes("Step 1 of 2: Default model"),
+        );
 
-            expect(modelOutput).toContain('MiniMax')
-            expect(modelOutput).toContain('MiniMax-M2.7')
-            expect(modelOutput).not.toContain('Provider name')
-            expect(modelOutput).not.toContain('Base URL')
-            expect(modelOutput).not.toContain('API mode')
-            expect(modelOutput).not.toContain('Auth header')
-            expect(modelOutput).not.toContain('Custom headers')
-          mounted.stdin.write("\r");
-          const keyOutput = await waitForFrameOutput(mounted.getOutput, frame =>
-                frame.includes('Step 2 of 2: API key'),
-              )
-              expect(keyOutput).not.toContain('Provider name')
-              expect(keyOutput).not.toContain('Base URL')
-              expect(keyOutput).not.toContain('API mode')
-              expect(keyOutput).not.toContain('Auth header')
-              expect(keyOutput).not.toContain('Custom headers')
-            } finally {
-              await mounted.dispose()
-            }
-          })
+        expect(modelOutput).toContain("MiniMax");
+        expect(modelOutput).toContain("MiniMax-M2.7");
+        expect(modelOutput).not.toContain("Provider name");
+        expect(modelOutput).not.toContain("Base URL");
+        expect(modelOutput).not.toContain("API mode");
+        expect(modelOutput).not.toContain("Auth header");
+        expect(modelOutput).not.toContain("Custom headers");
+        mounted.stdin.write("\r");
+        const keyOutput = await waitForFrameOutput(mounted.getOutput, (frame) =>
+            frame.includes("Step 2 of 2: API key"),
+        );
+        expect(keyOutput).not.toContain("Provider name");
+        expect(keyOutput).not.toContain("Base URL");
+        expect(keyOutput).not.toContain("API mode");
+        expect(keyOutput).not.toContain("Auth header");
+        expect(keyOutput).not.toContain("Custom headers");
+    } finally {
+        await mounted.dispose();
+    }
+});
 
-          test('ProviderManager saves Hicap preset non-GPT model with Chat Completions', async () => {
-            const addProviderProfile = mock((payload: any) => ({
-              id: 'hicap_profile',
-              ...payload,
-            }))
+test("ProviderManager saves Hicap preset non-GPT model with Chat Completions", async () => {
+    const addProviderProfile = mock((payload: any) => ({
+        id: "hicap_profile",
+        ...payload,
+    }));
 
-            mockProviderManagerDependencies(() => undefined, async () => undefined, {
-              addProviderProfile,
-            })
+    mockProviderManagerDependencies(
+        () => undefined,
+        async () => undefined,
+        {
+            addProviderProfile,
+        },
+    );
 
-            const nonce = `${Date.now()}-${Math.random()}`
-            const { ProviderManager } = await import(`./ProviderManager.js?ts=${nonce}`)
-            const mounted = await mountProviderManager(ProviderManager)
+    const nonce = `${Date.now()}-${Math.random()}`;
+    const { ProviderManager } = await import(
+        `./ProviderManager.js?ts=${nonce}`
+    );
+    const mounted = await mountProviderManager(ProviderManager);
 
-            try {
+    try {
         await waitForFrameOutput(mounted.getOutput, (frame) =>
             frame.includes("Provider manager"),
         );
 
-
         mounted.stdin.write("\r");
-        await waitForFrameOutput(mounted.getOutput, frame =>
-              frame.includes('Choose provider preset'),
-            )
-
-            await navigateToPreset(mounted.stdin, 'Hicap')
-            mounted.stdin.write('\r')
-            const modelOutput = await waitForFrameOutput(mounted.getOutput, frame =>
-              frame.includes('Step 1 of 2: Default model'),
+        await waitForFrameOutput(mounted.getOutput, (frame) =>
+            frame.includes("Choose provider preset"),
         );
-            expect(modelOutput).toContain('Hicap')
-                expect(modelOutput).toContain('claude-opus-4.7')
+
+        await navigateToPreset(mounted.stdin, "Hicap");
+        mounted.stdin.write("\r");
+        const modelOutput = await waitForFrameOutput(
+            mounted.getOutput,
+            (frame) => frame.includes("Step 1 of 2: Default model"),
+        );
+        expect(modelOutput).toContain("Hicap");
+        expect(modelOutput).toContain("claude-opus-4.7");
 
         mounted.stdin.write("\r");
         await waitForFrameOutput(mounted.getOutput, (frame) =>
-            frame.includes("Step 2 of 2: API Key"),
+            frame.includes("Step 2 of 2: API key"),
         );
-                mounted.stdin.write('hicap-test-key')
-            await Bun.sleep(25)
+        mounted.stdin.write("hicap-test-key");
+        await Bun.sleep(25);
         mounted.stdin.write("\r");
 
-        await waitForCondition(() => addProviderProfile.mock.calls.length > 0)
-            expect(addProviderProfile).toHaveBeenCalledWith(
-              expect.objectContaining({
-                provider: 'hicap',
-                model: 'claude-opus-4.7',
-                apiFormat: 'chat_completions',
-              }),
-              expect.objectContaining({ makeActive: true }),
+        await waitForCondition(() => addProviderProfile.mock.calls.length > 0);
+        expect(addProviderProfile).toHaveBeenCalledWith(
+            expect.objectContaining({
+                provider: "hicap",
+                model: "claude-opus-4.7",
+                apiFormat: "chat_completions",
+            }),
+            expect.objectContaining({ makeActive: true }),
         );
-
     } finally {
         await mounted.dispose();
     }
@@ -1386,7 +1410,13 @@ test("ProviderManager first-run Codex OAuth switches the current session after l
             applySavedProfileToCurrentSession,
             setActiveProviderProfile,
             useCodexOAuthFlow: ({ onAuthenticated }) => {
+                const hasAuthenticated = React.useRef(false);
+
                 React.useEffect(() => {
+                    if (hasAuthenticated.current) {
+                        return;
+                    }
+                    hasAuthenticated.current = true;
                     void onAuthenticated(
                         {
                             accessToken: "oauth-access-token",
@@ -1500,7 +1530,13 @@ test("ProviderManager first-run Codex OAuth reports next-startup fallback when s
             applySavedProfileToCurrentSession,
             setActiveProviderProfile,
             useCodexOAuthFlow: ({ onAuthenticated }) => {
+                const hasAuthenticated = React.useRef(false);
+
                 React.useEffect(() => {
+                    if (hasAuthenticated.current) {
+                        return;
+                    }
+                    hasAuthenticated.current = true;
                     void onAuthenticated(
                         {
                             accessToken: "oauth-access-token",

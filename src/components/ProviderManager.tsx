@@ -447,6 +447,7 @@ function CodexOAuthSetup({
         persistCredentials: (options?: { profileId?: string }) => void,
     ) => void | Promise<void>;
 }): React.ReactNode {
+    const hasHandledAuthenticationRef = React.useRef(false);
     const handleAuthenticated = React.useCallback(
         async (
             tokens: {
@@ -458,6 +459,10 @@ function CodexOAuthSetup({
             },
             persistCredentials: (options?: { profileId?: string }) => void,
         ) => {
+            if (hasHandledAuthenticationRef.current) {
+                return;
+            }
+            hasHandledAuthenticationRef.current = true;
             await onConfigured(tokens, persistCredentials);
         },
         [onConfigured],
@@ -498,7 +503,7 @@ function CodexOAuthSetup({
                 Codex OAuth
             </Text>
             <Text>
-                Sign in with your ChatGPT account in the browser. KaltCode will
+                Sign in with your ChatGPT account in the browser. Kalt Code will
                 store the resulting Codex credentials securely and switch this
                 session to the new Codex login when setup completes.
             </Text>
@@ -920,10 +925,10 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
         }
 
         if (options.warnings.length > 0) {
-            return `${options.prefix}. KaltCode switched to it for this session with warnings: ${options.warnings.join("; ")}.`;
+            return `${options.prefix}. Kalt Code switched to it for this session with warnings: ${options.warnings.join("; ")}.`;
         }
 
-        return `${options.prefix}. KaltCode switched to it for this session.`;
+        return `${options.prefix}. Kalt Code switched to it for this session.`;
     }
 
     async function activateCodexOAuthSession(tokens?: {

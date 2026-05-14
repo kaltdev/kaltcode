@@ -25,6 +25,7 @@ const ENV_KEYS = [
     "XAI_API_KEY",
     "MINIMAX_API_KEY",
     "VENICE_API_KEY",
+    "MIMO_API_KEY",
     "MISTRAL_MODEL",
     "ANTHROPIC_MODEL",
 ];
@@ -54,6 +55,7 @@ const RESET_KEYS = [
     "BNKR_API_KEY",
     "XAI_API_KEY",
     "MINIMAX_API_KEY",
+    "MIMO_API_KEY",
     "VENICE_API_KEY",
     "MISTRAL_MODEL",
     "ANTHROPIC_MODEL",
@@ -129,6 +131,7 @@ describe("VALID_PROVIDERS", () => {
         expect(VALID_PROVIDERS).toContain("atomic-chat");
         expect(VALID_PROVIDERS).toContain("zai");
         expect(VALID_PROVIDERS).toContain("venice");
+        expect(VALID_PROVIDERS).toContain("xiaomi-mimo");
     });
 });
 
@@ -286,6 +289,23 @@ describe("applyProviderFlag - descriptor-backed openai-compatible routes", () =>
         );
     });
 
+    test("clears MIMO_API_KEY copied into OPENAI_API_KEY when switching routes", () => {
+        process.env.MIMO_API_KEY = "mimo-live-key";
+
+        const mimoResult = applyProviderFlag("xiaomi-mimo", []);
+        expect(mimoResult.error).toBeUndefined();
+        expect(process.env.OPENAI_API_KEY).toBe("mimo-live-key");
+
+        process.env.OPENAI_BASE_URL = "https://openrouter.ai/api/v1";
+        const openrouterResult = applyProviderFlag("openrouter", []);
+
+        expect(openrouterResult.error).toBeUndefined();
+        expect(process.env.OPENAI_API_KEY).toBeUndefined();
+        expect(process.env.OPENAI_BASE_URL).toBe(
+            "https://openrouter.ai/api/v1",
+        );
+    });
+
     test("clears XAI_API_KEY copied into OPENAI_API_KEY when switching routes", () => {
         process.env.XAI_API_KEY = "xai-live-key";
 
@@ -389,6 +409,28 @@ describe("applyProviderFlag - xai", () => {
         applyProviderFlag("xai", []);
 
         expect(process.env.OPENAI_API_KEY).toBe("existing-openai-key");
+    });
+});
+
+describe("applyProviderFlag - xiaomi-mimo", () => {
+    test("sets Xiaomi MiMo OpenAI-compatible defaults and mirrors MIMO_API_KEY", () => {
+        process.env.MIMO_API_KEY = "mimo-secret-key";
+
+        const result = applyProviderFlag("xiaomi-mimo", []);
+
+        expect(result.error).toBeUndefined();
+        expect(process.env.CLAUDE_CODE_USE_OPENAI).toBe("1");
+        expect(process.env.OPENAI_BASE_URL).toBe(
+            "https://api.xiaomimimo.com/v1",
+        );
+        expect(process.env.OPENAI_MODEL).toBe("mimo-v2.5-pro");
+        expect(process.env.OPENAI_API_KEY).toBe("mimo-secret-key");
+    });
+
+    test("sets Xiaomi MiMo OPENAI_MODEL when --model is provided", () => {
+        applyProviderFlag("xiaomi-mimo", ["--model", "mimo-v2-flash"]);
+
+        expect(process.env.OPENAI_MODEL).toBe("mimo-v2-flash");
     });
 });
 

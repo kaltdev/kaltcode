@@ -47,7 +47,9 @@ export const CLAUDE_3_7_SONNET_CONFIG = {
     codex: "gpt-5.5",
     "nvidia-nim": "nvidia/llama-3.1-nemotron-70b-instruct",
     minimax: "MiniMax-M2.5",
+    "xiaomi-mimo": "mimo-v2.5-pro",
     xai: "grok-4.3",
+    venice: "llama-3.3-70b",
 } as const satisfies LegacyProviderModelConfig;
 
 export const CLAUDE_3_5_V2_SONNET_CONFIG = {
@@ -62,7 +64,9 @@ export const CLAUDE_3_5_V2_SONNET_CONFIG = {
     codex: "gpt-5.5",
     "nvidia-nim": "nvidia/llama-3.1-nemotron-70b-instruct",
     minimax: "MiniMax-M2.5",
+    "xiaomi-mimo": "mimo-v2.5-pro",
     xai: "grok-4.3",
+    venice: "llama-3.3-70b",
 } as const satisfies LegacyProviderModelConfig;
 
 export const CLAUDE_3_5_HAIKU_CONFIG = {
@@ -77,7 +81,9 @@ export const CLAUDE_3_5_HAIKU_CONFIG = {
     codex: "gpt-5.5",
     "nvidia-nim": "nvidia/llama-3.1-nemotron-70b-instruct",
     minimax: "MiniMax-M2.5",
+    "xiaomi-mimo": "mimo-v2.5-pro",
     xai: "grok-4.3",
+    venice: "llama-3.3-70b",
 } as const satisfies LegacyProviderModelConfig;
 
 export const CLAUDE_HAIKU_4_5_CONFIG = {
@@ -92,7 +98,9 @@ export const CLAUDE_HAIKU_4_5_CONFIG = {
     codex: "gpt-5.5",
     "nvidia-nim": "nvidia/llama-3.1-nemotron-70b-instruct",
     minimax: "MiniMax-M2.5",
+    "xiaomi-mimo": "mimo-v2.5-pro",
     xai: "grok-4.3",
+    venice: "llama-3.3-70b",
 } as const satisfies LegacyProviderModelConfig;
 
 export const CLAUDE_SONNET_4_CONFIG = {
@@ -107,7 +115,9 @@ export const CLAUDE_SONNET_4_CONFIG = {
     codex: "gpt-5.5",
     "nvidia-nim": "nvidia/llama-3.1-nemotron-70b-instruct",
     minimax: "MiniMax-M2.5",
+    "xiaomi-mimo": "mimo-v2.5-pro",
     xai: "grok-4.3",
+    venice: "llama-3.3-70b",
 } as const satisfies LegacyProviderModelConfig;
 
 export const CLAUDE_SONNET_4_5_CONFIG = {
@@ -122,7 +132,9 @@ export const CLAUDE_SONNET_4_5_CONFIG = {
     codex: "gpt-5.5",
     "nvidia-nim": "nvidia/llama-3.1-nemotron-70b-instruct",
     minimax: "MiniMax-M2.5",
+    "xiaomi-mimo": "mimo-v2.5-pro",
     xai: "grok-4.3",
+    venice: "llama-3.3-70b",
 } as const satisfies LegacyProviderModelConfig;
 
 export const CLAUDE_OPUS_4_CONFIG = {
@@ -137,7 +149,9 @@ export const CLAUDE_OPUS_4_CONFIG = {
     codex: "gpt-5.5",
     "nvidia-nim": "nvidia/llama-3.1-nemotron-70b-instruct",
     minimax: "MiniMax-M2.5",
+    "xiaomi-mimo": "mimo-v2.5-pro",
     xai: "grok-4.3",
+    venice: "llama-3.3-70b",
 } as const satisfies LegacyProviderModelConfig;
 
 export const CLAUDE_OPUS_4_1_CONFIG = {
@@ -152,7 +166,9 @@ export const CLAUDE_OPUS_4_1_CONFIG = {
     codex: "gpt-5.5",
     "nvidia-nim": "nvidia/llama-3.1-nemotron-70b-instruct",
     minimax: "MiniMax-M2.5",
+    "xiaomi-mimo": "mimo-v2.5-pro",
     xai: "grok-4.3",
+    venice: "llama-3.3-70b",
 } as const satisfies LegacyProviderModelConfig;
 
 export const CLAUDE_OPUS_4_5_CONFIG = {
@@ -167,10 +183,12 @@ export const CLAUDE_OPUS_4_5_CONFIG = {
     codex: "gpt-5.5",
     "nvidia-nim": "nvidia/llama-3.1-nemotron-70b-instruct",
     minimax: "MiniMax-M2.5",
+    "xiaomi-mimo": "mimo-v2.5-pro",
     xai: "grok-4.3",
+    venice: "llama-3.3-70b",
 } as const satisfies LegacyProviderModelConfig;
 
-export const KALT_CODE_OPUS_4_6_CONFIG = {
+export const CLAUDE_OPUS_4_6_CONFIG = {
     firstParty: "claude-opus-4-6",
     bedrock: "us.anthropic.claude-opus-4-6-v1",
     vertex: "claude-opus-4-6",
@@ -182,10 +200,12 @@ export const KALT_CODE_OPUS_4_6_CONFIG = {
     codex: "gpt-5.5",
     "nvidia-nim": "nvidia/llama-3.1-nemotron-70b-instruct",
     minimax: "MiniMax-M2.5",
+    "xiaomi-mimo": "mimo-v2.5-pro",
     xai: "grok-4.3",
+    venice: "llama-3.3-70b",
 } as const satisfies LegacyProviderModelConfig;
 
-export const CLAUDE_OPUS_4_6_CONFIG = KALT_CODE_OPUS_4_6_CONFIG;
+export const KALT_CODE_OPUS_4_6_CONFIG = CLAUDE_OPUS_4_6_CONFIG;
 
 export const CLAUDE_OPUS_4_7_CONFIG = {
     firstParty: "claude-opus-4-7",
@@ -199,7 +219,9 @@ export const CLAUDE_OPUS_4_7_CONFIG = {
     codex: "gpt-5.5",
     "nvidia-nim": "nvidia/llama-3.1-nemotron-70b-instruct",
     minimax: "MiniMax-M2.5",
+    "xiaomi-mimo": "mimo-v2.5-pro",
     xai: "grok-4.3",
+    venice: "llama-3.3-70b",
 } as const satisfies LegacyProviderModelConfig;
 
 export const CLAUDE_SONNET_4_6_CONFIG = {
@@ -214,7 +236,9 @@ export const CLAUDE_SONNET_4_6_CONFIG = {
     codex: "gpt-5.5",
     "nvidia-nim": "nvidia/llama-3.1-nemotron-70b-instruct",
     minimax: "MiniMax-M2.5",
+    "xiaomi-mimo": "mimo-v2.5-pro",
     xai: "grok-4.3",
+    venice: "llama-3.3-70b",
 } as const satisfies LegacyProviderModelConfig;
 
 // @[MODEL LAUNCH]: Register the new config here.
@@ -229,7 +253,7 @@ export const LEGACY_PROVIDER_MODEL_CONFIGS = {
     opus40: CLAUDE_OPUS_4_CONFIG,
     opus41: CLAUDE_OPUS_4_1_CONFIG,
     opus45: CLAUDE_OPUS_4_5_CONFIG,
-    opus46: KALT_CODE_OPUS_4_6_CONFIG,
+    opus46: CLAUDE_OPUS_4_6_CONFIG,
     opus47: CLAUDE_OPUS_4_7_CONFIG,
 } as const satisfies Record<string, LegacyProviderModelConfig>;
 
