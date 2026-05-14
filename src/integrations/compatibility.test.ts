@@ -37,6 +37,7 @@ const EXPECTED_PRESETS = [
     "zai",
     "bankr",
     "atomic-chat",
+    "kaltcode-opengateway",
 ] as const satisfies readonly ProviderPreset[];
 
 describe("compatibility mappings", () => {

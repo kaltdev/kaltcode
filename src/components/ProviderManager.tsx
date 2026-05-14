@@ -226,18 +226,29 @@ function getPresetLabel(
     preset: ProviderPreset,
     label: string,
 ): React.ReactNode {
-    if (preset !== "xiaomi-mimo") {
-        return label;
+    if (preset === "kaltcode-opengateway") {
+        return (
+            <Text>
+                <Text>{label} </Text>
+                <Text color="success" bold>
+                    [FREE]
+                </Text>
+            </Text>
+        );
     }
 
-    return (
-        <Text>
-            <Text>{label} </Text>
-            <Text color="success" bold>
-                [Sponsor]
+    if (preset === "xiaomi-mimo") {
+        return (
+            <Text>
+                <Text>{label} </Text>
+                <Text color="success" bold>
+                    [Sponsor]
+                </Text>
             </Text>
-        </Text>
-    );
+        );
+    }
+
+    return label;
 }
 
 function presetToDraft(preset: ProviderPreset): ProviderDraft {
@@ -1635,7 +1646,12 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
             });
 
         if (canUseCodexOAuth) {
-            options.splice(6, 0, {
+            // Insert after DeepSeek so Codex OAuth keeps its established position
+            // in the picker even with KaltCode Opengateway pinned at the top.
+            const deepSeekIndex = options.findIndex(
+                (option) => option.value === "deepseek",
+            );
+            options.splice(deepSeekIndex >= 0 ? deepSeekIndex + 1 : 6, 0, {
                 value: "codex-oauth",
                 label: (
                     <Text>

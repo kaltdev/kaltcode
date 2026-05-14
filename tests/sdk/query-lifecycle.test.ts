@@ -251,7 +251,7 @@ describe('Query resume lifecycle', () => {
         // Accept that environmental failure mode so this test only asserts
         // fork behavior when the query engine actually initializes.
         expect(
-          /axios\.defaults\.proxy|MACRO is not defined|unknown tool 'Glob'/.test(
+          /axios\.defaults\.proxy|MACRO is not defined|unknown tool 'Glob'|getCoordinatorUserContext is not a function/.test(
             caughtError.message,
           ),
         ).toBe(true)

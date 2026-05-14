@@ -19,6 +19,7 @@
  *   8. XAI_API_KEY
  *   9. Local Ollama reachable (default localhost:11434)
  *  10. Local LM Studio reachable (default localhost:1234)
+ *  11. KaltCode Opengateway zero-config MiMo fallback
  *
  * Local-service probes are parallelized and cheap (short timeout, no
  * request body). Env scans are synchronous and run first so we don't make
@@ -44,7 +45,8 @@ export type DetectedProviderKind =
     | "xiaomi-mimo"
     | "xai"
     | "ollama"
-    | "lm-studio";
+    | "lm-studio"
+    | "kaltcode-opengateway";
 
 export type DetectedProvider = {
     kind: DetectedProviderKind;
@@ -277,6 +279,29 @@ export async function detectLocalService(options?: {
  * Orchestrator: env scan first (sync, free), then local-service probes
  * (async, ~1-2s worst case) only if nothing was found in env.
  */
+
+const OPENGATEWAY_DEFAULT_BASE_URL =
+    "https://opengateway.gitlawb.com/v1/xiaomi-mimo";
+const OPENGATEWAY_DEFAULT_MODEL = "mimo-v2.5-pro";
+
+/**
+ * Zero-config fallback: the KaltCode Opengateway exposes free MiMo inference
+ * (Xiaomi partnership) without requiring any API key. This is the default
+ * any fresh install lands on when no credentials or local services exist.
+ */
+function defaultOpengatewayProvider(env: EnvLike): DetectedProvider {
+    const baseUrl =
+        (typeof env.OPENGATEWAY_BASE_URL === "string" &&
+            env.OPENGATEWAY_BASE_URL.trim()) ||
+        OPENGATEWAY_DEFAULT_BASE_URL;
+    return {
+        kind: "kaltcode-opengateway",
+        source: "KaltCode Opengateway (free MiMo — no key required)",
+        baseUrl,
+        model: OPENGATEWAY_DEFAULT_MODEL,
+    };
+}
+
 export async function detectBestProvider(options?: {
     env?: EnvLike;
     fetchImpl?: typeof fetch;
@@ -285,6 +310,11 @@ export async function detectBestProvider(options?: {
     skipLocal?: boolean;
     /** Override for Codex auth-file detection. See detectProviderFromEnv. */
     hasCodexAuth?: () => boolean;
+    /**
+     * Disable the KaltCode Opengateway fallback. Returns null when no other
+     * provider is detected. Use this in tests that need to assert "nothing found".
+     */
+    skipOpengatewayFallback?: boolean;
 }): Promise<DetectedProvider | null> {
     const env = options?.env ?? process.env;
 
@@ -294,11 +324,20 @@ export async function detectBestProvider(options?: {
     });
     if (fromEnv) return fromEnv;
 
-    if (options?.skipLocal) return null;
+    if (options?.skipLocal) {
+        return options.skipOpengatewayFallback
+            ? null
+            : defaultOpengatewayProvider(env);
+    }
 
-    return detectLocalService({
+    const local = await detectLocalService({
         env,
         fetchImpl: options?.fetchImpl,
         timeoutMs: options?.timeoutMs,
     });
+    if (local) return local;
+
+    return options?.skipOpengatewayFallback
+        ? null
+        : defaultOpengatewayProvider(env);
 }
