@@ -524,47 +524,55 @@ export function buildMiniMaxProfileEnv(options: {
 }
 
 export function buildXiaomiMimoProfileEnv(options: {
-  model?: string | null
-  baseUrl?: string | null
-  apiKey?: string | null
-  processEnv?: NodeJS.ProcessEnv
+    model?: string | null;
+    baseUrl?: string | null;
+    apiKey?: string | null;
+    processEnv?: NodeJS.ProcessEnv;
 }): ProfileEnv | null {
-  const processEnv = options.processEnv ?? process.env
-  const key = sanitizeApiKey(options.apiKey ?? processEnv.MIMO_API_KEY)
-  if (!key) {
-    return null
-  }
+    const processEnv = options.processEnv ?? process.env;
+    const key = sanitizeApiKey(options.apiKey ?? processEnv.MIMO_API_KEY);
+    if (!key) {
+        return null;
+    }
 
-  const defaultBaseUrl = getRouteDefaultBaseUrl('xiaomi-mimo')
-  const defaultModel = getRouteDefaultModel('xiaomi-mimo')
-  if (!defaultBaseUrl || !defaultModel) {
-    throw new Error('Xiaomi MiMo route defaults are missing from integration metadata.')
-  }
-  const secretSource: SecretValueSource = {
-    OPENAI_API_KEY: key,
-    MIMO_API_KEY: key,
-  }
+    const defaultBaseUrl = getRouteDefaultBaseUrl("xiaomi-mimo");
+    const defaultModel = getRouteDefaultModel("xiaomi-mimo");
+    if (!defaultBaseUrl || !defaultModel) {
+        throw new Error(
+            "Xiaomi MiMo route defaults are missing from integration metadata.",
+        );
+    }
+    const secretSource: SecretValueSource = {
+        OPENAI_API_KEY: key,
+        MIMO_API_KEY: key,
+    };
 
-  return {
-    OPENAI_BASE_URL:
-      normalizeXiaomiMimoBaseUrl(
-        sanitizeProviderConfigValue(options.baseUrl, secretSource),
-      ) ||
-      normalizeXiaomiMimoBaseUrl(
-        sanitizeProviderConfigValue(processEnv.OPENAI_BASE_URL, secretSource),
-      ) ||
-      defaultBaseUrl,
-    OPENAI_MODEL:
-      normalizeProfileModel(
-        sanitizeProviderConfigValue(options.model, secretSource),
-      ) ||
-      normalizeProfileModel(
-        sanitizeProviderConfigValue(processEnv.OPENAI_MODEL, secretSource),
-      ) ||
-      defaultModel,
-    OPENAI_API_KEY: key,
-    MIMO_API_KEY: key,
-  }
+    return {
+        OPENAI_BASE_URL:
+            normalizeXiaomiMimoBaseUrl(
+                sanitizeProviderConfigValue(options.baseUrl, secretSource),
+            ) ||
+            normalizeXiaomiMimoBaseUrl(
+                sanitizeProviderConfigValue(
+                    processEnv.OPENAI_BASE_URL,
+                    secretSource,
+                ),
+            ) ||
+            defaultBaseUrl,
+        OPENAI_MODEL:
+            normalizeProfileModel(
+                sanitizeProviderConfigValue(options.model, secretSource),
+            ) ||
+            normalizeProfileModel(
+                sanitizeProviderConfigValue(
+                    processEnv.OPENAI_MODEL,
+                    secretSource,
+                ),
+            ) ||
+            defaultModel,
+        OPENAI_API_KEY: key,
+        MIMO_API_KEY: key,
+    };
 }
 
 export function buildGeminiProfileEnv(options: {
@@ -1048,6 +1056,65 @@ export function hasExplicitProviderSelection(
     );
 }
 
+function hasConcreteProviderSelection(
+    processEnv: NodeJS.ProcessEnv = process.env,
+): boolean {
+    if (processEnv.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED === "1") {
+        return true;
+    }
+
+    if (isEnvTruthy(processEnv.CLAUDE_CODE_USE_OPENAI)) {
+        return (
+            sanitizeProviderConfigValue(processEnv.OPENAI_BASE_URL) !==
+                undefined ||
+            sanitizeProviderConfigValue(processEnv.OPENAI_API_BASE) !==
+                undefined ||
+            normalizeProfileModel(
+                sanitizeProviderConfigValue(processEnv.OPENAI_MODEL),
+            ) !== undefined
+        );
+    }
+
+    if (isEnvTruthy(processEnv.CLAUDE_CODE_USE_GEMINI)) {
+        return (
+            sanitizeProviderConfigValue(processEnv.GEMINI_BASE_URL) !==
+                undefined ||
+            normalizeProfileModel(
+                sanitizeProviderConfigValue(processEnv.GEMINI_MODEL),
+            ) !== undefined ||
+            sanitizeApiKey(processEnv.GEMINI_API_KEY) !== undefined ||
+            sanitizeApiKey(processEnv.GOOGLE_API_KEY) !== undefined
+        );
+    }
+
+    if (isEnvTruthy(processEnv.CLAUDE_CODE_USE_MISTRAL)) {
+        return (
+            sanitizeProviderConfigValue(processEnv.MISTRAL_BASE_URL) !==
+                undefined ||
+            normalizeProfileModel(
+                sanitizeProviderConfigValue(processEnv.MISTRAL_MODEL),
+            ) !== undefined ||
+            sanitizeApiKey(processEnv.MISTRAL_API_KEY) !== undefined
+        );
+    }
+
+    if (isEnvTruthy(processEnv.CLAUDE_CODE_USE_GITHUB)) {
+        return (
+            sanitizeApiKey(processEnv.GITHUB_TOKEN) !== undefined ||
+            sanitizeApiKey(processEnv.GH_TOKEN) !== undefined ||
+            normalizeProfileModel(
+                sanitizeProviderConfigValue(processEnv.OPENAI_MODEL),
+            ) !== undefined
+        );
+    }
+
+    return (
+        isEnvTruthy(processEnv.CLAUDE_CODE_USE_BEDROCK) ||
+        isEnvTruthy(processEnv.CLAUDE_CODE_USE_VERTEX) ||
+        isEnvTruthy(processEnv.CLAUDE_CODE_USE_FOUNDRY)
+    );
+}
+
 export function selectAutoProfile(
     recommendedOllamaModel: string | null,
 ): ProviderProfile {
@@ -1060,6 +1127,7 @@ export async function buildLaunchEnv(options: {
     goal: RecommendationGoal;
     processEnv?: NodeJS.ProcessEnv;
     getOllamaChatBaseUrl?: (baseUrl?: string) => string;
+    hasConfiguredProviderProfile?: boolean;
     resolveOllamaDefaultModel?: (goal: RecommendationGoal) => Promise<string>;
     getAtomicChatChatBaseUrl?: (baseUrl?: string) => string;
     resolveAtomicChatDefaultModel?: () => Promise<string | null>;
@@ -1518,6 +1586,9 @@ export async function buildStartupEnvFromProfile(options?: {
     const profileManagedEnv =
         processEnv.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED === "1";
 
+    const hasConfiguredProviderProfile =
+        options?.hasConfiguredProviderProfile ?? false;
+
     // The single-profile file in the user config directory is a
     // first-run / fallback mechanism. The newer plural provider-profile
     // system (`/provider` presets + activeProviderProfileId in config) is
@@ -1531,6 +1602,18 @@ export async function buildStartupEnvFromProfile(options?: {
     // "banner shows gpt-4o / api.openai.com even though my saved profile is
     // Moonshot" bug.
     if (profileManagedEnv) {
+        return processEnv;
+    }
+
+    // If startup already has a concrete provider selection and the modern
+    // plural-profile system is configured, keep trusting that selection.
+    // This prevents the legacy single-profile file from becoming a silent
+    // third precedence layer when `/provider` profiles or explicit env/flags
+    // already chose a provider before startup fallback runs.
+    if (
+        hasConfiguredProviderProfile &&
+        hasConcreteProviderSelection(processEnv)
+    ) {
         return processEnv;
     }
 
