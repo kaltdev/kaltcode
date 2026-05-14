@@ -1,6 +1,6 @@
-import type { DiagLogger } from '@opentelemetry/api'
 import { logForDebugging } from '../debug.js'
 import { logError } from '../log.js'
+import type { DiagLogger } from './otelStubs.js'
 export class KaltCodeDiagLogger implements DiagLogger {
   error(message: string, ..._: unknown[]) {
     logError(new Error(message))

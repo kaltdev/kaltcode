@@ -10,7 +10,6 @@
  * - Configure OTEL_TRACES_EXPORTER (console, otlp, etc.)
  */
 
-import { context as otelContext, type Span, trace } from '@opentelemetry/api'
 import { AsyncLocalStorage } from 'async_hooks'
 import { getFeatureValue_CACHED_MAY_BE_STALE } from '../../services/analytics/growthbook.js'
 import type { AssistantMessage, UserMessage } from '../../types/message.js'
@@ -37,6 +36,7 @@ import {
   startToolPerfettoSpan,
   startUserInputPerfettoSpan,
 } from './perfettoTracing.js'
+import { context as otelContext, type Span, trace } from './otelStubs.js'
 
 // Re-export for callers
 export type { Span }

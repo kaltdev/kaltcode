@@ -1,4 +1,3 @@
-import { GrowthBook } from '@growthbook/growthbook'
 import { isEqual, memoize } from 'lodash-es'
 import {
   getIsNonInteractiveSession,
@@ -54,6 +53,32 @@ type MalformedFeatureDefinition = {
   value?: unknown
   defaultValue?: unknown
   [key: string]: unknown
+}
+
+class GrowthBook {
+  constructor(_options?: unknown) {}
+
+  getPayload(): { features?: Record<string, unknown> } | undefined {
+    return undefined
+  }
+
+  async setPayload(_payload: unknown): Promise<void> {}
+
+  async init(_options?: unknown): Promise<{ source: string; success: boolean }> {
+    return { source: 'noop', success: false }
+  }
+
+  async refreshFeatures(): Promise<void> {}
+
+  getFeatures(): Record<string, unknown> {
+    return {}
+  }
+
+  getFeatureValue<T>(_feature: string, defaultValue: T): T {
+    return defaultValue
+  }
+
+  destroy(): void {}
 }
 
 let client: GrowthBook | null = null
