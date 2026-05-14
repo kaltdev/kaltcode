@@ -22,6 +22,7 @@ import { AsyncLocalStorage } from "async_hooks";
 import { SQLiteProvider } from "./storage/SQLiteProvider.js";
 import { JSONProvider } from "./storage/JSONProvider.js";
 import { writeFileSyncAndFlush_DEPRECATED } from "./file.js";
+import { registerCleanup } from "./cleanupRegistry.js";
 
 export interface Entity {
     id: string;
@@ -58,6 +59,9 @@ let mutationQueue: Promise<any> = Promise.resolve();
 let projectGraph: KnowledgeGraph | null = null;
 let oramaDb: Orama<any> | null = null;
 let oramaInitPromise: Promise<void> | null = null;
+let oramaPersistenceDirty = false;
+let oramaIndexDirty = false;
+let oramaDirtyCwd: string | null = null;
 
 // Storage Providers (Cached per project directory to handle CWD changes)
 const providerCache = new Map<
@@ -137,12 +141,21 @@ async function isOramaInSync(graph: KnowledgeGraph): Promise<boolean> {
 async function updateOramaSyncMetadata(
     cwd: string,
     graph: KnowledgeGraph,
+    options: { persist?: boolean } = {},
 ): Promise<void> {
     if (!oramaDb) return;
-    try {
+    if (options.persist) {
+        await writeOramaSyncMetadata(graph);
+        await saveOrama(cwd);
+    } else {
+        markOramaPersistenceDirty(cwd);
+    }
+}
+
+async function writeOramaSyncMetadata(graph: KnowledgeGraph): Promise<void> {
+    if (!oramaDb) return;
+    if (getByID(oramaDb, "meta:sync")) {
         await remove(oramaDb, "meta:sync");
-    } catch {
-        /* ignore if not found */
     }
 
     await insert(oramaDb, {
@@ -152,7 +165,71 @@ async function updateOramaSyncMetadata(
         content: graph.lastUpdateTime.toString(),
         attributes: JSON.stringify({ lastUpdateTime: graph.lastUpdateTime }),
     });
-    await saveOrama(cwd);
+}
+
+function markOramaDirty(cwd: string): void {
+    oramaIndexDirty = true;
+    markOramaPersistenceDirty(cwd);
+}
+
+function markOramaPersistenceDirty(cwd: string): void {
+    oramaPersistenceDirty = true;
+    oramaDirtyCwd = cwd;
+}
+
+async function flushDirtyOrama(): Promise<void> {
+    if (!oramaPersistenceDirty || !oramaDb || !oramaDirtyCwd) return;
+    const cwd = oramaDirtyCwd;
+    const graph = projectGraph || loadProjectGraph(cwd);
+
+    if (oramaIndexDirty) {
+        await rebuildOramaFromGraph(cwd, graph, { persist: true });
+    } else {
+        await writeOramaSyncMetadata(graph);
+        await saveOrama(cwd);
+    }
+}
+
+registerCleanup(flushDirtyOrama);
+
+function touchGraph(graph: KnowledgeGraph): void {
+    graph.lastUpdateTime = Math.max(Date.now(), graph.lastUpdateTime + 1);
+}
+
+async function rebuildOramaFromGraph(
+    cwd: string,
+    graph: KnowledgeGraph,
+    options: { persist?: boolean } = {},
+): Promise<void> {
+    oramaDb = await create({ schema: ORAMA_SCHEMA });
+
+    for (const entity of Object.values(graph.entities)) {
+        await insert(oramaDb, {
+            id: entity.id,
+            type: entity.type,
+            name: entity.name,
+            content: entity.name,
+            attributes: JSON.stringify(entity.attributes),
+        });
+    }
+    for (const summary of graph.summaries) {
+        await insert(oramaDb, {
+            id: summary.id,
+            type: "summary",
+            name: "summary",
+            content: summary.content,
+            attributes: JSON.stringify({ keywords: summary.keywords }),
+        });
+    }
+
+    oramaIndexDirty = false;
+    await updateOramaSyncMetadata(cwd, graph, options);
+}
+
+async function ensureOramaCurrent(cwd: string): Promise<void> {
+    if (!oramaIndexDirty) return;
+    const graph = projectGraph || loadProjectGraph(cwd);
+    await rebuildOramaFromGraph(cwd, graph);
 }
 
 /**
@@ -164,11 +241,16 @@ export async function initOrama(cwd: string): Promise<void> {
 
     const performInit = async () => {
         // 1. Initialize SQLite (Runtime-safe)
+        const sqliteWasReady = providers.sqlite.isReady;
         await providers.sqlite.init();
+        const sqliteBecameReady =
+            !sqliteWasReady && providers.sqlite.isReady;
 
         // 2. Load the base graph state if not already loaded
         if (!projectGraph) {
             loadProjectGraph(cwd);
+        } else if (sqliteBecameReady) {
+            providers.sqlite.saveGraph(projectGraph);
         }
 
         // 3. Initialize Orama
@@ -197,34 +279,8 @@ export async function initOrama(cwd: string): Promise<void> {
         }
 
         if (!restored) {
-            oramaDb = await create({ schema: ORAMA_SCHEMA });
             const graph = projectGraph || loadProjectGraph(cwd);
-
-            for (const entity of Object.values(graph.entities)) {
-                try {
-                    await remove(oramaDb, entity.id);
-                } catch {}
-                await insert(oramaDb, {
-                    id: entity.id,
-                    type: entity.type,
-                    name: entity.name,
-                    content: entity.name,
-                    attributes: JSON.stringify(entity.attributes),
-                });
-            }
-            for (const summary of graph.summaries) {
-                try {
-                    await remove(oramaDb, summary.id);
-                } catch {}
-                await insert(oramaDb, {
-                    id: summary.id,
-                    type: "summary",
-                    name: "summary",
-                    content: summary.content,
-                    attributes: JSON.stringify({ keywords: summary.keywords }),
-                });
-            }
-            await updateOramaSyncMetadata(cwd, graph);
+            await rebuildOramaFromGraph(cwd, graph, { persist: true });
         }
     };
 
@@ -249,6 +305,10 @@ export async function saveOrama(cwd: string): Promise<void> {
         const data = await persist(oramaDb, "binary");
         // Atomic write with flush using established project utility
         writeFileSyncAndFlush_DEPRECATED(path, data as Buffer);
+        oramaPersistenceDirty = false;
+        if (oramaDirtyCwd === cwd) {
+            oramaDirtyCwd = null;
+        }
     } catch (e) {
         console.error("Failed to save Orama DB:", e);
     }
@@ -304,6 +364,11 @@ export function saveProjectGraph(cwd: string): void {
     if (sqlite.isReady) sqlite.saveGraph(projectGraph);
 }
 
+function saveProjectGraphJson(cwd: string): void {
+    if (!projectGraph) return;
+    getProviders().json.saveGraph(projectGraph);
+}
+
 export function getGlobalGraph(): KnowledgeGraph {
     const cwd = getFsImplementation().cwd();
     // Ensure we're using the correct project data for the current CWD
@@ -338,22 +403,17 @@ export async function addGlobalEntity(
                 ...existingEntity.attributes,
                 ...attributes,
             };
-            graph.lastUpdateTime = Date.now();
-            saveProjectGraph(cwd);
+            touchGraph(graph);
+            saveProjectGraphJson(cwd);
 
+            const oramaWasReady = oramaDb !== null;
             await initOrama(cwd);
-            if (oramaDb) {
-                try {
-                    await remove(oramaDb, existingEntity.id);
-                } catch {}
-                await insert(oramaDb, {
-                    id: existingEntity.id,
-                    type: existingEntity.type,
-                    name: existingEntity.name,
-                    content: existingEntity.name,
-                    attributes: JSON.stringify(existingEntity.attributes),
-                });
-                await updateOramaSyncMetadata(cwd, graph);
+            const { sqlite } = getProviders();
+            if (sqlite.isReady) {
+                sqlite.saveEntity(existingEntity, graph.lastUpdateTime);
+            }
+            if (oramaWasReady) {
+                markOramaDirty(cwd);
             }
             return existingEntity;
         }
@@ -362,22 +422,17 @@ export async function addGlobalEntity(
         const entity: Entity = { id, type, name, attributes };
 
         graph.entities[id] = entity;
-        graph.lastUpdateTime = Date.now();
-        saveProjectGraph(cwd);
+        touchGraph(graph);
+        saveProjectGraphJson(cwd);
 
+        const oramaWasReady = oramaDb !== null;
         await initOrama(cwd);
-        if (oramaDb) {
-            try {
-                await remove(oramaDb, id);
-            } catch {}
-            await insert(oramaDb, {
-                id,
-                type,
-                name,
-                content: name,
-                attributes: JSON.stringify(attributes),
-            });
-            await updateOramaSyncMetadata(cwd, graph);
+        const { sqlite } = getProviders();
+        if (sqlite.isReady) {
+            sqlite.saveEntity(entity, graph.lastUpdateTime);
+        }
+        if (oramaWasReady) {
+            markOramaDirty(cwd);
         }
 
         return entity;
@@ -395,14 +450,20 @@ export async function addGlobalRelation(
             throw new Error("Source or target entity not found in graph");
         }
 
-        graph.relations.push({ sourceId, targetId, type });
-        graph.lastUpdateTime = Date.now();
+        const relation: Relation = { sourceId, targetId, type };
+        graph.relations.push(relation);
+        touchGraph(graph);
         const cwd = getFsImplementation().cwd();
-        saveProjectGraph(cwd);
+        saveProjectGraphJson(cwd);
 
+        const oramaWasReady = oramaDb !== null;
         await initOrama(cwd);
-        if (oramaDb) {
-            await updateOramaSyncMetadata(cwd, graph);
+        const { sqlite } = getProviders();
+        if (sqlite.isReady) {
+            sqlite.saveRelation(relation, graph.lastUpdateTime);
+        }
+        if (oramaWasReady) {
+            markOramaDirty(cwd);
         }
     });
 }
@@ -415,28 +476,24 @@ export async function addGlobalSummary(
         const cwd = getFsImplementation().cwd();
         const graph = getGlobalGraph();
         const id = `summary_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-        graph.summaries.push({
+        const summary: SemanticSummary = {
             id,
             content,
             keywords: keywords.map((k) => k.toLowerCase()),
             timestamp: Date.now(),
-        });
-        graph.lastUpdateTime = Date.now();
-        saveProjectGraph(cwd);
+        };
+        graph.summaries.push(summary);
+        touchGraph(graph);
+        saveProjectGraphJson(cwd);
 
+        const oramaWasReady = oramaDb !== null;
         await initOrama(cwd);
-        if (oramaDb) {
-            try {
-                await remove(oramaDb, id);
-            } catch {}
-            await insert(oramaDb, {
-                id,
-                type: "summary",
-                name: "summary",
-                content,
-                attributes: JSON.stringify({ keywords }),
-            });
-            await updateOramaSyncMetadata(cwd, graph);
+        const { sqlite } = getProviders();
+        if (sqlite.isReady) {
+            sqlite.saveSummary(summary, graph.lastUpdateTime);
+        }
+        if (oramaWasReady) {
+            markOramaDirty(cwd);
         }
     });
 }
@@ -446,13 +503,18 @@ export async function addGlobalRule(rule: string): Promise<void> {
         const graph = getGlobalGraph();
         if (!graph.rules.includes(rule)) {
             graph.rules.push(rule);
-            graph.lastUpdateTime = Date.now();
+            touchGraph(graph);
             const cwd = getFsImplementation().cwd();
-            saveProjectGraph(cwd);
+            saveProjectGraphJson(cwd);
 
+            const oramaWasReady = oramaDb !== null;
             await initOrama(cwd);
-            if (oramaDb) {
-                await updateOramaSyncMetadata(cwd, graph);
+            const { sqlite } = getProviders();
+            if (sqlite.isReady) {
+                sqlite.saveRule(rule, graph.lastUpdateTime);
+            }
+            if (oramaWasReady) {
+                markOramaDirty(cwd);
             }
         }
     });
@@ -516,7 +578,9 @@ export async function getOrchestratedMemory(query: string): Promise<string> {
         return getGlobalGraphSummary();
     }
 
-    await initOrama(getFsImplementation().cwd());
+    const cwd = getFsImplementation().cwd();
+    await initOrama(cwd);
+    await ensureOramaCurrent(cwd);
 
     if (oramaDb) {
         try {
@@ -731,6 +795,9 @@ export function resetGlobalGraph(): void {
 
     oramaDb = null;
     projectGraph = null;
+    oramaPersistenceDirty = false;
+    oramaIndexDirty = false;
+    oramaDirtyCwd = null;
     // Clear cache for this specific project
     providerCache.delete(projectDir);
 }
@@ -742,6 +809,9 @@ export function clearMemoryOnly(): void {
 
     projectGraph = null;
     oramaDb = null;
+    oramaPersistenceDirty = false;
+    oramaIndexDirty = false;
+    oramaDirtyCwd = null;
     if (providers) {
         providers.sqlite.close();
         providerCache.delete(projectDir);

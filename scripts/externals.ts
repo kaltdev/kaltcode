@@ -8,34 +8,8 @@
 
 // Packages that should be kept external in ALL bundles (CLI + SDK)
 export const COMMON_EXTERNALS: string[] = [
-  // OpenTelemetry — too many named exports to stub, kept external
-  '@opentelemetry/api',
-  '@opentelemetry/api-logs',
-  '@opentelemetry/core',
-  '@opentelemetry/exporter-trace-otlp-grpc',
-  '@opentelemetry/exporter-trace-otlp-http',
-  '@opentelemetry/exporter-trace-otlp-proto',
-  '@opentelemetry/exporter-logs-otlp-http',
-  '@opentelemetry/exporter-logs-otlp-proto',
-  '@opentelemetry/exporter-logs-otlp-grpc',
-  '@opentelemetry/exporter-metrics-otlp-proto',
-  '@opentelemetry/exporter-metrics-otlp-grpc',
-  '@opentelemetry/exporter-metrics-otlp-http',
-  '@opentelemetry/exporter-prometheus',
-  '@opentelemetry/resources',
-  '@opentelemetry/sdk-trace-base',
-  '@opentelemetry/sdk-trace-node',
-  '@opentelemetry/sdk-logs',
-  '@opentelemetry/sdk-metrics',
-  '@opentelemetry/semantic-conventions',
   // Native image processing
   'sharp',
-  // Cloud provider SDKs
-  '@aws-sdk/client-bedrock',
-  '@aws-sdk/client-bedrock-runtime',
-  '@aws-sdk/client-sts',
-  '@aws-sdk/credential-providers',
-  '@azure/identity',
   'google-auth-library',
   // @vscode/ripgrep ships a platform-specific binary alongside its
   // index.js and resolves the path via __dirname at runtime. Bundling
@@ -47,18 +21,36 @@ export const COMMON_EXTERNALS: string[] = [
   '@orama/plugin-data-persistence',
 ]
 
+// Optional modules loaded only for specific runtime provider paths.
+export const OPTIONAL_RUNTIME_EXTERNALS: string[] = [
+  '@aws-sdk/client-bedrock',
+  '@aws-sdk/client-bedrock-runtime',
+  '@aws-sdk/client-sts',
+  '@aws-sdk/credential-providers',
+  '@azure/identity',
+]
+
 // Additional packages external only in the SDK bundle (TUI + heavy deps)
 export const SDK_ONLY_EXTERNALS: string[] = [
   'react',
   'react-reconciler',
-  'ink',
   '@anthropic-ai/sdk',
   '@modelcontextprotocol/sdk',
 ]
 
+export const SDK_OPTIONAL_RUNTIME_EXTERNALS: string[] = ['ink']
+
 // Computed full lists
-export const CLI_EXTERNALS: string[] = COMMON_EXTERNALS
-export const SDK_EXTERNALS: string[] = [...COMMON_EXTERNALS, ...SDK_ONLY_EXTERNALS]
+export const CLI_EXTERNALS: string[] = [
+  ...COMMON_EXTERNALS,
+  ...OPTIONAL_RUNTIME_EXTERNALS,
+]
+export const SDK_EXTERNALS: string[] = [
+  ...COMMON_EXTERNALS,
+  ...OPTIONAL_RUNTIME_EXTERNALS,
+  ...SDK_ONLY_EXTERNALS,
+  ...SDK_OPTIONAL_RUNTIME_EXTERNALS,
+]
 
 // Packages intentionally bundled (not external, not flagged by validation)
 // These are small utilities that are fine to inline into the output bundle.
@@ -129,8 +121,6 @@ export const INTENTIONALLY_BUNDLED: string[] = [
   '@modelcontextprotocol/sdk',
   // Schema validation
   'zod',
-  // Feature flags / analytics
-  '@growthbook/growthbook',
   // gRPC (bundled into CLI, not external)
   '@grpc/grpc-js',
   '@grpc/proto-loader',

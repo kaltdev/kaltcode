@@ -51,6 +51,7 @@ export class SQLiteProvider {
 
             this.db = new Database(this.dbPath);
             this.db.exec("PRAGMA journal_mode = WAL;");
+            this.db.exec("PRAGMA synchronous = NORMAL;");
             this.db.exec("PRAGMA foreign_keys = ON;");
             this.createTables();
             this.isInitialized = true;
@@ -86,6 +87,7 @@ export class SQLiteProvider {
                 const { Database } = await import("bun:sqlite");
                 this.db = new Database(this.dbPath);
                 this.db.exec("PRAGMA journal_mode = WAL;");
+                this.db.exec("PRAGMA synchronous = NORMAL;");
                 this.db.exec("PRAGMA foreign_keys = ON;");
                 this.createTables();
             }
@@ -222,6 +224,118 @@ export class SQLiteProvider {
         } catch (e) {
             console.error("Failed to save graph to SQLite:", e);
         }
+    }
+
+    public saveEntity(entity: Entity, lastUpdateTime: number): void {
+        if (!this.db) return;
+
+        try {
+            this.db.transaction(() => {
+                this.db!
+                    .query(
+                        `INSERT INTO entities (id, type, name, attributes, last_updated)
+                         VALUES ($id, $type, $name, $attributes, $last_updated)
+                         ON CONFLICT(id) DO UPDATE SET
+                           type=excluded.type,
+                           name=excluded.name,
+                           attributes=excluded.attributes,
+                           last_updated=excluded.last_updated`,
+                    )
+                    .run({
+                        $id: entity.id,
+                        $type: entity.type,
+                        $name: entity.name,
+                        $attributes: JSON.stringify(entity.attributes),
+                        $last_updated: lastUpdateTime,
+                    });
+                this.saveLastUpdateTime(lastUpdateTime);
+            })();
+        } catch (e) {
+            console.error("Failed to save entity to SQLite:", e);
+        }
+    }
+
+    public saveRelation(relation: Relation, lastUpdateTime: number): void {
+        if (!this.db) return;
+
+        try {
+            this.db.transaction(() => {
+                this.db!
+                    .query(
+                        `INSERT INTO relations (source_id, target_id, type)
+                         VALUES ($source_id, $target_id, $type)
+                         ON CONFLICT(source_id, target_id, type) DO NOTHING`,
+                    )
+                    .run({
+                        $source_id: relation.sourceId,
+                        $target_id: relation.targetId,
+                        $type: relation.type,
+                    });
+                this.saveLastUpdateTime(lastUpdateTime);
+            })();
+        } catch (e) {
+            console.error("Failed to save relation to SQLite:", e);
+        }
+    }
+
+    public saveSummary(
+        summary: SemanticSummary,
+        lastUpdateTime: number,
+    ): void {
+        if (!this.db) return;
+
+        try {
+            this.db.transaction(() => {
+                this.db!
+                    .query(
+                        `INSERT INTO summaries (id, content, keywords, timestamp)
+                         VALUES ($id, $content, $keywords, $timestamp)
+                         ON CONFLICT(id) DO UPDATE SET
+                           content=excluded.content,
+                           keywords=excluded.keywords,
+                           timestamp=excluded.timestamp`,
+                    )
+                    .run({
+                        $id: summary.id,
+                        $content: summary.content,
+                        $keywords: JSON.stringify(summary.keywords),
+                        $timestamp: summary.timestamp,
+                    });
+                this.saveLastUpdateTime(lastUpdateTime);
+            })();
+        } catch (e) {
+            console.error("Failed to save summary to SQLite:", e);
+        }
+    }
+
+    public saveRule(rule: string, lastUpdateTime: number): void {
+        if (!this.db) return;
+
+        try {
+            this.db.transaction(() => {
+                this.db!
+                    .query(
+                        `INSERT INTO rules (content, timestamp)
+                         VALUES ($content, $timestamp)
+                         ON CONFLICT(content) DO UPDATE SET
+                           timestamp=excluded.timestamp`,
+                    )
+                    .run({
+                        $content: rule,
+                        $timestamp: lastUpdateTime,
+                    });
+                this.saveLastUpdateTime(lastUpdateTime);
+            })();
+        } catch (e) {
+            console.error("Failed to save rule to SQLite:", e);
+        }
+    }
+
+    private saveLastUpdateTime(lastUpdateTime: number): void {
+        if (!this.db) return;
+        this.db
+            .query("INSERT OR REPLACE INTO sync_meta (key, value) VALUES (?, ?)")
+            .run("last_update_time", lastUpdateTime.toString());
     }
 
     public loadGraph(): KnowledgeGraph | null {

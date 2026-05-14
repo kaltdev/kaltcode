@@ -5,7 +5,13 @@
  * Run as part of the build to catch missing externals early.
  */
 import { readFileSync } from 'fs'
-import { CLI_EXTERNALS, SDK_EXTERNALS, INTENTIONALLY_BUNDLED } from './externals.js'
+import {
+  CLI_EXTERNALS,
+  INTENTIONALLY_BUNDLED,
+  OPTIONAL_RUNTIME_EXTERNALS,
+  SDK_EXTERNALS,
+  SDK_OPTIONAL_RUNTIME_EXTERNALS,
+} from './externals.js'
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
 const allDeps = new Set([
@@ -13,9 +19,14 @@ const allDeps = new Set([
   ...Object.keys(pkg.peerDependencies || {}),
 ])
 
-function validate(bundleName: string, externals: string[]): boolean {
+function validate(
+  bundleName: string,
+  externals: string[],
+  optionalRuntimeExternals: string[],
+): boolean {
   const externalSet = new Set(externals)
   const intentionallyBundledSet = new Set(INTENTIONALLY_BUNDLED)
+  const optionalRuntimeExternalSet = new Set(optionalRuntimeExternals)
 
   const missing = [...allDeps].filter(
     d => !externalSet.has(d) && !intentionallyBundledSet.has(d),
@@ -32,7 +43,10 @@ function validate(bundleName: string, externals: string[]): boolean {
     return false
   }
 
-  const extra = [...externalSet].filter(d => !allDeps.has(d))
+  const optionalSet = new Set(OPTIONAL_RUNTIME_EXTERNALS)
+  const extra = [...externalSet].filter(
+    d => !allDeps.has(d) && !optionalRuntimeExternalSet.has(d),
+  )
   if (extra.length > 0) {
     console.warn(`⚠️  ${bundleName}: External entries not in package.json (may be ok):`)
     for (const dep of extra) {
@@ -44,8 +58,11 @@ function validate(bundleName: string, externals: string[]): boolean {
   return true
 }
 
-const cliOk = validate('CLI bundle', CLI_EXTERNALS)
-const sdkOk = validate('SDK bundle', SDK_EXTERNALS)
+const cliOk = validate('CLI bundle', CLI_EXTERNALS, OPTIONAL_RUNTIME_EXTERNALS)
+const sdkOk = validate('SDK bundle', SDK_EXTERNALS, [
+  ...OPTIONAL_RUNTIME_EXTERNALS,
+  ...SDK_OPTIONAL_RUNTIME_EXTERNALS,
+])
 
 if (!cliOk || !sdkOk) {
   console.error(`\n❌ External list validation failed. Fix scripts/externals.ts before committing.`)

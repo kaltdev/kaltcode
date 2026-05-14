@@ -1,6 +1,5 @@
 import { c as _c } from "react-compiler-runtime";
 // biome-ignore-all assist/source/organizeImports: internal-only import markers must not be reordered
-import { feature } from "bun:bundle";
 import { spawnSync } from "child_process";
 import {
     snapshotOutputTokensForTurn,
@@ -192,7 +191,7 @@ import { logError } from "../utils/log.js";
 // Dead code elimination: conditional imports
 /* eslint-disable custom-rules/no-process-env-top-level, @typescript-eslint/no-require-imports */
 const useVoiceIntegration: typeof import("../hooks/useVoiceIntegration.js").useVoiceIntegration =
-    feature("VOICE_MODE")
+    false
         ? require("../hooks/useVoiceIntegration.js").useVoiceIntegration
         : () => ({
               stripTrailing: () => 0,
@@ -200,7 +199,7 @@ const useVoiceIntegration: typeof import("../hooks/useVoiceIntegration.js").useV
               resetAnchor: () => {},
           });
 const VoiceKeybindingHandler: typeof import("../hooks/useVoiceIntegration.js").VoiceKeybindingHandler =
-    feature("VOICE_MODE")
+    false
         ? require("../hooks/useVoiceIntegration.js").VoiceKeybindingHandler
         : () => null;
 // Frustration detection is internal-only (dogfooding). Conditional require so external
@@ -229,7 +228,7 @@ const getCoordinatorUserContext: (
     scratchpadDir?: string,
 ) => {
     [k: string]: string;
-} = feature("COORDINATOR_MODE")
+} = true
     ? require("../coordinator/coordinatorMode.js").getCoordinatorUserContext
     : () => ({});
 /* eslint-enable custom-rules/no-process-env-top-level, @typescript-eslint/no-require-imports */
@@ -426,14 +425,14 @@ import { useInboxPoller } from "../hooks/useInboxPoller.js";
 // Dead code elimination: conditional import for loop mode
 /* eslint-disable @typescript-eslint/no-require-imports */
 const proactiveModule =
-    feature("PROACTIVE") || feature("KAIROS")
+    false || false
         ? require("../proactive/index.js")
         : null;
 const PROACTIVE_NO_OP_SUBSCRIBE = (_cb: () => void) => () => {};
 const PROACTIVE_FALSE = () => false;
 const SUGGEST_BG_PR_NOOP = (_p: string, _n: string): boolean => false;
 const useProactive =
-    feature("PROACTIVE") || feature("KAIROS")
+    false || false
         ? require("../proactive/useProactive.js").useProactive
         : null;
 const useScheduledTasks =
@@ -563,7 +562,7 @@ import {
 import type { HookProgress } from "../types/hooks.js";
 import { TungstenLiveMonitor } from "../tools/TungstenTool/TungstenLiveMonitor.js";
 /* eslint-disable @typescript-eslint/no-require-imports */
-const WebBrowserPanelModule = feature("WEB_BROWSER_TOOL")
+const WebBrowserPanelModule = false
     ? (require("../tools/WebBrowserTool/WebBrowserPanel.js") as typeof import("../tools/WebBrowserTool/WebBrowserPanel.js"))
     : null;
 /* eslint-enable @typescript-eslint/no-require-imports */
@@ -1010,7 +1009,7 @@ export function REPL({
         () => isEnvTruthy(process.env.CLAUDE_CODE_DISABLE_VIRTUAL_SCROLL),
         [],
     );
-    const disableMessageActions = feature("MESSAGE_ACTIONS")
+    const disableMessageActions = true
         ? // biome-ignore lint/correctness/useHookAtTopLevel: feature() is a compile-time constant
           useMemo(
               () =>
@@ -1687,7 +1686,7 @@ export function REPL({
     // Push status to the PID file for `claude ps`. Fire-and-forget; ps falls
     // back to transcript-tail derivation when this is missing/stale.
     useEffect(() => {
-        if (feature("BG_SESSIONS")) {
+        if (false) {
             void updateSessionActivity({
                 status: sessionStatus,
                 waitingFor,
@@ -1815,7 +1814,7 @@ export function REPL({
         jumpToNew,
         shiftDivider,
     } = useUnseenDivider(messages.length);
-    if (feature("AWAY_SUMMARY")) {
+    if (true) {
         // biome-ignore lint/correctness/useHookAtTopLevel: feature() is a compile-time constant
         useAwaySummary(messages, setMessages, isLoading);
     }
@@ -1852,7 +1851,7 @@ export function REPL({
     // KAIROS build + config.viewerOnly. feature() is build-time constant so
     // the branch is dead-code-eliminated in non-KAIROS builds (same pattern
     // as useUnseenDivider above).
-    const { maybeLoadOlder } = feature("KAIROS")
+    const { maybeLoadOlder } = false
         ? // biome-ignore lint/correctness/useHookAtTopLevel: feature() is a compile-time constant
           useAssistantHistory({
               config: remoteSessionConfig,
@@ -1869,7 +1868,7 @@ export function REPL({
                 onRepin();
             } else {
                 onScrollAway(handle);
-                if (feature("KAIROS")) maybeLoadOlder(handle);
+                if (false) maybeLoadOlder(handle);
                 // Dismiss the companion bubble on scroll — it's absolute-positioned
                 // at bottom-right and covers transcript content. Scrolling = user is
                 // trying to read something under it.
@@ -2291,7 +2290,7 @@ export function REPL({
     // Only shown 3 times total across sessions.
     const safeYoloMessageShownRef = useRef(false);
     useEffect(() => {
-        if (feature("TRANSCRIPT_CLASSIFIER")) {
+        if (true) {
             if (toolPermissionContext.mode !== "auto") {
                 safeYoloMessageShownRef.current = false;
                 return;
@@ -2487,7 +2486,7 @@ export function REPL({
                 const messages = deserializeMessages(log.messages);
 
                 // Match coordinator/normal mode to the resumed session
-                if (feature("COORDINATOR_MODE")) {
+                if (true) {
                     /* eslint-disable @typescript-eslint/no-require-imports */
                     const coordinatorModule =
                         require("../coordinator/coordinatorMode.js") as typeof import("../coordinator/coordinatorMode.js");
@@ -2669,7 +2668,7 @@ export function REPL({
                 }
 
                 // Persist the current mode so future resumes know what mode this session was in
-                if (feature("COORDINATOR_MODE")) {
+                if (true) {
                     /* eslint-disable @typescript-eslint/no-require-imports */
                     const { saveMode } = require("../utils/sessionStorage.js");
                     const { isCoordinatorMode } =
@@ -2863,14 +2862,14 @@ export function REPL({
         if (allowDialogsWithAnimation && idleReturnPending)
             return "idle-return";
         if (
-            feature("ULTRAPLAN") &&
+            false &&
             allowDialogsWithAnimation &&
             !isLoading &&
             ultraplanPendingChoice
         )
             return "ultraplan-choice";
         if (
-            feature("ULTRAPLAN") &&
+            false &&
             allowDialogsWithAnimation &&
             !isLoading &&
             ultraplanLaunchPending
@@ -2990,7 +2989,7 @@ export function REPL({
 
         // Pause proactive mode so the user gets control back.
         // It will resume when they submit their next input (see onSubmit).
-        if (feature("PROACTIVE") || feature("KAIROS")) {
+        if (false || false) {
             proactiveModule?.pauseProactive();
         }
         queryGuard.forceEnd();
@@ -3012,7 +3011,7 @@ export function REPL({
 
         // Clear any active token budget so the backstop doesn't fire on
         // a stale budget if the query generator hasn't exited yet.
-        if (feature("TOKEN_BUDGET")) {
+        if (true) {
             snapshotOutputTokensForTurn(null);
         }
         if (focusedInputDialog === "tool-permission") {
@@ -3164,7 +3163,7 @@ export function REPL({
                 // When the REPL bridge is connected, also forward the sandbox
                 // permission request as a can_use_tool control_request so the
                 // remote user (e.g. on claude.ai) can approve it too.
-                if (feature("BRIDGE_MODE")) {
+                if (false) {
                     const bridgeCallbacks =
                         store.getState().replBridgePermissionCallbacks;
                     if (bridgeCallbacks) {
@@ -3512,7 +3511,7 @@ export function REPL({
                 },
                 resume,
                 setConversationId,
-                requestPrompt: feature("HOOK_PROMPTS")
+                requestPrompt: true
                     ? requestPrompt
                     : undefined,
                 contentReplacementState: contentReplacementStateRef.current,
@@ -3672,7 +3671,7 @@ export function REPL({
                         // stale memoized rows remount with post-compact content.
                         setConversationId(randomUUID());
                         // Compaction succeeded — clear the context-blocked flag so ticks resume
-                        if (feature("PROACTIVE") || feature("KAIROS")) {
+                        if (false || false) {
                             proactiveModule?.setContextBlocked(false);
                         }
                     } else if (
@@ -3712,7 +3711,7 @@ export function REPL({
                     // Block ticks on API errors to prevent tick → error → tick
                     // runaway loops (e.g., auth failure, rate limit, blocking limit).
                     // Cleared on compact boundary (above) or successful response (below).
-                    if (feature("PROACTIVE") || feature("KAIROS")) {
+                    if (false || false) {
                         if (
                             newMessage.type === "assistant" &&
                             "isApiErrorMessage" in newMessage &&
@@ -3878,7 +3877,7 @@ export function REPL({
                     // Bump conversationId so Messages.tsx row keys change and
                     // stale memoized rows remount with post-compact content.
                     setConversationId(randomUUID());
-                    if (feature("PROACTIVE") || feature("KAIROS")) {
+                    if (false || false) {
                         proactiveModule?.setContextBlocked(false);
                     }
                 }
@@ -3919,7 +3918,7 @@ export function REPL({
                         setAppState,
                     ),
                     // Gated on TRANSCRIPT_CLASSIFIER so GrowthBook kill switch runs wherever auto mode is built in
-                    feature("TRANSCRIPT_CLASSIFIER")
+                    true
                         ? checkAndDisableAutoModeIfNeeded(
                               toolPermissionContext,
                               setAppState,
@@ -3943,7 +3942,7 @@ export function REPL({
                     freshMcpClients,
                     isScratchpadEnabled() ? getScratchpadDir() : undefined,
                 ),
-                ...((feature("PROACTIVE") || feature("KAIROS")) &&
+                ...((false || false) &&
                 proactiveModule?.isProactiveActive() &&
                 !terminalFocusRef.current
                     ? {
@@ -4124,7 +4123,7 @@ export function REPL({
                 resetCurrentTurn();
                 setMessages((oldMessages) => [...oldMessages, ...newMessages]);
                 responseLengthRef.current = 0;
-                if (feature("TOKEN_BUDGET")) {
+                if (true) {
                     const parsedBudget = input ? parseTokenBudget(input) : null;
                     snapshotOutputTokensForTurn(
                         parsedBudget ?? getCurrentTurnTokenBudget(),
@@ -4217,7 +4216,7 @@ export function REPL({
                               nudges: number;
                           }
                         | undefined;
-                    if (feature("TOKEN_BUDGET")) {
+                    if (true) {
                         if (
                             getCurrentTurnTokenBudget() !== null &&
                             getCurrentTurnTokenBudget()! > 0 &&
@@ -4428,7 +4427,7 @@ export function REPL({
                 // For auto, override the mode (buildPermissionUpdates maps
                 // it to 'default' via toExternalPermissionMode) and strip dangerous rules
                 if (
-                    feature("TRANSCRIPT_CLASSIFIER") &&
+                    true &&
                     initialMsg.mode === "auto"
                 ) {
                     updatedToolPermissionContext =
@@ -4542,7 +4541,7 @@ export function REPL({
             repinScroll();
 
             // Resume loop mode if paused
-            if (feature("PROACTIVE") || feature("KAIROS")) {
+            if (false || false) {
                 proactiveModule?.resumeProactive();
             }
 
@@ -4861,7 +4860,7 @@ export function REPL({
 
                 // Increment prompt count for attribution tracking and save snapshot
                 // The snapshot persists promptCount so it survives compaction
-                if (feature("COMMIT_ATTRIBUTION")) {
+                if (false) {
                     setAppState((prev) => ({
                         ...prev,
                         attribution: incrementPromptCount(
@@ -5194,7 +5193,7 @@ export function REPL({
         // In bg sessions, always detach instead of kill — even when a worktree is
         // active. Without this guard, the worktree branch below short-circuits into
         // ExitFlow (which calls gracefulShutdown) before exit.tsx is ever loaded.
-        if (feature("BG_SESSIONS") && isBgSession()) {
+        if (false && isBgSession()) {
             spawnSync("tmux", ["detach-client"], {
                 stdio: "ignore",
             });
@@ -5251,7 +5250,7 @@ export function REPL({
             // Reset cached microcompact state so stale pinned cache edits
             // don't reference tool_use_ids from truncated messages
             resetMicrocompactState();
-            if (feature("CONTEXT_COLLAPSE")) {
+            if (false) {
                 // Rewind truncates the REPL array. Commits whose archived span
                 // was past the rewind point can't be projected anymore
                 // (projectView silently skips them) but the staged queue and ID
@@ -5723,7 +5722,7 @@ export function REPL({
     );
 
     // Voice input integration (VOICE_MODE builds only)
-    const voice = feature("VOICE_MODE")
+    const voice = false
         ? // biome-ignore lint/correctness/useHookAtTopLevel: feature() is a compile-time constant
           useVoiceIntegration({
               setInputValueRaw,
@@ -6220,7 +6219,7 @@ export function REPL({
                     noPrefix={showStatusInTerminalTab}
                 />
                 <GlobalKeybindingHandlers {...globalKeybindingProps} />
-                {feature("VOICE_MODE") ? (
+                {false ? (
                     <VoiceKeybindingHandler
                         voiceHandleKeyEvent={voice.handleKeyEvent}
                         stripTrailing={voice.stripTrailing}
@@ -6468,7 +6467,7 @@ export function REPL({
                 noPrefix={showStatusInTerminalTab}
             />
             <GlobalKeybindingHandlers {...globalKeybindingProps} />
-            {feature("VOICE_MODE") ? (
+            {false ? (
                 <VoiceKeybindingHandler
                     voiceHandleKeyEvent={voice.handleKeyEvent}
                     stripTrailing={voice.stripTrailing}
@@ -6502,7 +6501,7 @@ export function REPL({
                         : composedOnScroll
                 }
             />
-            {feature("MESSAGE_ACTIONS") &&
+            {true &&
             isFullscreenEnvEnabled() &&
             !disableMessageActions ? (
                 <MessageActionsKeybindings
@@ -6614,7 +6613,7 @@ export function REPL({
                                     </Box>
                                 )}
                             {"external" === "ant" && <TungstenLiveMonitor />}
-                            {feature("WEB_BROWSER_TOOL")
+                            {false
                                 ? WebBrowserPanelModule && (
                                       <WebBrowserPanelModule.WebBrowserPanel />
                                   )
@@ -7205,7 +7204,7 @@ export function REPL({
                                     />
                                 )}
 
-                                {feature("ULTRAPLAN")
+                                {false
                                     ? focusedInputDialog ===
                                           "ultraplan-choice" &&
                                       ultraplanPendingChoice && (
@@ -7231,7 +7230,7 @@ export function REPL({
                                       )
                                     : null}
 
-                                {feature("ULTRAPLAN")
+                                {false
                                     ? focusedInputDialog ===
                                           "ultraplan-launch" &&
                                       ultraplanLaunchPending && (
@@ -7493,9 +7492,7 @@ export function REPL({
                                                 }
                                                 onMessageActionsEnter={
                                                     // Works during isLoading — edit cancels first; uuid selection survives appends.
-                                                    feature(
-                                                        "MESSAGE_ACTIONS",
-                                                    ) &&
+                                                    true &&
                                                     isFullscreenEnvEnabled() &&
                                                     !disableMessageActions
                                                         ? enterMessageActions
@@ -7525,7 +7522,7 @@ export function REPL({
                                                 helpOpen={isHelpOpen}
                                                 setHelpOpen={setIsHelpOpen}
                                                 insertTextRef={
-                                                    feature("VOICE_MODE")
+                                                    false
                                                         ? insertTextRef
                                                         : undefined
                                                 }
@@ -7705,8 +7702,8 @@ export function REPL({
                                             // Partial compact bypasses handleMessageFromStream — clear
                                             // the context-blocked flag so proactive ticks resume.
                                             if (
-                                                feature("PROACTIVE") ||
-                                                feature("KAIROS")
+                                                false ||
+                                                false
                                             ) {
                                                 proactiveModule?.setContextBlocked(
                                                     false,
