@@ -3568,6 +3568,39 @@ test('streaming: preserves prose without tags (no phrase-based false positive)',
   )
 })
 
+test('strips credentials and query params from URL in fetch network error message', async () => {
+  process.env.OPENAI_BASE_URL =
+    'https://user:password@internal.example.test/v1?token=abc123'
+  process.env.OPENAI_API_KEY = 'test-key'
+
+  globalThis.fetch = (async () => {
+    throw new TypeError(
+      'fetch failed https://user:password@internal.example.test/v1?token=abc123/chat/completions',
+    )
+  }) as FetchType
+
+  const client = createOpenAIShimClient({}) as OpenAIShimClient
+
+  let caught: unknown
+  try {
+    await client.beta.messages.create({
+      model: 'test-model',
+      messages: [{ role: 'user', content: 'hello' }],
+      max_tokens: 64,
+      stream: false,
+    })
+  } catch (error) {
+    caught = error
+  }
+
+  const message = (caught as Error).message
+  expect(message).toContain('internal.example.test')
+  expect(message).toContain('fetch failed')
+  expect(message).not.toContain('password')
+  expect(message).not.toContain('user:')
+  expect(message).not.toContain('token=abc123')
+})
+
 test('classifies localhost transport failures with actionable category marker', async () => {
   process.env.OPENAI_BASE_URL = 'http://localhost:11434/v1'
 
@@ -3971,8 +4004,8 @@ test('preserves valid tool_result and drops orphan tool_result', async () => {
 
   const orphanMessage = toolMessages.find(m => m.tool_call_id === 'orphan_call_2')
   expect(orphanMessage).toBeUndefined()
-  
-  // Actually, the semantic message IS injected here because the user block with orphan 
+
+  // Actually, the semantic message IS injected here because the user block with orphan
   // tool result is converted to:
   // 1. Tool result (valid_call_1) -> role 'tool'
   // 2. User content ("What happened?") -> role 'user'
@@ -4038,15 +4071,15 @@ test('injects semantic assistant message when tool result is followed by user me
   await client.beta.messages.create({
     model: 'mistral-large-latest',
     messages: [
-      { 
-        role: 'assistant', 
-        content: [{ type: 'tool_use', id: 'call_1', name: 'search', input: {} }] 
+      {
+        role: 'assistant',
+        content: [{ type: 'tool_use', id: 'call_1', name: 'search', input: {} }]
       },
-      { 
-        role: 'user', 
+      {
+        role: 'user',
         content: [
           { type: 'tool_result', tool_use_id: 'call_1', content: 'Result' }
-        ] 
+        ]
       },
       { role: 'user', content: 'Next user query' },
     ],
@@ -4058,7 +4091,7 @@ test('injects semantic assistant message when tool result is followed by user me
   // Roles should be: assistant (tool_calls) -> tool -> assistant (semantic) -> user
   const roles = messages.map(m => m.role)
   expect(roles).toEqual(['assistant', 'tool', 'assistant', 'user'])
-  
+
   const semanticMsg = messages[2]
   expect(semanticMsg.role).toBe('assistant')
   expect(semanticMsg.content).toBe('[Tool execution interrupted by user]')
