@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.12.0](https://github.com/kaltdev/kaltcode/compare/v0.11.0...v0.12.0) (2026-05-16)
+
+
+### Features
+
+* **build:** gate feature flags with bun:bundle feature() ([1f47f5e](https://github.com/kaltdev/kaltcode/commit/1f47f5e7a6f6e39cf4b89250036604e2d4789825))
+* **build:** gate feature flags with bun:bundle feature() ([#10](https://github.com/kaltdev/kaltcode/issues/10)) ([44dc05e](https://github.com/kaltdev/kaltcode/commit/44dc05ec44105e6142f8dfbf426eae1ead00b8d9))
+* **test:** Add shared lock and config-dir tests ([8fc2669](https://github.com/kaltdev/kaltcode/commit/8fc2669c559edc9a0c7f02e18488b1426dc799b5))
+
+
+### Bug Fixes
+
+* **api:** Surface in-stream errors and truncation ([b70efb1](https://github.com/kaltdev/kaltcode/commit/b70efb153d414172e5a5e2964e1088aee3713528))
+
 ## [0.11.0](https://github.com/kaltdev/kaltcode/compare/0.10.0...v0.11.0) (2026-05-14)
 
 
