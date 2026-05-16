@@ -21,6 +21,7 @@ import {
 
 // eslint-disable-next-line custom-rules/no-top-level-side-effects
 startKeychainPrefetch();
+import { feature } from "bun:bundle";
 import {
     Command as CommanderCommand,
     InvalidArgumentError,
@@ -131,16 +132,16 @@ const getTeammateModeSnapshot = () =>
 /* eslint-enable @typescript-eslint/no-require-imports */
 // Dead code elimination: conditional import for COORDINATOR_MODE
 /* eslint-disable @typescript-eslint/no-require-imports */
-const coordinatorModeModule = true
+const coordinatorModeModule = feature('COORDINATOR_MODE')
     ? (require("./coordinator/coordinatorMode.js") as typeof import("./coordinator/coordinatorMode.js"))
     : null;
 /* eslint-enable @typescript-eslint/no-require-imports */
 // Dead code elimination: conditional import for KAIROS (assistant mode)
 /* eslint-disable @typescript-eslint/no-require-imports */
-const assistantModule = false
+const assistantModule = feature('KAIROS')
     ? (require("./assistant/index.js") as typeof import("./assistant/index.js"))
     : null;
-const kairosGate = false
+const kairosGate = feature('KAIROS')
     ? (require("./assistant/gate.js") as typeof import("./assistant/gate.js"))
     : null;
 import { relative, resolve } from "path";
@@ -384,7 +385,7 @@ import {
 } from "./bootstrap/state.js";
 
 /* eslint-disable @typescript-eslint/no-require-imports */
-const autoModeStateModule = true
+const autoModeStateModule = feature('TRANSCRIPT_CLASSIFIER')
     ? (require("./utils/permissions/autoModeState.js") as typeof import("./utils/permissions/autoModeState.js"))
     : null;
 
@@ -598,7 +599,7 @@ function runMigrations(): void {
         migrateSonnet45ToSonnet46();
         migrateOpusToOpus1m();
         migrateReplBridgeEnabledToRemoteControlAtStartup();
-        if (true) {
+        if (feature('TRANSCRIPT_CLASSIFIER')) {
             resetAutoModeOptInForDefaultOffer();
         }
         if ("external" === "ant") {
@@ -847,7 +848,7 @@ type PendingConnect = {
     authToken: string | undefined;
     dangerouslySkipPermissions: boolean;
 };
-const _pendingConnect: PendingConnect | undefined = false
+const _pendingConnect: PendingConnect | undefined = feature('DIRECT_CONNECT')
     ? {
           url: undefined,
           authToken: undefined,
@@ -860,7 +861,7 @@ type PendingAssistantChat = {
     sessionId?: string;
     discover: boolean;
 };
-const _pendingAssistantChat: PendingAssistantChat | undefined = false
+const _pendingAssistantChat: PendingAssistantChat | undefined = feature('KAIROS')
     ? {
           sessionId: undefined,
           discover: false,
@@ -880,7 +881,7 @@ type PendingSSH = {
     /** Extra CLI args to forward to the remote CLI on initial spawn (--resume, -c). */
     extraCliArgs: string[];
 };
-const _pendingSSH: PendingSSH | undefined = false
+const _pendingSSH: PendingSSH | undefined = feature('SSH_REMOTE')
     ? {
           host: undefined,
           cwd: undefined,
@@ -918,7 +919,7 @@ export async function main() {
     // Check for cc:// or cc+unix:// URL in argv — rewrite so the main command
     // handles it, giving the full interactive TUI instead of a stripped-down subcommand.
     // For headless (-p), we rewrite to the internal `open` subcommand.
-    if (false) {
+    if (feature('DIRECT_CONNECT')) {
         const rawCliArgs = process.argv.slice(2);
         const ccIdx = rawCliArgs.findIndex(
             (a) => a.startsWith("cc://") || a.startsWith("cc+unix://"),
@@ -970,7 +971,7 @@ export async function main() {
     // Handle deep link URIs early — this is invoked by the OS protocol handler
     // and should bail out before full init since it only needs to parse the URI
     // and open a terminal.
-    if (false) {
+    if (feature('LODESTONE')) {
         const handleUriIdx = process.argv.indexOf("--handle-uri");
         if (handleUriIdx !== -1 && process.argv[handleUriIdx + 1]) {
             const { enableConfigs } = await import("./utils/config.js");
@@ -1006,7 +1007,7 @@ export async function main() {
     // `claude -p "explain assistant"`. Root-flag-before-subcommand
     // (e.g. `--debug assistant`) falls through to the stub, which
     // prints usage.
-    if (false && _pendingAssistantChat) {
+    if (feature('KAIROS') && _pendingAssistantChat) {
         const rawArgs = process.argv.slice(2);
         if (rawArgs[0] === "assistant") {
             const nextArg = rawArgs[1];
@@ -1027,7 +1028,7 @@ export async function main() {
     // runs (full interactive TUI), stash the host/dir for the REPL branch at
     // ~line 3720 to pick up. Headless (-p) mode not supported in v1: SSH
     // sessions need the local REPL to drive them (interrupt, permissions).
-    if (false && _pendingSSH) {
+    if (feature('SSH_REMOTE') && _pendingSSH) {
         const rawCliArgs = process.argv.slice(2);
         // SSH-specific flags can appear before the host positional (e.g.
         // `ssh --permission-mode auto host /tmp` — standard POSIX flags-before-
@@ -1331,7 +1332,7 @@ async function run(): Promise<CommanderCommand> {
 
         // Load settings sync (non-blocking, fail-open)
         // CLI: uploads local settings to remote (CCR download is handled by print.ts)
-        if (false) {
+        if (feature('UPLOAD_USER_SETTINGS')) {
             void import("./services/settingsSync/index.js").then((m) =>
                 m.uploadUserSettingsInBackground(),
             );
@@ -1805,7 +1806,7 @@ async function run(): Promise<CommanderCommand> {
                   >
                 | undefined;
             if (
-                false &&
+                feature('KAIROS') &&
                 (
                     options as {
                         assistant?: boolean;
@@ -1819,7 +1820,7 @@ async function run(): Promise<CommanderCommand> {
                 assistantModule.markAssistantForced();
             }
             if (
-                false &&
+                feature('KAIROS') &&
                 assistantModule?.isAssistantMode() &&
                 // Spawned teammates share the leader's cwd + settings.json, so
                 // isAssistantMode() is true for them too. --agent-id being set
@@ -1889,7 +1890,7 @@ async function run(): Promise<CommanderCommand> {
             let fileDownloadPromise: Promise<DownloadResult[]> | undefined;
             const agentsJson = options.agents;
             const agentCli = options.agent;
-            if (false && agentCli) {
+            if (feature('BG_SESSIONS') && agentCli) {
                 process.env.CLAUDE_CODE_AGENT = agentCli;
             }
 
@@ -2305,7 +2306,7 @@ async function run(): Promise<CommanderCommand> {
             setSessionBypassPermissionsMode(
                 permissionMode === "bypassPermissions",
             );
-            if (true) {
+            if (feature('TRANSCRIPT_CLASSIFIER')) {
                 // autoModeFlagCli is the "did the user intend auto this session" signal.
                 // Set when: --enable-auto-mode, --permission-mode auto, resolved mode
                 // is auto, OR settings defaultMode is auto but the gate denied it
@@ -2404,7 +2405,7 @@ async function run(): Promise<CommanderCommand> {
                     let reservedNameError: string | null = null;
                     if (nonSdkConfigNames.some(isClaudeInChromeMCPServer)) {
                         reservedNameError = `Invalid MCP configuration: "${CLAUDE_IN_CHROME_MCP_SERVER_NAME}" is a reserved MCP name.`;
-                    } else if (false) {
+                    } else if (feature('CHICAGO_MCP')) {
                         const {
                             isComputerUseMCPServer,
                             COMPUTER_USE_MCP_SERVER_NAME,
@@ -2507,7 +2508,7 @@ async function run(): Promise<CommanderCommand> {
                         ...chromeMcpConfig,
                     };
                     const hint =
-                        false &&
+                        feature('WEB_BROWSER_TOOL') &&
                         typeof Bun !== "undefined" &&
                         "WebView" in Bun
                             ? CLAUDE_IN_CHROME_SKILL_HINT_WITH_WEBBROWSER
@@ -2566,7 +2567,7 @@ async function run(): Promise<CommanderCommand> {
             // otherwise process.exit(1). Chrome has the same latent issue but has
             // shipped without incident; chicago places itself correctly.
             if (
-                false &&
+                feature('CHICAGO_MCP') &&
                 getPlatform() === "macos" &&
                 !getIsNonInteractiveSession()
             ) {
@@ -2601,7 +2602,7 @@ async function run(): Promise<CommanderCommand> {
             // devChannels is deferred: showSetupScreens shows a confirmation dialog
             // and only appends to allowedChannels on accept.
             let devChannels: ChannelEntry[] | undefined;
-            if (false || false) {
+            if (feature('KAIROS') || feature('KAIROS_CHANNELS')) {
                 // Parse plugin:name@marketplace / server:Y tags into typed entries.
                 // Tag decides trust model downstream: plugin-kind hits marketplace
                 // verification + GrowthBook allowlist, server-kind always fails
@@ -2716,7 +2717,7 @@ async function run(): Promise<CommanderCommand> {
             // Conditional require avoids leaking the tool-name string into
             // external builds.
             if (
-                (false || false) &&
+                (feature('KAIROS') || feature('KAIROS_BRIEF')) &&
                 baseTools.length > 0
             ) {
                 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -2766,7 +2767,7 @@ async function run(): Promise<CommanderCommand> {
                 );
             }
             if (
-                true &&
+                feature('TRANSCRIPT_CLASSIFIER') &&
                 dangerousPermissions.length > 0
             ) {
                 toolPermissionContext = stripDangerousPermissionsForAutoMode(
@@ -2917,7 +2918,7 @@ async function run(): Promise<CommanderCommand> {
             // Apply coordinator mode tool filtering for headless path
             // (mirrors useMergedTools.ts filtering for REPL/interactive path)
             if (
-                true &&
+                feature('COORDINATOR_MODE') &&
                 isEnvTruthy(process.env.CLAUDE_CODE_COORDINATOR_MODE)
             ) {
                 const { applyCoordinatorToolFilter } =
@@ -2968,7 +2969,7 @@ async function run(): Promise<CommanderCommand> {
             logForDebugging("[STARTUP] Running setup()...");
             const setupStart = Date.now();
             const { setup } = await import("./setup.js");
-            const messagingSocketPath = false
+            const messagingSocketPath = feature('UDS_INBOX')
                 ? (
                       options as {
                           messagingSocketPath?: string;
@@ -3023,7 +3024,7 @@ async function run(): Promise<CommanderCommand> {
             // Callers who inject and also want those injections visible in the
             // stream pass --messaging-socket-path explicitly (or --replay-user-messages).
             let effectiveReplayUserMessages = !!options.replayUserMessages;
-            if (false) {
+            if (feature('UDS_INBOX')) {
                 if (
                     !effectiveReplayUserMessages &&
                     outputFormat === "stream-json"
@@ -3353,7 +3354,7 @@ async function run(): Promise<CommanderCommand> {
             // briefVisibility). A persisted 'chat' after a GB kill-switch falls
             // through (entitlement fails).
             if (
-                (false || false) &&
+                (feature('KAIROS') || feature('KAIROS_BRIEF')) &&
                 !getIsNonInteractiveSession() &&
                 !getUserMsgOptIn() &&
                 getInitialSettings().defaultView === "chat"
@@ -3370,7 +3371,7 @@ async function run(): Promise<CommanderCommand> {
             // the generic proactive prompt would tell it to call a tool it can't
             // access and conflict with delegation instructions.
             if (
-                (false || false) &&
+                (feature('PROACTIVE') || feature('KAIROS')) &&
                 ((
                     options as {
                         proactive?: boolean;
@@ -3381,7 +3382,7 @@ async function run(): Promise<CommanderCommand> {
             ) {
                 /* eslint-disable @typescript-eslint/no-require-imports */
                 const briefVisibility =
-                    false || false
+                    feature('KAIROS') || feature('KAIROS_BRIEF')
                         ? (
                               require("./tools/BriefTool/BriefTool.js") as typeof import("./tools/BriefTool/BriefTool.js")
                           ).isBriefEnabled()
@@ -3394,7 +3395,7 @@ async function run(): Promise<CommanderCommand> {
                     ? `${appendSystemPrompt}\n\n${proactivePrompt}`
                     : proactivePrompt;
             }
-            if (false && kairosEnabled && assistantModule) {
+            if (feature('KAIROS') && kairosEnabled && assistantModule) {
                 const assistantAddendum =
                     assistantModule.getAssistantSystemPromptAddendum();
                 appendSystemPrompt = appendSystemPrompt
@@ -3441,7 +3442,7 @@ async function run(): Promise<CommanderCommand> {
                 // Now that trust is established and GrowthBook has auth headers,
                 // resolve the --remote-control / --rc entitlement gate.
                 if (
-                    false &&
+                    feature('BRIDGE_MODE') &&
                     remoteControlOption !== undefined
                 ) {
                     const { getBridgeDisabledReason } =
@@ -3459,7 +3460,7 @@ async function run(): Promise<CommanderCommand> {
 
                 // Check for pending agent memory snapshot updates (only for --agent mode, internal-only)
                 if (
-                    false &&
+                    feature('AGENT_MEMORY_SNAPSHOT') &&
                     mainThreadAgentDefinition &&
                     isCustomAgent(mainThreadAgentDefinition) &&
                     mainThreadAgentDefinition.memory &&
@@ -3792,7 +3793,7 @@ async function run(): Promise<CommanderCommand> {
                     : undefined,
                 thinkingConfig,
                 assistantActivationPath:
-                    false && kairosEnabled
+                    feature('KAIROS') && kairosEnabled
                         ? assistantModule?.getAssistantActivationPath()
                         : undefined,
             });
@@ -3944,7 +3945,7 @@ async function run(): Promise<CommanderCommand> {
                     // scheduled tasks and Agent-tool calls ran synchronously — N
                     // overdue cron tasks on spawn = N serial subagent turns blocking
                     // user input. Computed at :1620, well before this branch.
-                    ...(false
+                    ...(feature('KAIROS')
                         ? {
                               kairosEnabled,
                           }
@@ -3970,7 +3971,7 @@ async function run(): Promise<CommanderCommand> {
 
                 // Async check of auto mode gate — corrects state and disables auto if needed.
                 // Gated on TRANSCRIPT_CLASSIFIER (not USER_TYPE) so GrowthBook kill switch runs for external builds too.
-                if (true) {
+                if (feature('TRANSCRIPT_CLASSIFIER')) {
                     void verifyAutoModeGateAccess(
                         toolPermissionContext,
                         headlessStore.getState().fastMode,
@@ -4322,13 +4323,13 @@ async function run(): Promise<CommanderCommand> {
             // All startup opt-in paths (--tools, --brief, defaultView) have fired
             // above; initialIsBriefOnly just reads the resulting state.
             const initialIsBriefOnly =
-                false || false
+                feature('KAIROS') || feature('KAIROS_BRIEF')
                     ? getUserMsgOptIn()
                     : false;
             const fullRemoteControl =
                 remoteControl || getRemoteControlAtStartup() || kairosEnabled;
             let ccrMirrorEnabled = false;
-            if (false && !fullRemoteControl) {
+            if (feature('CCR_MIRROR') && !fullRemoteControl) {
                 /* eslint-disable @typescript-eslint/no-require-imports */
                 const { isCcrMirrorEnabled } =
                     require("./bridge/bridgeEnabled.js") as typeof import("./bridge/bridgeEnabled.js");
@@ -4455,7 +4456,7 @@ async function run(): Promise<CommanderCommand> {
                 // KAIROS block so Agent(name: "foo") can spawn in-process teammates
                 // without TeamCreate. computeInitialTeamContext() is for tmux-spawned
                 // teammates reading their own identity, not the assistant-mode leader.
-                teamContext: false
+                teamContext: feature('KAIROS')
                     ? (assistantTeamContext ?? computeInitialTeamContext?.())
                     : computeInitialTeamContext?.(),
             };
@@ -4608,7 +4609,7 @@ async function run(): Promise<CommanderCommand> {
                         gracefulShutdown(1),
                     );
                 }
-            } else if (false && _pendingConnect?.url) {
+            } else if (feature('DIRECT_CONNECT') && _pendingConnect?.url) {
                 // `claude connect <url>` — full interactive TUI connected to a remote server
                 let directConnectConfig;
                 try {
@@ -4660,7 +4661,7 @@ async function run(): Promise<CommanderCommand> {
                     renderAndRun,
                 );
                 return;
-            } else if (false && _pendingSSH?.host) {
+            } else if (feature('SSH_REMOTE') && _pendingSSH?.host) {
                 // `claude ssh <host> [dir]` — probe remote, deploy binary if needed,
                 // spawn ssh with unix-socket -R forward to a local auth proxy, hand
                 // the REPL an SSHSession. Tools run remotely, UI renders locally.
@@ -4758,7 +4759,7 @@ async function run(): Promise<CommanderCommand> {
                 );
                 return;
             } else if (
-                false &&
+                feature('KAIROS') &&
                 _pendingAssistantChat &&
                 (_pendingAssistantChat.sessionId ||
                     _pendingAssistantChat.discover)
@@ -5498,7 +5499,7 @@ async function run(): Promise<CommanderCommand> {
                 maybeActivateProactive(options);
                 maybeActivateBrief(options);
                 // Persist the current mode for fresh sessions so future resumes know what mode was used
-                if (true) {
+                if (feature('COORDINATOR_MODE')) {
                     saveMode(
                         coordinatorModeModule?.isCoordinatorMode()
                             ? "coordinator"
@@ -5515,7 +5516,7 @@ async function run(): Promise<CommanderCommand> {
                 let deepLinkBanner: ReturnType<
                     typeof createSystemMessage
                 > | null = null;
-                if (false) {
+                if (feature('LODESTONE')) {
                     if (options.deepLinkOrigin) {
                         logEvent("tengu_deep_link_opened", {
                             has_prefill: Boolean(options.prefill),
@@ -5627,17 +5628,17 @@ async function run(): Promise<CommanderCommand> {
             () => true,
         );
     }
-    if (true) {
+    if (feature('TRANSCRIPT_CLASSIFIER')) {
         program.addOption(
             new Option("--enable-auto-mode", "Opt in to auto mode").hideHelp(),
         );
     }
-    if (false || false) {
+    if (feature('PROACTIVE') || feature('KAIROS')) {
         program.addOption(
             new Option("--proactive", "Start in proactive autonomous mode"),
         );
     }
-    if (false) {
+    if (feature('UDS_INBOX')) {
         program.addOption(
             new Option(
                 "--messaging-socket-path <path>",
@@ -5645,7 +5646,7 @@ async function run(): Promise<CommanderCommand> {
             ),
         );
     }
-    if (false || false) {
+    if (feature('KAIROS') || feature('KAIROS_BRIEF')) {
         program.addOption(
             new Option(
                 "--brief",
@@ -5653,7 +5654,7 @@ async function run(): Promise<CommanderCommand> {
             ),
         );
     }
-    if (false) {
+    if (feature('KAIROS')) {
         program.addOption(
             new Option(
                 "--assistant",
@@ -5661,7 +5662,7 @@ async function run(): Promise<CommanderCommand> {
             ).hideHelp(),
         );
     }
-    if (false || false) {
+    if (feature('KAIROS') || feature('KAIROS_CHANNELS')) {
         program.addOption(
             new Option(
                 "--channels <servers...>",
@@ -5741,7 +5742,7 @@ async function run(): Promise<CommanderCommand> {
             "Create a remote session with the given description",
         ).hideHelp(),
     );
-    if (false) {
+    if (feature('BRIDGE_MODE')) {
         program.addOption(
             new Option(
                 "--remote-control [name]",
@@ -5756,7 +5757,7 @@ async function run(): Promise<CommanderCommand> {
                 .hideHelp(),
         );
     }
-    if (false) {
+    if (feature('HARD_FAIL')) {
         program.addOption(
             new Option(
                 "--hard-fail",
@@ -5908,7 +5909,7 @@ async function run(): Promise<CommanderCommand> {
         });
 
     // claude server
-    if (false) {
+    if (feature('DIRECT_CONNECT')) {
         program
             .command("server")
             .description("Start an KaltCode session server")
@@ -6013,7 +6014,7 @@ async function run(): Promise<CommanderCommand> {
     // (parallels the DIRECT_CONNECT/cc:// pattern above). If commander reaches
     // this action it means the argv rewrite didn't fire (e.g. user ran
     // `claude ssh` with no host) — just print usage.
-    if (false) {
+    if (feature('SSH_REMOTE')) {
         program
             .command("ssh <host> [dir]")
             .description(
@@ -6050,7 +6051,7 @@ async function run(): Promise<CommanderCommand> {
     // claude connect — subcommand only handles -p (headless) mode.
     // Interactive mode (without -p) is handled by early argv rewriting in main()
     // which redirects to the main command with full TUI support.
-    if (false) {
+    if (feature('DIRECT_CONNECT')) {
         program
             .command("open <cc-url>")
             .description(
@@ -6458,7 +6459,7 @@ async function run(): Promise<CommanderCommand> {
             await agentsHandler();
             process.exit(0);
         });
-    if (true) {
+    if (feature('TRANSCRIPT_CLASSIFIER')) {
         // Skip when tengu_auto_mode_config.enabled === 'disabled' (circuit breaker).
         // Reads from disk cache — GrowthBook isn't initialized at registration time.
         if (getAutoModeEnabledStateIfCached() !== "disabled") {
@@ -6508,7 +6509,7 @@ async function run(): Promise<CommanderCommand> {
     // false via the try/catch — but not before paying ~65ms of side effects
     // (25ms settings Zod parse + 40ms sync `security` keychain subprocess).
     // The dynamic visibility never worked; the command was always hidden.
-    if (false) {
+    if (feature('BRIDGE_MODE')) {
         program
             .command("remote-control", {
                 hidden: true,
@@ -6524,7 +6525,7 @@ async function run(): Promise<CommanderCommand> {
                 await bridgeMain(process.argv.slice(3));
             });
     }
-    if (false) {
+    if (feature('KAIROS')) {
         program
             .command("assistant [sessionId]")
             .description(
@@ -6935,7 +6936,7 @@ async function logTenguInit({
             }),
             is_simple: isBareMode() || undefined,
             is_coordinator:
-                true &&
+                feature('COORDINATOR_MODE') &&
                 coordinatorModeModule?.isCoordinatorMode()
                     ? true
                     : undefined,
@@ -6967,7 +6968,7 @@ async function logTenguInit({
 }
 function maybeActivateProactive(options: unknown): void {
     if (
-        (false || false) &&
+        (feature('PROACTIVE') || feature('KAIROS')) &&
         ((
             options as {
                 proactive?: boolean;
@@ -6983,7 +6984,7 @@ function maybeActivateProactive(options: unknown): void {
     }
 }
 function maybeActivateBrief(options: unknown): void {
-    if (!(false || false)) return;
+    if (!(feature('KAIROS') || feature('KAIROS_BRIEF'))) return;
     const briefFlag = (
         options as {
             brief?: boolean;
