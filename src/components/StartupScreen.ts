@@ -136,9 +136,10 @@ export function detectProvider(modelOverride?: string): {
     return { name: "Anthropic", model: resolvedModel, baseUrl, isLocal };
 }
 
-const DEFAULT_PANEL_WIDTH = 110;
-const MIN_HORIZONTAL_PANEL_WIDTH = 78;
-const LEFT_PANEL_WIDTH = 39;
+const DEFAULT_PANEL_WIDTH = 104;
+const MIN_WIDE_PANEL_WIDTH = 84;
+const LEFT_ART_WIDTH = 16;
+const LABEL_WIDTH = 10;
 const ELLIPSIS = "…";
 
 function charWidth(char: string): number {
@@ -192,21 +193,6 @@ function truncateToWidth(text: string, maxWidth: number): string {
     return `${result}${ELLIPSIS}`;
 }
 
-function truncateToWidthNoEllipsis(text: string, maxWidth: number): string {
-    if (displayWidth(text) <= maxWidth) return text;
-    if (maxWidth <= 0) return "";
-
-    let width = 0;
-    let result = "";
-    for (const char of text) {
-        const nextWidth = charWidth(char);
-        if (width + nextWidth > maxWidth) break;
-        result += char;
-        width += nextWidth;
-    }
-    return result;
-}
-
 function truncateStartToWidth(text: string, maxWidth: number): string {
     if (displayWidth(text) <= maxWidth) return text;
     if (maxWidth <= 0) return "";
@@ -242,10 +228,15 @@ function truncatePathMiddle(path: string, maxWidth: number): string {
     }
 
     const directoryWidth = maxWidth - displayWidth(filename) - 1;
-    return `${truncateToWidthNoEllipsis(
-        directory,
-        directoryWidth,
-    )}${ELLIPSIS}${filename}`;
+    let width = 0;
+    let prefix = "";
+    for (const char of directory) {
+        const nextWidth = charWidth(char);
+        if (width + nextWidth > directoryWidth) break;
+        prefix += char;
+        width += nextWidth;
+    }
+    return `${prefix}${ELLIPSIS}${filename}`;
 }
 
 function getDisplayCwd(): string {
@@ -276,22 +267,6 @@ function center(text: string, width: number): string {
     return repeat(" ", left) + truncated + repeat(" ", padding - left);
 }
 
-function titledTopBorder(width: number, title: string): string {
-    const prefix = "╭─── ";
-    const suffix = "╮";
-    const titleWidth = Math.max(0, width - displayWidth(prefix) - 2);
-    const fittedTitle =
-        titleWidth > 0 ? truncateToWidth(title, titleWidth) : "";
-    return `${prefix}${fittedTitle} ${repeat(
-        "─",
-        width - displayWidth(prefix) - displayWidth(fittedTitle) - 2,
-    )}${suffix}`;
-}
-
-function bottomBorder(width: number): string {
-    return `╰${repeat("─", width - 2)}╯`;
-}
-
 function row(
     left: string,
     right: string,
@@ -316,47 +291,84 @@ function getBillingLabel(providerName: string): string {
     return `${providerName} API Billing`;
 }
 
-function buildHorizontalStartupPanel(
+function getProviderBillingLabel(provider: {
+    name: string;
+    isLocal: boolean;
+}): string {
+    if (provider.isLocal) return "Local";
+    return getBillingLabel(provider.name);
+}
+
+function renderHeader(width: number, title: string): string {
+    const prefix = "╭─ ";
+    const suffix = " ─╮";
+    const titleWidth = Math.max(0, width - displayWidth(prefix) - displayWidth(suffix));
+    const fittedTitle = truncateToWidth(title, titleWidth);
+    return `${prefix}${fittedTitle}${repeat(
+        "─",
+        width - displayWidth(prefix) - displayWidth(suffix) - displayWidth(fittedTitle),
+    )}${suffix}`;
+}
+
+function renderFooter(width: number): string {
+    return `╰${repeat("─", width - 2)}╯`;
+}
+
+function renderFact(label: string, value: string, width: number): string {
+    const paddedLabel = fit(label, LABEL_WIDTH);
+    return fit(`${paddedLabel} ${value}`, width);
+}
+
+function buildWidePanel(
     width: number,
     title: string,
+    status: string,
+    provider: string,
+    billing: string,
     modelLine: string,
     cwdLine: string,
 ): string {
     const innerWidth = width - 2;
-    const leftWidth = LEFT_PANEL_WIDTH;
+    const leftWidth = LEFT_ART_WIDTH;
     const rightWidth = innerWidth - leftWidth - 1;
-    const rightDivider = ` ${repeat("─", Math.max(0, rightWidth - 1))}`;
+    const factWidth = rightWidth;
     const clawd = ["▐▛███▜▌", "▝▜█████▛▘", "▘▘ ▝▝"];
 
     return [
-        titledTopBorder(width, title),
-        row("", " Tips for getting started", leftWidth, rightWidth),
-        row(
-            center("Welcome back!", leftWidth),
-            " Run /init to create a CLAUDE.md file with instructions for Claude",
-            leftWidth,
-            rightWidth,
-        ),
-        row("", rightDivider, leftWidth, rightWidth),
-        row("", " Recent activity", leftWidth, rightWidth),
+        renderHeader(width, title),
+        row(center("Welcome back!", leftWidth), center(status, rightWidth), leftWidth, rightWidth),
+        fullRow(repeat("─", innerWidth), width),
         row(
             center(clawd[0], leftWidth),
-            " No recent activity",
+            renderFact("Provider", provider, factWidth),
             leftWidth,
             rightWidth,
         ),
-        row(center(clawd[1], leftWidth), "", leftWidth, rightWidth),
-        row(center(clawd[2], leftWidth), "", leftWidth, rightWidth),
-        row("", "", leftWidth, rightWidth),
-        row(center(modelLine, leftWidth), "", leftWidth, rightWidth),
-        row(center(cwdLine, leftWidth), "", leftWidth, rightWidth),
-        bottomBorder(width),
+        row(
+            center(clawd[1], leftWidth),
+            renderFact("Billing", billing, factWidth),
+            leftWidth,
+            rightWidth,
+        ),
+        row(
+            center(clawd[2], leftWidth),
+            renderFact("Model", modelLine, factWidth),
+            leftWidth,
+            rightWidth,
+        ),
+        row("", renderFact("Workspace", cwdLine, factWidth), leftWidth, rightWidth),
+        row("", renderFact("Activity", "No recent activity", factWidth), leftWidth, rightWidth),
+        fullRow("  /init creates CLAUDE.md for this workspace", width),
+        renderFooter(width),
     ].join("\n");
 }
 
-function buildCompactStartupPanel(
+function buildNarrowPanel(
     width: number,
     title: string,
+    status: string,
+    provider: string,
+    billing: string,
     modelLine: string,
     cwdLine: string,
 ): string {
@@ -364,23 +376,19 @@ function buildCompactStartupPanel(
     const clawd = ["▐▛███▜▌", "▝▜█████▛▘", "▘▘ ▝▝"];
 
     return [
-        titledTopBorder(width, title),
-        fullRow(center("Welcome back!", innerWidth), width),
+        renderHeader(width, title),
+        fullRow(center(`Welcome back · ${status}`, innerWidth), width),
         fullRow("", width),
         ...clawd.map((line) => fullRow(center(line, innerWidth), width)),
         fullRow("", width),
+        fullRow(renderFact("Provider", provider, innerWidth), width),
+        fullRow(renderFact("Billing", billing, innerWidth), width),
         fullRow(center(modelLine, innerWidth), width),
         fullRow(center(cwdLine, innerWidth), width),
-        fullRow(repeat("─", innerWidth), width),
-        fullRow(" Tips for getting started", width),
-        fullRow(
-            " Run /init to create a CLAUDE.md file with instructions for Claude",
-            width,
-        ),
-        fullRow(repeat("─", innerWidth), width),
-        fullRow(" Recent activity", width),
-        fullRow(" No recent activity", width),
-        bottomBorder(width),
+        fullRow("", width),
+        fullRow(renderFact("Activity", "No recent activity", innerWidth), width),
+        fullRow("  /init creates CLAUDE.md for this workspace", width),
+        renderFooter(width),
     ].join("\n");
 }
 
@@ -388,19 +396,33 @@ export function renderStartupPanel(modelOverride?: string): string {
     const provider = detectProvider(modelOverride);
     const width = getPanelWidth();
     const title = `Kalt Code v${MACRO.DISPLAY_VERSION ?? MACRO.VERSION}`;
-    const contentWidth =
-        width >= MIN_HORIZONTAL_PANEL_WIDTH ? LEFT_PANEL_WIDTH : width - 2;
-    const modelLine = truncateToWidth(
-        `${provider.model} · ${getBillingLabel(provider.name)}`,
-        contentWidth,
-    );
-    const cwdLine = truncatePathMiddle(getDisplayCwd(), contentWidth);
+    const valueWidth = Math.max(width - 28, 18);
+    const status = "READY";
+    const billing = getProviderBillingLabel(provider);
+    const modelLine = truncateToWidth(provider.model, valueWidth);
+    const cwdLine = truncatePathMiddle(getDisplayCwd(), valueWidth);
 
-    if (width >= MIN_HORIZONTAL_PANEL_WIDTH) {
-        return buildHorizontalStartupPanel(width, title, modelLine, cwdLine);
+    if (width >= MIN_WIDE_PANEL_WIDTH) {
+        return buildWidePanel(
+            width,
+            title,
+            status,
+            provider.name,
+            billing,
+            modelLine,
+            cwdLine,
+        );
     }
 
-    return buildCompactStartupPanel(width, title, modelLine, cwdLine);
+    return buildNarrowPanel(
+        width,
+        title,
+        status,
+        provider.name,
+        billing,
+        modelLine,
+        cwdLine,
+    );
 }
 
 export async function printStartupScreen(modelOverride?: string): Promise<void> {

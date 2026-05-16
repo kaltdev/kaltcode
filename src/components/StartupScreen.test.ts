@@ -105,7 +105,7 @@ function setupOpenAIMode(baseUrl: string, model: string): void {
 }
 
 describe("printStartupScreen logo", () => {
-    test("renders the two-column Kalt Code startup panel", async () => {
+    test("renders the modern Kalt Code startup panel", async () => {
         (globalThis as Record<string, unknown>).MACRO = {
             VERSION: "test-version",
         };
@@ -127,15 +127,18 @@ describe("printStartupScreen logo", () => {
         await printStartupScreen();
 
         const plainOutput = stripAnsi(output);
-        expect(plainOutput).toContain("╭─── Kalt Code vtest-version");
+        expect(plainOutput).toContain("╭─ Kalt Code vtest-version");
         expect(plainOutput).toContain("Welcome back!");
-        expect(plainOutput).toContain("Tips for getting started");
-        expect(plainOutput).toContain(
-            "Run /init to create a CLAUDE.md file with instructions for Claude",
-        );
-        expect(plainOutput).toContain("Recent activity");
+        expect(plainOutput).toContain("READY");
+        expect(plainOutput).toContain("Provider");
+        expect(plainOutput).toContain("Anthropic");
+        expect(plainOutput).toContain("Billing");
+        expect(plainOutput).toContain("Anthropic API Billing");
+        expect(plainOutput).toContain("claude-sonnet-4-6");
+        expect(plainOutput).toContain("Workspace");
+        expect(plainOutput).toContain("Activity");
         expect(plainOutput).toContain("No recent activity");
-        expect(plainOutput).toContain("claude-sonnet-4-6 · Anthropic API");
+        expect(plainOutput).toContain("/init creates CLAUDE.md for this workspace");
         expect(plainOutput).not.toContain("Your code, your rules.");
         expect(plainOutput).not.toContain(
             "Any model. Every tool. Zero limits.",
