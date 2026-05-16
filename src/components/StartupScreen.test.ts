@@ -100,7 +100,7 @@ function setupOpenAIMode(baseUrl: string, model: string): void {
 }
 
 describe("printStartupScreen logo", () => {
-    test("renders KALT CODE as a single-line block logo", () => {
+    test("renders the LogoV2 welcome screen", async () => {
         (globalThis as Record<string, unknown>).MACRO = {
             VERSION: "test-version",
         };
@@ -115,16 +115,12 @@ describe("printStartupScreen logo", () => {
             return true;
         }) as typeof process.stdout.write;
 
-        printStartupScreen();
+        await printStartupScreen();
 
         const plainOutput = stripAnsi(output);
-        // KALT and CODE appear on the same line
-        expect(plainOutput).toContain(
-            "█████╔╝   ████████║  ██║         ██║       ██║       ██║   ██║  ██║   ██║ ██████╗",
-        );
-        // Tagline updated
-        expect(plainOutput).toContain("Your code, your rules.");
-        // Old tagline is gone
+        expect(plainOutput).toContain("Welcome to Kalt Code");
+        expect(plainOutput).toContain("vtest-version");
+        expect(plainOutput).not.toContain("Your code, your rules.");
         expect(plainOutput).not.toContain(
             "Any model. Every tool. Zero limits.",
         );

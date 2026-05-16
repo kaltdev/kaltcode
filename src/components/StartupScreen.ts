@@ -1,10 +1,11 @@
 /**
- * Kalt Code startup screen — filled-block text logo with sunset gradient.
+ * Kalt Code startup screen.
  * Called once at CLI startup before the Ink UI renders.
  *
  * Addresses: https://github.com/kaltdev/kaltcode/issues/55
  */
 
+import React from "react";
 import {
     isLocalProviderUrl,
     resolveProviderRequest,
@@ -17,60 +18,8 @@ import { getLocalOpenAICompatibleProviderLabel } from "../utils/providerDiscover
 import { getSettings_DEPRECATED } from "../utils/settings/settings.js";
 import { parseUserSpecifiedModel } from "../utils/model/model.js";
 import { DEFAULT_GEMINI_MODEL } from "../utils/providerProfile.js";
-import { getGlobalConfig } from "../utils/config.js";
-import { ANSI_DIM, ANSI_RESET, ansiRgb } from "../utils/terminalAnsi.js";
-import { resolveLogoPalette, type RGB } from "./StartupScreen.palettes.js";
-
-declare const MACRO: { VERSION: string; DISPLAY_VERSION?: string };
-
-const RESET = ANSI_RESET;
-const DIM = ANSI_DIM;
-
-function lerp(a: RGB, b: RGB, t: number): RGB {
-    return [
-        Math.round(a[0] + (b[0] - a[0]) * t),
-        Math.round(a[1] + (b[1] - a[1]) * t),
-        Math.round(a[2] + (b[2] - a[2]) * t),
-    ];
-}
-
-function gradAt(stops: readonly RGB[], t: number): RGB {
-    const c = Math.max(0, Math.min(1, t));
-    const s = c * (stops.length - 1);
-    const i = Math.floor(s);
-    if (i >= stops.length - 1) return stops[stops.length - 1];
-    return lerp(stops[i], stops[i + 1], s - i);
-}
-
-export function paintLine(
-    text: string,
-    stops: readonly RGB[],
-    lineT: number,
-): string {
-    let out = "";
-    for (let i = 0; i < text.length; i++) {
-        const t =
-            text.length > 1
-                ? lineT * 0.5 + (i / (text.length - 1)) * 0.5
-                : lineT;
-        const [r, g, b] = gradAt(stops, t);
-        out += `${ansiRgb(r, g, b)}${text[i]}`;
-    }
-    return out + RESET;
-}
-
-// ─── Filled Block Text Logo ───────────────────────────────────────────────────
-
-const LOGO = [
-    `  \u2588\u2588\u2557  \u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2557      \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557    \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557`,
-    `  \u2588\u2588\u2551 \u2588\u2588\u2554\u255d  \u2588\u2588\u2554\u2550\u2550\u2550\u2588\u2588\u2551  \u2588\u2588\u2551      \u255a\u2550\u2550\u2588\u2588\u2554\u2550\u2550\u255d    \u2588\u2588\u2554\u2550\u2550\u2550\u2550\u2550\u255d  \u2588\u2588\u2554\u2550\u2550\u2550\u2588\u2588\u2551  \u2588\u2588\u2554\u2550\u2550\u2550\u2588\u2588\u2557 \u2588\u2588\u2554\u2550\u2550\u2550\u2550\u2550\u255d`,
-    `  \u2588\u2588\u2588\u2588\u2588\u2554\u255d   \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2551  \u2588\u2588\u2551         \u2588\u2588\u2551       \u2588\u2588\u2551       \u2588\u2588\u2551   \u2588\u2588\u2551  \u2588\u2588\u2551   \u2588\u2588\u2551 \u2588\u2588\u2588\u2588\u2588\u2588\u2557  `,
-    `  \u2588\u2588\u2554\u2550\u2588\u2588\u2557   \u2588\u2588\u2554\u2550\u2550\u2550\u2588\u2588\u2551  \u2588\u2588\u2551         \u2588\u2588\u2551       \u2588\u2588\u2551       \u2588\u2588\u2551   \u2588\u2588\u2551  \u2588\u2588\u2551   \u2588\u2588\u2551 \u2588\u2588\u2554\u2550\u2550\u2550\u255d  `,
-    `  \u2588\u2588\u2551  \u2588\u2588\u2557  \u2588\u2588\u2551   \u2588\u2588\u2551  \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557   \u2588\u2588\u2551       \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557 \u255a\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255d  \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255d \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557`,
-    `  \u255a\u2550\u255d  \u255a\u2550\u255d  \u255a\u2550\u255d   \u255a\u2550\u255d  \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d   \u255a\u2550\u255d       \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d  \u255a\u2550\u2550\u2550\u2550\u2550\u255d   \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u255d  \u255a\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u255d`,
-];
-
-// ─── Provider detection ───────────────────────────────────────────────────────
+import { renderToAnsiString } from "../utils/staticRender.js";
+import { WelcomeV2 } from "./LogoV2/WelcomeV2.js";
 
 export function detectProvider(modelOverride?: string): {
     name: string;
@@ -188,92 +137,15 @@ export function detectProvider(modelOverride?: string): {
     return { name: "Anthropic", model: resolvedModel, baseUrl, isLocal };
 }
 
-// ─── Box drawing ──────────────────────────────────────────────────────────────
-
-function boxRow(
-    content: string,
-    width: number,
-    rawLen: number,
-    border: RGB,
-): string {
-    const pad = Math.max(0, width - 2 - rawLen);
-    return `${ansiRgb(...border)}\u2502${RESET}${content}${" ".repeat(pad)}${ansiRgb(...border)}\u2502${RESET}`;
-}
-
-// ─── Main ─────────────────────────────────────────────────────────────────────
-
-export function printStartupScreen(modelOverride?: string): void {
+export async function printStartupScreen(modelOverride?: string): Promise<void> {
     // Skip in non-interactive / CI / print mode
     if (process.env.CI || !process.stdout.isTTY) return;
 
-    const palette = resolveLogoPalette(getGlobalConfig().logoColor);
-    const ACCENT = palette.accent;
-    const CREAM = palette.cream;
-    const DIMCOL = palette.dim;
-    const BORDER = palette.border;
-    const GRAD = palette.gradient;
+    detectProvider(modelOverride);
 
-    const p = detectProvider(modelOverride);
-    const W = 62;
-    const out: string[] = [];
-
-    out.push("");
-
-    // Gradient logo
-    const total = LOGO.length;
-    for (let i = 0; i < total; i++) {
-        const t = total > 1 ? i / (total - 1) : 0;
-        out.push(paintLine(LOGO[i], GRAD, t));
-    }
-
-    out.push("");
-
-    // Tagline
-    out.push(
-        `  ${ansiRgb(...ACCENT)}\u2500\u2500${RESET} ${ansiRgb(...CREAM)}Your code, your rules.${RESET}`,
+    const output = await renderToAnsiString(
+        React.createElement(WelcomeV2),
+        process.stdout.columns,
     );
-    out.push("");
-
-    // Provider info box
-    out.push(
-        `${ansiRgb(...BORDER)}\u2554${"\u2550".repeat(W - 2)}\u2557${RESET}`,
-    );
-
-    const lbl = (k: string, v: string, c: RGB = CREAM): [string, number] => {
-        const padK = k.padEnd(9);
-        return [
-            ` ${DIM}${ansiRgb(...DIMCOL)}${padK}${RESET} ${ansiRgb(...c)}${v}${RESET}`,
-            ` ${padK} ${v}`.length,
-        ];
-    };
-
-    const provC: RGB = p.isLocal ? [130, 175, 130] : ACCENT;
-    let [r, l] = lbl("Provider", p.name, provC);
-    out.push(boxRow(r, W, l, BORDER));
-    [r, l] = lbl("Model", p.model);
-    out.push(boxRow(r, W, l, BORDER));
-    const ep =
-        p.baseUrl.length > 38 ? p.baseUrl.slice(0, 35) + "..." : p.baseUrl;
-    [r, l] = lbl("Endpoint", ep);
-    out.push(boxRow(r, W, l, BORDER));
-
-    out.push(
-        `${ansiRgb(...BORDER)}\u2560${"\u2550".repeat(W - 2)}\u2563${RESET}`,
-    );
-
-    const sC: RGB = p.isLocal ? [130, 175, 130] : ACCENT;
-    const sL = p.isLocal ? "local" : "cloud";
-    const sRow = ` ${ansiRgb(...sC)}\u25cf${RESET} ${DIM}${ansiRgb(...DIMCOL)}${sL}${RESET}    ${DIM}${ansiRgb(...DIMCOL)}Ready \u2014 type ${RESET}${ansiRgb(...ACCENT)}/help${RESET}${DIM}${ansiRgb(...DIMCOL)} to begin${RESET}`;
-    const sLen = ` \u25cf ${sL}    Ready \u2014 type /help to begin`.length;
-    out.push(boxRow(sRow, W, sLen, BORDER));
-
-    out.push(
-        `${ansiRgb(...BORDER)}\u255a${"\u2550".repeat(W - 2)}\u255d${RESET}`,
-    );
-    out.push(
-        `  ${DIM}${ansiRgb(...DIMCOL)}kalt-code ${RESET}${ansiRgb(...ACCENT)}v${MACRO.DISPLAY_VERSION ?? MACRO.VERSION}${RESET}`,
-    );
-    out.push("");
-
-    process.stdout.write(out.join("\n") + "\n");
+    process.stdout.write(output.endsWith("\n") ? output : `${output}\n`);
 }

@@ -176,7 +176,7 @@ async function main(): Promise<void> {
     // Print the gradient startup screen before the Ink UI loads
     const { printStartupScreen } =
         await import("../components/StartupScreen.js");
-    printStartupScreen(earlyModelFlag);
+    await printStartupScreen(earlyModelFlag);
 
     // For all other paths, load the startup profiler
     const { profileCheckpoint } = await import("../utils/startupProfiler.js");
