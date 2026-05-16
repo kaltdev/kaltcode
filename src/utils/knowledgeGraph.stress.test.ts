@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, afterEach, afterAll } from 'bun:test'
+import { describe, expect, it, beforeEach, afterEach } from 'bun:test'
 import {
   addGlobalEntity,
   addGlobalSummary,
@@ -12,13 +12,16 @@ import { mkdtempSync, rmSync, existsSync } from 'fs'
 import { tmpdir } from 'os'
 import { dirname, join } from 'path'
 import { getFsImplementation } from './fsOperations.js'
+import {
+  acquireSharedMutationLock,
+  releaseSharedMutationLock,
+} from '../test/sharedMutationLock.js'
 
 describe.serial('KnowledgeGraph Phase 1 Stress & Edge Cases', () => {
   const originalKaltCodeConfigDir = process.env.KALTCODE_CONFIG_DIR
   const originalConfigDir = process.env.CLAUDE_CONFIG_DIR
   const originalOrama = process.env.KALTCODE_KNOWLEDGE_ORAMA
-  const configDir = mkdtempSync(join(tmpdir(), 'kaltcode-stress-'))
-  applyTestConfigDir()
+  let configDir: string
   const cwd = getFsImplementation().cwd()
 
   function applyTestConfigDir(): void {
@@ -26,49 +29,46 @@ describe.serial('KnowledgeGraph Phase 1 Stress & Edge Cases', () => {
     process.env.CLAUDE_CONFIG_DIR = configDir
   }
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    await acquireSharedMutationLock("knowledgeGraph.stress.test.ts")
+    configDir = mkdtempSync(join(tmpdir(), 'kaltcode-stress-'))
     applyTestConfigDir()
     process.env.KALTCODE_KNOWLEDGE_ORAMA = '1'
     resetGlobalGraph()
   })
 
-  afterAll(() => {
-    resetGlobalGraph()
-    clearMemoryOnly()
-    
-    // Restore config dir
-    if (originalKaltCodeConfigDir === undefined) {
-      delete process.env.KALTCODE_CONFIG_DIR
-    } else {
-      process.env.KALTCODE_CONFIG_DIR = originalKaltCodeConfigDir
+  afterEach(() => {
+    try {
+      resetGlobalGraph()
+      clearMemoryOnly()
+      if (originalKaltCodeConfigDir === undefined) {
+        delete process.env.KALTCODE_CONFIG_DIR
+      } else {
+        process.env.KALTCODE_CONFIG_DIR = originalKaltCodeConfigDir
+      }
+      if (originalConfigDir === undefined) {
+        delete process.env.CLAUDE_CONFIG_DIR
+      } else {
+        process.env.CLAUDE_CONFIG_DIR = originalConfigDir
+      }
+      if (originalOrama === undefined) {
+        delete process.env.KALTCODE_KNOWLEDGE_ORAMA
+      } else {
+        process.env.KALTCODE_KNOWLEDGE_ORAMA = originalOrama
+      }
+      rmSync(configDir, { recursive: true, force: true })
+    } finally {
+      releaseSharedMutationLock()
     }
-    if (originalConfigDir === undefined) {
-      delete process.env.CLAUDE_CONFIG_DIR
-    } else {
-      process.env.CLAUDE_CONFIG_DIR = originalConfigDir
-    }
-    
-    // Restore Orama flag
-    if (originalOrama === undefined) {
-      delete process.env.KALTCODE_KNOWLEDGE_ORAMA
-    } else {
-      process.env.KALTCODE_KNOWLEDGE_ORAMA = originalOrama
-    }
-    
-    rmSync(configDir, { recursive: true, force: true })
   })
 
   it('handles high-volume entity insertion (Stress Test)', async () => {
     const count = 50
-    const start = Date.now()
     
     // Use sequential insertion to avoid Orama race conditions on disk/ID collisions
     for (let i = 0; i < count; i++) {
       await addGlobalEntity('stress_test', `entity_${i}`, { index: String(i), category: 'test' })
     }
-    
-    const duration = Date.now() - start
-    console.log(`Inserted ${count} entities into Orama in ${duration}ms`)
     
     const graph = getGlobalGraph()
     expect(Object.keys(graph.entities).length).toBe(count)

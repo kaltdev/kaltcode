@@ -66,22 +66,32 @@ export class SQLiteProvider {
         }
     }
 
+    private removeDatabaseFiles(): boolean {
+        let ok = true;
+        const sidecars = [
+            this.dbPath,
+            `${this.dbPath}-wal`,
+            `${this.dbPath}-shm`,
+        ];
+
+        for (const file of sidecars) {
+            if (!existsSync(file)) continue;
+            try {
+                unlinkSync(file);
+            } catch (error) {
+                ok = false;
+                console.warn(`Failed to remove SQLite state at ${file}:`, error);
+            }
+        }
+
+        return ok;
+    }
+
     private async selfHeal(): Promise<void> {
         try {
             this.close();
             // Clean up main DB and side-car files to prevent reattaching to stale WAL/SHM
-            const sidecars = [
-                this.dbPath,
-                `${this.dbPath}-wal`,
-                `${this.dbPath}-shm`,
-            ];
-            for (const file of sidecars) {
-                if (existsSync(file)) {
-                    try {
-                        unlinkSync(file);
-                    } catch {}
-                }
-            }
+            this.removeDatabaseFiles();
 
             if (typeof Bun !== "undefined") {
                 const { Database } = await import("bun:sqlite");
@@ -413,5 +423,10 @@ export class SQLiteProvider {
             this.db = null;
         }
         this.isInitialized = false;
+    }
+
+    public reset(): boolean {
+        this.close();
+        return this.removeDatabaseFiles();
     }
 }

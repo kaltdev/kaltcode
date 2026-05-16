@@ -13,6 +13,7 @@ import { getPrimaryModel, parseModelList } from "./providerModels.js";
 import {
     buildCompatibilityProcessEnv,
     createProfileFile,
+    deleteProfileFile,
     saveProfileFile,
     buildBedrockProfileEnv,
     buildGeminiProfileEnv,
@@ -1269,6 +1270,24 @@ function triggerStartupDiscoveryRefreshForProfile(
     });
 }
 
+function syncStartupProfileFile(activeProfile: ProviderProfile | undefined): void {
+    if (!activeProfile) {
+        deleteProfileFile();
+        return;
+    }
+
+    const startupProfile = buildStartupProfileFromActiveProfile(activeProfile);
+
+    if (!startupProfile) {
+        deleteProfileFile();
+        return;
+    }
+
+    saveProfileFile(
+        createProfileFile(startupProfile.profile, startupProfile.env),
+    );
+}
+
 export function setActiveProviderProfile(
     profileId: string,
 ): ProviderProfile | null {
@@ -1294,18 +1313,7 @@ export function setActiveProviderProfile(
 
     applyProviderProfileToProcessEnv(activeProfile);
     triggerStartupDiscoveryRefreshForProfile(activeProfile);
-
-    // Keep startup persisted provider profile in sync so initial startup
-    // uses the selected provider/model.
-    const startupProfile = buildStartupProfileFromActiveProfile(activeProfile);
-
-    if (startupProfile) {
-        const file = createProfileFile(
-            startupProfile.profile,
-            startupProfile.env,
-        );
-        saveProfileFile(file);
-    }
+    syncStartupProfileFile(activeProfile);
 
     return activeProfile;
 }
@@ -1376,6 +1384,7 @@ export function deleteProviderProfile(profileId: string): {
 
     if (nextActiveProfile) {
         applyProviderProfileToProcessEnv(nextActiveProfile);
+        syncStartupProfileFile(nextActiveProfile);
     } else if (
         deletedProfile &&
         isProcessEnvAlignedWithProfile(process.env, deletedProfile, {
@@ -1383,6 +1392,9 @@ export function deleteProviderProfile(profileId: string): {
         })
     ) {
         clearProviderProfileEnvFromProcessEnv();
+        syncStartupProfileFile(undefined);
+    } else if (deletedProfile) {
+        syncStartupProfileFile(undefined);
     }
 
     return {

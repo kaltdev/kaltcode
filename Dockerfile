@@ -4,7 +4,8 @@ FROM node:22-slim AS build
 WORKDIR /app
 
 # Copy dependency manifests first for better layer caching
-COPY package.json bun.lock .bun-version ./
+COPY package.json bun.lock ./
+COPY .bun-version .bun-version
 
 # Install the Bun version tracked by the repo
 RUN set -eu; \
@@ -13,7 +14,7 @@ RUN set -eu; \
     npm install -g "bun@$BUN_VERSION"
 
 # Install all dependencies (including devDependencies for build)
-RUN bun install --frozen-lockfilesrc/integrations/discoveryCache.test.ts
+RUN bun install --frozen-lockfile
 
 # Copy source code
 COPY src/ src/

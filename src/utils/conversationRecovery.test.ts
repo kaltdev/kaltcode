@@ -75,15 +75,24 @@ afterEach(async () => {
 
 async function importFreshConversationRecovery() {
   mock.restore()
+  const getMockAPIProvider = () => {
+    if (process.env.CLAUDE_CODE_USE_GITHUB) return 'github'
+    if (process.env.CLAUDE_CODE_USE_OPENAI) return 'openai'
+    if (process.env.CLAUDE_CODE_USE_BEDROCK) return 'bedrock'
+    if (process.env.CLAUDE_CODE_USE_VERTEX) return 'vertex'
+    if (process.env.CLAUDE_CODE_USE_FOUNDRY) return 'foundry'
+    return 'firstParty'
+  }
   mock.module('./model/providers.js', () => ({
-    getAPIProvider: () => {
-      if (process.env.CLAUDE_CODE_USE_GITHUB) return 'github'
-      if (process.env.CLAUDE_CODE_USE_OPENAI) return 'openai'
-      if (process.env.CLAUDE_CODE_USE_BEDROCK) return 'bedrock'
-      if (process.env.CLAUDE_CODE_USE_VERTEX) return 'vertex'
-      if (process.env.CLAUDE_CODE_USE_FOUNDRY) return 'foundry'
-      return 'firstParty'
-    },
+    getAPIProvider: getMockAPIProvider,
+    usesAnthropicAccountFlow: () => getMockAPIProvider() === 'firstParty',
+    isGithubNativeAnthropicMode: (resolvedModel?: string) =>
+      Boolean(process.env.CLAUDE_CODE_USE_GITHUB) &&
+      (resolvedModel ?? process.env.OPENAI_MODEL ?? '')
+        .toLowerCase()
+        .includes('claude-'),
+    getAPIProviderForStatsig: getMockAPIProvider,
+    isFirstPartyAnthropicBaseUrl: () => true,
   }))
   const nonce = `${Date.now()}-${Math.random()}`
   return import(`./conversationRecovery.ts?conversationRecoveryTest=${nonce}`)

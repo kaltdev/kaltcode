@@ -659,6 +659,58 @@ test("saveProfileFile defaults to user config instead of the working directory",
     }
 });
 
+test("profile file defaults use KALTCODE_CONFIG_DIR before CLAUDE_CONFIG_DIR", async () => {
+    const configDir = mkdtempSync(
+        join(tmpdir(), "kaltcode-primary-config-profile-"),
+    );
+    const legacyConfigDir = mkdtempSync(
+        join(tmpdir(), "kaltcode-legacy-config-profile-"),
+    );
+    const previousKaltCodeConfigDir = process.env.KALTCODE_CONFIG_DIR;
+    const previousClaudeConfigDir = process.env.CLAUDE_CONFIG_DIR;
+
+    try {
+        process.env.KALTCODE_CONFIG_DIR = configDir;
+        process.env.CLAUDE_CONFIG_DIR = legacyConfigDir;
+        const {
+            createProfileFile,
+            getDefaultProfileFilePath,
+            saveProfileFile,
+            PROFILE_FILE_NAME,
+        } = await importFreshProviderProfileModule();
+
+        const persisted = createProfileFile("openai", {
+            OPENAI_API_KEY: "sk-test",
+            OPENAI_MODEL: "gpt-4o",
+        });
+
+        const filePath = saveProfileFile(persisted);
+
+        assert.equal(filePath, join(configDir, PROFILE_FILE_NAME));
+        assert.equal(
+            getDefaultProfileFilePath(),
+            join(configDir, PROFILE_FILE_NAME),
+        );
+        assert.equal(
+            existsSync(join(legacyConfigDir, PROFILE_FILE_NAME)),
+            false,
+        );
+    } finally {
+        if (previousKaltCodeConfigDir === undefined) {
+            delete process.env.KALTCODE_CONFIG_DIR;
+        } else {
+            process.env.KALTCODE_CONFIG_DIR = previousKaltCodeConfigDir;
+        }
+        if (previousClaudeConfigDir === undefined) {
+            delete process.env.CLAUDE_CONFIG_DIR;
+        } else {
+            process.env.CLAUDE_CONFIG_DIR = previousClaudeConfigDir;
+        }
+        rmSync(configDir, { recursive: true, force: true });
+        rmSync(legacyConfigDir, { recursive: true, force: true });
+    }
+});
+
 test("loadProfileFile keeps project-local files as a legacy fallback", async () => {
     const cwd = mkdtempSync(join(tmpdir(), "kaltcode-legacy-profile-"));
     const configDir = mkdtempSync(
@@ -685,6 +737,50 @@ test("loadProfileFile keeps project-local files as a legacy fallback", async () 
         );
 
         assert.deepEqual(loadProfileFile(), legacyProfile);
+    } finally {
+        process.chdir(previousCwd);
+        restoreConfigDir();
+        rmSync(cwd, { recursive: true, force: true });
+        rmSync(configDir, { recursive: true, force: true });
+    }
+});
+
+test("loadProfileFile prefers user config over project-local legacy fallback", async () => {
+    const cwd = mkdtempSync(join(tmpdir(), "kaltcode-preferred-profile-"));
+    const configDir = mkdtempSync(
+        join(tmpdir(), "kaltcode-preferred-config-profile-"),
+    );
+    const restoreConfigDir = useConfigDir(configDir);
+    const previousCwd = process.cwd();
+
+    try {
+        process.chdir(cwd);
+        const {
+            createProfileFile,
+            loadProfileFile,
+            saveProfileFile,
+            PROFILE_FILE_NAME,
+        } = await importFreshProviderProfileModule();
+        process.env.KALTCODE_CONFIG_DIR = configDir;
+        process.env.CLAUDE_CONFIG_DIR = configDir;
+
+        const configProfile = createProfileFile("openai", {
+            OPENAI_API_KEY: "sk-test",
+            OPENAI_MODEL: "gpt-4o",
+        });
+        const legacyProfile = createProfileFile("gemini", {
+            GEMINI_API_KEY: "gem-test",
+            GEMINI_MODEL: "gemini-2.5-flash",
+        });
+
+        saveProfileFile(configProfile);
+        writeFileSync(
+            join(cwd, PROFILE_FILE_NAME),
+            JSON.stringify(legacyProfile, null, 2),
+            "utf8",
+        );
+
+        assert.deepEqual(loadProfileFile(), configProfile);
     } finally {
         process.chdir(previousCwd);
         restoreConfigDir();

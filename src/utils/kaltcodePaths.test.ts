@@ -294,6 +294,39 @@ describe("Kalt Code paths", () => {
         ).toBe("/tmp/custom-kalt-code");
     });
 
+    test("uses KALTCODE_CONFIG_DIR before CLAUDE_CONFIG_DIR when both are provided", async () => {
+        process.env.KALTCODE_CONFIG_DIR = "/tmp/kalt-code-primary";
+        process.env.CLAUDE_CONFIG_DIR = "/tmp/claude-legacy";
+        const {
+            getClaudeConfigHomeDir,
+            resolveKaltCodeConfigHomeDir,
+        } = await importFreshEnvUtils();
+
+        expect(getClaudeConfigHomeDir()).toBe("/tmp/kalt-code-primary");
+        expect(
+            resolveKaltCodeConfigHomeDir({
+                configDirEnv: "/tmp/kalt-code-primary",
+                legacyConfigDirEnv: "/tmp/claude-legacy",
+            }),
+        ).toBe("/tmp/kalt-code-primary");
+    });
+
+    test("user settings path uses KALTCODE_CONFIG_DIR before CLAUDE_CONFIG_DIR", async () => {
+        process.env.KALTCODE_CONFIG_DIR = "/tmp/kalt-code-primary";
+        process.env.CLAUDE_CONFIG_DIR = "/tmp/claude-legacy";
+        const {
+            getSettingsFilePathForSource,
+            getSettingsRootPathForSource,
+        } = await importFreshSettings();
+
+        expect(getSettingsRootPathForSource("userSettings")).toBe(
+            "/tmp/kalt-code-primary",
+        );
+        expect(getSettingsFilePathForSource("userSettings")).toBe(
+            join("/tmp/kalt-code-primary", "settings.json"),
+        );
+    });
+
     test("project and local settings paths use .kalt-code", async () => {
         const { getRelativeSettingsFilePathForSource } =
             await importFreshSettings();

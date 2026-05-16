@@ -53,10 +53,6 @@ afterEach(() => {
         const duration = performance.now() - startTime;
         const averageTime = duration / iterations;
 
-        console.log(
-            `[Benchmark] Avg extraction time: ${averageTime.toFixed(4)}ms`,
-        );
-
         // Performance guard: should definitely be under 5.0ms per message on any modern CI
         // (Async overhead and Orama checks add some cost)
         expect(averageTime).toBeLessThan(5.0);
@@ -74,9 +70,6 @@ afterEach(() => {
         const summary = await getArcSummary();
         const duration = performance.now() - startTime;
 
-        console.log(
-            `[Benchmark] Summary generation time (50 entities): ${duration.toFixed(4)}ms`,
-        );
         expect(summary).toMatch(/Knowledge Graph/);
         // Summary generation should be fast
         expect(duration).toBeLessThan(50);
@@ -90,9 +83,6 @@ afterEach(() => {
 
         const serialized = JSON.stringify(arc);
         const sizeKB = serialized.length / 1024;
-        console.log(
-            `[Benchmark] Memory footprint (100 facts): ${sizeKB.toFixed(2)}KB`,
-        );
 
         // Should be well under 100KB for 100 simple facts
         expect(sizeKB).toBeLessThan(100);

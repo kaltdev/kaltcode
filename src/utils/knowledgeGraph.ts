@@ -781,17 +781,25 @@ export function resetGlobalGraph(): void {
     const cwd = getFsImplementation().cwd();
     const { sqlite, json } = getProviders();
 
-    json.delete();
-    sqlite.close();
-
     const projectDir = join(getProjectsDir(), sanitizePath(cwd));
-    const sqlitePath = join(projectDir, "knowledge.db");
-    if (existsSync(sqlitePath)) rmSync(sqlitePath, { force: true });
+    const sqliteReset = sqlite.reset();
+    const jsonReset = sqliteReset ? json.reset() : false;
 
     const oramaPath = getOramaPersistencePath(cwd);
-    try {
-        rmSync(oramaPath, { force: true });
-    } catch {}
+    if (sqliteReset && jsonReset) {
+        try {
+            rmSync(oramaPath, { force: true });
+        } catch (error) {
+            console.warn(
+                `Failed to delete Orama persistence at ${oramaPath}:`,
+                error,
+            );
+        }
+    } else {
+        console.warn(
+            `Knowledge graph reset preserved persistent state for ${projectDir} because one backend could not be cleared.`,
+        );
+    }
 
     oramaDb = null;
     projectGraph = null;

@@ -1274,6 +1274,51 @@ describe("setActiveProviderProfile", () => {
         }
     });
 
+    test("persists startup profile to KALTCODE_CONFIG_DIR when legacy config dir differs", async () => {
+        if (!testConfigDir) {
+            throw new Error("testConfigDir not initialized");
+        }
+        const legacyConfigDir = mkdtempSync(
+            join(tmpdir(), "kalt-code-provider-legacy-config-"),
+        );
+        process.env.KALTCODE_CONFIG_DIR = testConfigDir;
+        process.env.CLAUDE_CONFIG_DIR = legacyConfigDir;
+
+        try {
+            const { setActiveProviderProfile } =
+                await importFreshProviderProfileModules();
+            const openaiProfile = buildProfile({
+                id: "openai_prof",
+                name: "OpenAI Provider",
+                provider: "openai",
+                baseUrl: "https://api.openai.com/v1",
+                model: "gpt-4o",
+                apiKey: "sk-test",
+            });
+
+            saveMockGlobalConfig((current) => ({
+                ...current,
+                providerProfiles: [openaiProfile],
+            }));
+
+            const result = setActiveProviderProfile("openai_prof");
+            const persisted = JSON.parse(
+                readFileSync(
+                    join(testConfigDir, STARTUP_PROFILE_FILE_NAME),
+                    "utf8",
+                ),
+            );
+
+            expect(result?.id).toBe("openai_prof");
+            expect(persisted.profile).toBe("openai");
+            expect(
+                existsSync(join(legacyConfigDir, STARTUP_PROFILE_FILE_NAME)),
+            ).toBe(false);
+        } finally {
+            rmSync(legacyConfigDir, { recursive: true, force: true });
+        }
+    });
+
     test("persists no-key openai-compatible profiles for restart fallback", async () => {
         const tempDir = mkdtempSync(join(tmpdir(), "kalt-code-provider-"));
         const configDir = mkdtempSync(
@@ -1786,6 +1831,78 @@ describe("deleteProviderProfile", () => {
         expect(process.env.ANTHROPIC_BASE_URL).toBeUndefined();
         expect(process.env.ANTHROPIC_MODEL).toBeUndefined();
         expect(process.env.ANTHROPIC_API_KEY).toBeUndefined();
+    });
+
+    test("deleting final active profile removes persisted startup profile", async () => {
+        if (!testConfigDir) {
+            throw new Error("testConfigDir not initialized");
+        }
+        const { deleteProviderProfile, setActiveProviderProfile } =
+            await importFreshProviderProfileModules();
+        const profile = buildProfile({
+            id: "only_profile",
+            apiKey: "sk-test",
+        });
+
+        saveMockGlobalConfig((current) => ({
+            ...current,
+            providerProfiles: [profile],
+            activeProviderProfileId: "only_profile",
+        }));
+
+        setActiveProviderProfile("only_profile");
+        expect(existsSync(join(testConfigDir, STARTUP_PROFILE_FILE_NAME))).toBe(
+            true,
+        );
+
+        const result = deleteProviderProfile("only_profile");
+
+        expect(result.removed).toBe(true);
+        expect(result.activeProfileId).toBeUndefined();
+        expect(existsSync(join(testConfigDir, STARTUP_PROFILE_FILE_NAME))).toBe(
+            false,
+        );
+    });
+
+    test("deleting active profile rewrites persisted startup profile for next profile", async () => {
+        if (!testConfigDir) {
+            throw new Error("testConfigDir not initialized");
+        }
+        const { deleteProviderProfile, setActiveProviderProfile } =
+            await importFreshProviderProfileModules();
+        const firstProfile = buildProfile({
+            id: "first_profile",
+            model: "gpt-4o",
+        });
+        const nextProfile = buildProfile({
+            id: "next_profile",
+            baseUrl: "https://api.deepseek.com/v1",
+            model: "deepseek-chat",
+            apiKey: "sk-next",
+        });
+
+        saveMockGlobalConfig((current) => ({
+            ...current,
+            providerProfiles: [firstProfile, nextProfile],
+            activeProviderProfileId: "first_profile",
+        }));
+
+        setActiveProviderProfile("first_profile");
+        const result = deleteProviderProfile("first_profile");
+        const persisted = JSON.parse(
+            readFileSync(
+                join(testConfigDir, STARTUP_PROFILE_FILE_NAME),
+                "utf8",
+            ),
+        );
+
+        expect(result.removed).toBe(true);
+        expect(result.activeProfileId).toBe("next_profile");
+        expect(persisted.env).toMatchObject({
+            OPENAI_BASE_URL: "https://api.deepseek.com/v1",
+            OPENAI_MODEL: "deepseek-chat",
+            OPENAI_API_KEY: "sk-next",
+        });
     });
 
     test("deleting final profile preserves explicit startup provider env", async () => {

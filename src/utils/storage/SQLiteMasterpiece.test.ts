@@ -4,7 +4,6 @@ import {
     it,
     beforeEach,
     afterEach,
-    afterAll,
 } from "bun:test";
 import {
     addGlobalEntity,
@@ -21,16 +20,23 @@ import { join } from "path";
 import { getProjectsDir } from "../envUtils.js";
 import { sanitizePath } from "../sessionStoragePortable.js";
 import { getFsImplementation } from "../fsOperations.js";
+import {
+    acquireSharedMutationLock,
+    releaseSharedMutationLock,
+} from "../../test/sharedMutationLock.js";
 
 describe("SQLite Masterpiece: Edge Cases & Multi-Project Isolation", () => {
     const originalConfigDir = process.env.CLAUDE_CONFIG_DIR;
-    const rootTestDir = mkdtempSync(join(tmpdir(), "kaltcode-masterpiece-"));
-    process.env.CLAUDE_CONFIG_DIR = rootTestDir;
+    let rootTestDir: string;
+    let project1Dir: string;
+    let project2Dir: string;
 
-    const project1Dir = join(rootTestDir, "proj1");
-    const project2Dir = join(rootTestDir, "proj2");
-
-    beforeEach(() => {
+    beforeEach(async () => {
+        await acquireSharedMutationLock("SQLiteMasterpiece.test.ts");
+        rootTestDir = mkdtempSync(join(tmpdir(), "kaltcode-masterpiece-"));
+        process.env.CLAUDE_CONFIG_DIR = rootTestDir;
+        project1Dir = join(rootTestDir, "proj1");
+        project2Dir = join(rootTestDir, "proj2");
         resetGlobalGraph();
         if (!existsSync(project1Dir))
             mkdirSync(project1Dir, { recursive: true });
@@ -38,14 +44,18 @@ describe("SQLite Masterpiece: Edge Cases & Multi-Project Isolation", () => {
             mkdirSync(project2Dir, { recursive: true });
     });
 
-    afterAll(() => {
-        resetGlobalGraph();
-        if (originalConfigDir === undefined) {
-            delete process.env.CLAUDE_CONFIG_DIR;
-        } else {
-            process.env.CLAUDE_CONFIG_DIR = originalConfigDir;
+    afterEach(() => {
+        try {
+            resetGlobalGraph();
+            if (originalConfigDir === undefined) {
+                delete process.env.CLAUDE_CONFIG_DIR;
+            } else {
+                process.env.CLAUDE_CONFIG_DIR = originalConfigDir;
+            }
+            rmSync(rootTestDir, { recursive: true, force: true });
+        } finally {
+            releaseSharedMutationLock();
         }
-        rmSync(rootTestDir, { recursive: true, force: true });
     });
 
     it("guarantees strict isolation between projects (CWD Switch)", async () => {

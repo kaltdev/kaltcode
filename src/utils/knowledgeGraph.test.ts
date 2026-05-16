@@ -4,7 +4,6 @@ import {
     it,
     beforeEach,
     afterEach,
-    afterAll,
 } from "bun:test";
 import {
     addGlobalEntity,
@@ -16,30 +15,47 @@ import {
     resetGlobalGraph,
     clearMemoryOnly,
 } from "./knowledgeGraph.js";
-import { mkdtempSync, rmSync, existsSync } from "fs";
+import {
+    existsSync,
+    mkdirSync,
+    mkdtempSync,
+    readdirSync,
+    rmSync,
+    writeFileSync,
+} from "fs";
 import { tmpdir } from "os";
-import { join } from "path";
+import { dirname, join } from "path";
 import { getProjectsDir } from "./envUtils.js";
 import { sanitizePath } from "./sessionStoragePortable.js";
+import {
+    acquireSharedMutationLock,
+    releaseSharedMutationLock,
+} from "../test/sharedMutationLock.js";
 
 describe("KnowledgeGraph Global Persistence & RAG", () => {
     const originalConfigDir = process.env.CLAUDE_CONFIG_DIR;
-    const configDir = mkdtempSync(join(tmpdir(), "openclaude-test-"));
-    process.env.CLAUDE_CONFIG_DIR = configDir;
     const cwd = process.cwd();
+    let configDir: string;
 
-    beforeEach(() => {
+    beforeEach(async () => {
+        await acquireSharedMutationLock("knowledgeGraph.test.ts");
+        configDir = mkdtempSync(join(tmpdir(), "openclaude-test-"));
+        process.env.CLAUDE_CONFIG_DIR = configDir;
         resetGlobalGraph();
     });
 
-    afterAll(() => {
-        resetGlobalGraph();
-        if (originalConfigDir === undefined) {
-            delete process.env.CLAUDE_CONFIG_DIR;
-        } else {
-            process.env.CLAUDE_CONFIG_DIR = originalConfigDir;
+    afterEach(() => {
+        try {
+            resetGlobalGraph();
+            if (originalConfigDir === undefined) {
+                delete process.env.CLAUDE_CONFIG_DIR;
+            } else {
+                process.env.CLAUDE_CONFIG_DIR = originalConfigDir;
+            }
+            rmSync(configDir, { recursive: true, force: true });
+        } finally {
+            releaseSharedMutationLock();
         }
-        rmSync(configDir, { recursive: true, force: true });
     });
 
     it("persists entities across loads", async () => {
@@ -156,6 +172,22 @@ describe("KnowledgeGraph Global Persistence & RAG", () => {
             expect(result).toContain("ORAMA RAG");
             expect(result).toContain("rebuild-test");
             expect(existsSync(oramaPath)).toBe(true);
+        });
+
+        it("quarantines corrupted JSON persistence and starts from an empty graph", () => {
+            const path = getProjectGraphPath(cwd);
+            mkdirSync(dirname(path), { recursive: true });
+            writeFileSync(path, "{not-json", "utf8");
+
+            clearMemoryOnly();
+            const graph = loadProjectGraph(cwd);
+
+            expect(Object.keys(graph.entities)).toHaveLength(0);
+            expect(
+                readdirSync(dirname(path)).some((entry) =>
+                    entry.startsWith("knowledge_graph.json.corrupted."),
+                ),
+            ).toBe(true);
         });
 
         it("returns an empty string for no-hit searches even if rules exist", async () => {
