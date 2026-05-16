@@ -57,6 +57,7 @@ const ENV_KEYS = [
 const originalEnv: Record<string, string | undefined> = {};
 const originalMacro = (globalThis as Record<string, unknown>).MACRO;
 const originalIsTTY = process.stdout.isTTY;
+const originalColumns = process.stdout.columns;
 const originalWrite = process.stdout.write;
 
 beforeEach(() => {
@@ -82,6 +83,10 @@ afterEach(() => {
         configurable: true,
         value: originalIsTTY,
     });
+    Object.defineProperty(process.stdout, "columns", {
+        configurable: true,
+        value: originalColumns,
+    });
     process.stdout.write = originalWrite;
     for (const key of ENV_KEYS) {
         if (originalEnv[key] === undefined) {
@@ -100,13 +105,17 @@ function setupOpenAIMode(baseUrl: string, model: string): void {
 }
 
 describe("printStartupScreen logo", () => {
-    test("renders the LogoV2 welcome screen", async () => {
+    test("renders the two-column Kalt Code startup panel", async () => {
         (globalThis as Record<string, unknown>).MACRO = {
             VERSION: "test-version",
         };
         Object.defineProperty(process.stdout, "isTTY", {
             configurable: true,
             value: true,
+        });
+        Object.defineProperty(process.stdout, "columns", {
+            configurable: true,
+            value: 110,
         });
 
         let output = "";
@@ -118,8 +127,15 @@ describe("printStartupScreen logo", () => {
         await printStartupScreen();
 
         const plainOutput = stripAnsi(output);
-        expect(plainOutput).toContain("Welcome to Kalt Code");
-        expect(plainOutput).toContain("vtest-version");
+        expect(plainOutput).toContain("╭─── Kalt Code vtest-version");
+        expect(plainOutput).toContain("Welcome back!");
+        expect(plainOutput).toContain("Tips for getting started");
+        expect(plainOutput).toContain(
+            "Run /init to create a CLAUDE.md file with instructions for Claude",
+        );
+        expect(plainOutput).toContain("Recent activity");
+        expect(plainOutput).toContain("No recent activity");
+        expect(plainOutput).toContain("claude-sonnet-4-6 · Anthropic API");
         expect(plainOutput).not.toContain("Your code, your rules.");
         expect(plainOutput).not.toContain(
             "Any model. Every tool. Zero limits.",
