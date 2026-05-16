@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test, beforeEach } from "bun:test"
 import { homedir } from "os";
 import { join } from "path";
 
@@ -9,15 +9,27 @@ import {
     isClaudeSettingsPath,
 } from "./permissions/filesystem.ts";
 import { getValidationTip } from "./settings/validationTips.ts";
+import {
+  acquireSharedMutationLock,
+  releaseSharedMutationLock,
+} from "../test/sharedMutationLock.js"
+
+beforeEach(async () => {
+  await acquireSharedMutationLock("kaltcodeUiSurfaces.test.ts");
+});
 
 const originalConfigDir = process.env.CLAUDE_CONFIG_DIR;
 
 afterEach(() => {
-    if (originalConfigDir === undefined) {
-        delete process.env.CLAUDE_CONFIG_DIR;
-    } else {
-        process.env.CLAUDE_CONFIG_DIR = originalConfigDir;
-    }
+  try {
+      if (originalConfigDir === undefined) {
+          delete process.env.CLAUDE_CONFIG_DIR;
+      } else {
+          process.env.CLAUDE_CONFIG_DIR = originalConfigDir;
+      }
+  } finally {
+    releaseSharedMutationLock();
+  }
 });
 
 describe("Kalt Code settings path surfaces", () => {

@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from 'bun:test'
+import { afterEach, expect, test, beforeEach } from 'bun:test'
 
 import {
   getAdditionalModelOptionsCacheScope,
@@ -7,6 +7,14 @@ import {
   resolveProviderRequest,
   shouldAttemptLocalToollessRetry,
 } from './providerConfig.js'
+import {
+  acquireSharedMutationLock,
+  releaseSharedMutationLock,
+} from '../../test/sharedMutationLock.js'
+
+beforeEach(async () => {
+  await acquireSharedMutationLock("providerConfig.local.test.ts");
+});
 
 const originalEnv = {
   CLAUDE_CODE_USE_OPENAI: process.env.CLAUDE_CODE_USE_OPENAI,
@@ -29,15 +37,19 @@ function restoreEnv(key: string, value: string | undefined): void {
 }
 
 afterEach(() => {
-  restoreEnv('CLAUDE_CODE_USE_OPENAI', originalEnv.CLAUDE_CODE_USE_OPENAI)
-  restoreEnv('OPENAI_BASE_URL', originalEnv.OPENAI_BASE_URL)
-  restoreEnv('OPENAI_API_KEY', originalEnv.OPENAI_API_KEY)
-  restoreEnv('OPENAI_AUTH_HEADER', originalEnv.OPENAI_AUTH_HEADER)
-  restoreEnv('OPENAI_AUTH_SCHEME', originalEnv.OPENAI_AUTH_SCHEME)
-  restoreEnv('OPENAI_AUTH_HEADER_VALUE', originalEnv.OPENAI_AUTH_HEADER_VALUE)
-  restoreEnv('ANTHROPIC_CUSTOM_HEADERS', originalEnv.ANTHROPIC_CUSTOM_HEADERS)
-  restoreEnv('OPENAI_MODEL', originalEnv.OPENAI_MODEL)
-  restoreEnv('OPENAI_API_FORMAT', originalEnv.OPENAI_API_FORMAT)
+  try {
+    restoreEnv('CLAUDE_CODE_USE_OPENAI', originalEnv.CLAUDE_CODE_USE_OPENAI)
+    restoreEnv('OPENAI_BASE_URL', originalEnv.OPENAI_BASE_URL)
+    restoreEnv('OPENAI_API_KEY', originalEnv.OPENAI_API_KEY)
+    restoreEnv('OPENAI_AUTH_HEADER', originalEnv.OPENAI_AUTH_HEADER)
+    restoreEnv('OPENAI_AUTH_SCHEME', originalEnv.OPENAI_AUTH_SCHEME)
+    restoreEnv('OPENAI_AUTH_HEADER_VALUE', originalEnv.OPENAI_AUTH_HEADER_VALUE)
+    restoreEnv('ANTHROPIC_CUSTOM_HEADERS', originalEnv.ANTHROPIC_CUSTOM_HEADERS)
+    restoreEnv('OPENAI_MODEL', originalEnv.OPENAI_MODEL)
+    restoreEnv('OPENAI_API_FORMAT', originalEnv.OPENAI_API_FORMAT)
+  } finally {
+    releaseSharedMutationLock();
+  }
 })
 
 test('treats localhost endpoints as local', () => {

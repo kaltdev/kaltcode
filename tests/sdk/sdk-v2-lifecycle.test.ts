@@ -1,4 +1,4 @@
-import { describe, test, expect, afterEach, beforeAll, afterAll } from 'bun:test'
+import { describe, test, expect, afterEach, beforeAll, afterAll, beforeEach } from 'bun:test'
 import { randomUUID } from 'crypto'
 import { rmSync } from 'fs'
 import {
@@ -15,6 +15,14 @@ import {
   createMultiTurnConversation,
   UUID_REGEX,
 } from './helpers/query-test-doubles.js'
+import {
+  acquireSharedMutationLock,
+  releaseSharedMutationLock,
+} from '../../src/test/sharedMutationLock.js'
+
+beforeEach(async () => {
+  await acquireSharedMutationLock("sdk-v2-lifecycle.test.ts");
+});
 
 // sendMessage drains trigger init(), which checks auth. Stub it for CI.
 const AUTH_KEY = 'ANTHROPIC_API_KEY'
@@ -34,10 +42,14 @@ afterAll(() => {
 const tempDirs: string[] = []
 
 afterEach(() => {
-  for (const dir of tempDirs) {
-    try { rmSync(dir, { recursive: true, force: true }) } catch {}
+  try {
+    for (const dir of tempDirs) {
+      try { rmSync(dir, { recursive: true, force: true }) } catch {}
+    }
+    tempDirs.length = 0
+  } finally {
+    releaseSharedMutationLock();
   }
-  tempDirs.length = 0
 })
 
 describe('V2: session creation', () => {

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, mock, test } from "bun:test";
+import { afterEach, describe, expect, mock, test, beforeEach } from "bun:test"
 import {
     existsSync,
     mkdirSync,
@@ -11,6 +11,14 @@ import * as fsPromises from "fs/promises";
 import { homedir, tmpdir } from "os";
 import { join } from "path";
 import { getDefaultPlansDirectory } from "./plans.ts";
+import {
+  acquireSharedMutationLock,
+  releaseSharedMutationLock,
+} from "../test/sharedMutationLock.js"
+
+beforeEach(async () => {
+  await acquireSharedMutationLock("kaltcodePaths.test.ts");
+});
 
 const originalEnv = { ...process.env };
 const originalArgv = [...process.argv];
@@ -28,9 +36,13 @@ async function importFreshLocalInstaller() {
 }
 
 afterEach(() => {
-    process.env = { ...originalEnv };
-    process.argv = [...originalArgv];
-    mock.restore();
+  try {
+      process.env = { ...originalEnv };
+      process.argv = [...originalArgv];
+      mock.restore();
+  } finally {
+    releaseSharedMutationLock();
+  }
 });
 
 describe("Kalt Code paths", () => {

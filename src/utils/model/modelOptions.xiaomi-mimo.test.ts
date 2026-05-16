@@ -6,6 +6,10 @@ import {
   resetSettingsCache,
   setSessionSettingsCache,
 } from '../settings/settingsCache.js'
+import {
+  acquireSharedMutationLock,
+  releaseSharedMutationLock,
+} from '../../test/sharedMutationLock.js'
 
 async function importFreshModelOptionsModule() {
   const nonce = `${Date.now()}-${Math.random()}`
@@ -36,7 +40,8 @@ function restoreEnvValue(key: keyof typeof originalEnv): void {
   }
 }
 
-beforeEach(() => {
+beforeEach(async () => {
+  await acquireSharedMutationLock("modelOptions.xiaomi-mimo.test.ts");
   setSessionSettingsCache({ settings: {}, errors: [] })
   for (const key of Object.keys(originalEnv) as (keyof typeof originalEnv)[]) {
     delete process.env[key]
@@ -45,20 +50,24 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  resetSettingsCache()
-  for (const key of Object.keys(originalEnv) as (keyof typeof originalEnv)[]) {
-    restoreEnvValue(key)
+  try {
+    resetSettingsCache()
+    for (const key of Object.keys(originalEnv) as (keyof typeof originalEnv)[]) {
+      restoreEnvValue(key)
+    }
+    saveGlobalConfig(current => ({
+      ...current,
+      additionalModelOptionsCache: [],
+      additionalModelOptionsCacheScope: undefined,
+      openaiAdditionalModelOptionsCache: [],
+      openaiAdditionalModelOptionsCacheByProfile: {},
+      providerProfiles: [],
+      activeProviderProfileId: undefined,
+    }))
+    resetModelStringsForTestingOnly()
+  } finally {
+    releaseSharedMutationLock();
   }
-  saveGlobalConfig(current => ({
-    ...current,
-    additionalModelOptionsCache: [],
-    additionalModelOptionsCacheScope: undefined,
-    openaiAdditionalModelOptionsCache: [],
-    openaiAdditionalModelOptionsCacheByProfile: {},
-    providerProfiles: [],
-    activeProviderProfileId: undefined,
-  }))
-  resetModelStringsForTestingOnly()
 })
 
 test('Xiaomi MiMo provider exposes MiMo catalog models in /model options', async () => {

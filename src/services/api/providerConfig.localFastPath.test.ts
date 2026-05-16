@@ -1,20 +1,29 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test"
 
 import { getLocalFastPathConfig } from "./providerConfig.js";
+import {
+  acquireSharedMutationLock,
+  releaseSharedMutationLock,
+} from "../../test/sharedMutationLock.js"
 
 const ENV_VAR = "KALTCODE_LOCAL_FAST_PATH";
 const originalEnv = process.env[ENV_VAR];
 
-beforeEach(() => {
+beforeEach(async () => {
+  await acquireSharedMutationLock("providerConfig.localFastPath.test.ts");
     delete process.env[ENV_VAR];
 });
 
 afterEach(() => {
-    if (originalEnv === undefined) {
-        delete process.env[ENV_VAR];
-    } else {
-        process.env[ENV_VAR] = originalEnv;
-    }
+  try {
+      if (originalEnv === undefined) {
+          delete process.env[ENV_VAR];
+      } else {
+          process.env[ENV_VAR] = originalEnv;
+      }
+  } finally {
+    releaseSharedMutationLock();
+  }
 });
 
 describe("getLocalFastPathConfig — auto-detect from baseUrl", () => {

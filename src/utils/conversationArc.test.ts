@@ -16,6 +16,10 @@ import {
   finalizeArcTurn,
 } from './conversationArc.js'
 import { getGlobalGraph, resetGlobalGraph } from './knowledgeGraph.js'
+import {
+  acquireSharedMutationLock,
+  releaseSharedMutationLock,
+} from '../test/sharedMutationLock.js'
 
 function createMessage(role: string, content: string): any {
   return {
@@ -25,9 +29,17 @@ function createMessage(role: string, content: string): any {
 }
 
 describe('conversationArc', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+  await acquireSharedMutationLock("conversationArc.test.ts");
     resetArc()
     resetGlobalGraph()
+  })
+
+  afterEach(() => {
+    try {
+    } finally {
+      releaseSharedMutationLock();
+    }
   })
 
   describe('initializeArc', () => {

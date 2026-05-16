@@ -1,3 +1,18 @@
+import {
+  acquireSharedMutationLock,
+  releaseSharedMutationLock,
+} from '../../src/test/sharedMutationLock.js'
+
+beforeEach(async () => {
+  await acquireSharedMutationLock("package-consumer-types.test.ts");
+});
+afterEach(() => {
+  try {
+  } finally {
+    releaseSharedMutationLock();
+  }
+});
+
 /**
  * Package consumer validation test.
  *
@@ -9,7 +24,7 @@
  * - Missing local imports for re-exported types
  * - Self-referential type wrappers
  */
-import { afterAll, describe, expect, test } from 'bun:test'
+import { afterAll, describe, expect, test, beforeEach, afterEach } from 'bun:test'
 import { execFileSync, execSync } from 'child_process'
 import { existsSync, mkdirSync, rmSync, writeFileSync, cpSync, readFileSync } from 'fs'
 import { join } from 'path'

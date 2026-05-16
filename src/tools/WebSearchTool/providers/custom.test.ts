@@ -1,5 +1,20 @@
 import { describe, expect, test, beforeEach, afterEach } from 'bun:test'
 import { extractHits, customProvider, isPrivateHostname } from './custom.js'
+import {
+  acquireSharedMutationLock,
+  releaseSharedMutationLock,
+} from '../../../test/sharedMutationLock.js'
+
+beforeEach(async () => {
+  await acquireSharedMutationLock("custom.test.ts");
+})
+
+afterEach(() => {
+  try {
+  } finally {
+    releaseSharedMutationLock();
+  }
+})
 
 // ---------------------------------------------------------------------------
 // extractHits — flexible response parsing

@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from "bun:test";
+import { describe, expect, it, beforeEach, afterEach } from "bun:test"
 import {
     initializeArc,
     updateArcPhase,
@@ -6,6 +6,10 @@ import {
     resetArc,
 } from "./conversationArc.js";
 import { resetGlobalGraph } from "./knowledgeGraph.js";
+import {
+  acquireSharedMutationLock,
+  releaseSharedMutationLock,
+} from "../test/sharedMutationLock.js"
 
 function createMessage(content: string): any {
     return {
@@ -21,11 +25,19 @@ function createMessage(content: string): any {
 }
 
 describe("Conversation Arc Performance Benchmarks", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
+  await acquireSharedMutationLock("conversationArc.perf.test.ts");
         resetArc();
         resetGlobalGraph();
         initializeArc();
     });
+afterEach(() => {
+  try {
+  } finally {
+    releaseSharedMutationLock();
+  }
+});
+
 
     it("performs automatic fact extraction in sub-millisecond time", async () => {
         const iterations = 100;

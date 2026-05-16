@@ -1,8 +1,16 @@
-import { afterEach, describe, expect, mock, test } from 'bun:test'
+import { afterEach, describe, expect, mock, test, beforeEach } from 'bun:test'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import * as realOs from 'node:os'
+import {
+  acquireSharedMutationLock,
+  releaseSharedMutationLock,
+} from '../../test/sharedMutationLock.js'
+
+beforeEach(async () => {
+  await acquireSharedMutationLock("providerConfig.codexSecureStorage.test.ts");
+});
 
 function makeJwt(payload: Record<string, unknown>): string {
   const header = Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' }))
@@ -13,8 +21,12 @@ function makeJwt(payload: Record<string, unknown>): string {
 
 describe('resolveCodexApiCredentials with secure storage', () => {
   afterEach(() => {
-    mock.restore()
-  })
+  try {
+      mock.restore()
+  } finally {
+    releaseSharedMutationLock();
+  }
+})
 
   test('loads Codex credentials from Kalt Code secure storage', async () => {
     mock.module('../../utils/codexCredentials.js', () => ({

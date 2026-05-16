@@ -1,9 +1,24 @@
-import { describe, test, expect, beforeAll, afterAll } from 'bun:test'
+import { describe, test, expect, beforeAll, afterAll, beforeEach, afterEach } from 'bun:test'
 import { query } from '../../src/entrypoints/sdk/index.js'
 import { getSessionId, getSessionProjectDir, runWithSdkContext } from '../../src/bootstrap/state.js'
 import { randomUUID } from 'crypto'
 import type { SessionId } from '../../src/types/ids.js'
 import { drainQuery, UUID_REGEX } from './helpers/query-test-doubles.js'
+import {
+  acquireSharedMutationLock,
+  releaseSharedMutationLock,
+} from '../../src/test/sharedMutationLock.js'
+
+beforeEach(async () => {
+  await acquireSharedMutationLock("query-concurrency.test.ts");
+});
+afterEach(() => {
+  try {
+  } finally {
+    releaseSharedMutationLock();
+  }
+});
+
 
 // Drain tests trigger init(), which checks auth. Stub it for CI.
 const AUTH_KEY = 'ANTHROPIC_API_KEY'

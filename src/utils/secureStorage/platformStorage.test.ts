@@ -1,8 +1,12 @@
 
-import { expect, test as bunTest, mock, describe, beforeEach, afterEach } from "bun:test";
+import { expect, test as bunTest, mock, describe, beforeEach, afterEach } from "bun:test"
 import { linuxSecretStorage } from "./linuxSecretStorage.js";
 import { windowsCredentialStorage } from "./windowsCredentialStorage.js";
 import { getSecureStorageServiceName, CREDENTIALS_SERVICE_SUFFIX } from "./macOsKeychainHelpers.js";
+import {
+  acquireSharedMutationLock,
+  releaseSharedMutationLock,
+} from "../../test/sharedMutationLock.js"
 
 const test = bunTest.serial;
 
@@ -15,7 +19,8 @@ mock.module("execa", () => ({
 describe("Secure Storage Platform Implementations", () => {
   const originalEnv = process.env;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+  await acquireSharedMutationLock("platformStorage.test.ts");
     process.env = { ...originalEnv };
     delete process.env.KALTCODE_CONFIG_DIR;
     delete process.env.CLAUDE_CONFIG_DIR;
@@ -25,8 +30,12 @@ describe("Secure Storage Platform Implementations", () => {
   });
 
   afterEach(() => {
-    process.env = originalEnv;
-  });
+  try {
+      process.env = originalEnv;
+  } finally {
+    releaseSharedMutationLock();
+  }
+});
 
   const testData = {
     mcpOAuth: {

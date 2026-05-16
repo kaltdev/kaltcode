@@ -7,6 +7,10 @@ import { sanitizePath } from '../../src/utils/sessionStoragePortable.js'
 import { getClaudeConfigHomeDir } from '../../src/utils/envUtils.js'
 import { query } from '../../src/entrypoints/sdk/index.js'
 import { unstable_v2_resumeSession } from '../../src/entrypoints/sdk/index.js'
+import {
+  acquireSharedMutationLock,
+  releaseSharedMutationLock,
+} from '../../src/test/sharedMutationLock.js'
 
 function applyTestConfigDir(): void {
   process.env.KALTCODE_CONFIG_DIR = testConfigDir
@@ -156,28 +160,33 @@ const originalClaudeConfigDir = process.env.CLAUDE_CONFIG_DIR
 let testConfigDir: string
 const test = bunTest.serial
 
-beforeEach(() => {
+beforeEach(async () => {
+  await acquireSharedMutationLock("sdk-preserved-segment.test.ts");
   testConfigDir = mkdtempSync(join(tmpdir(), 'sdk-preserved-config-'))
   applyTestConfigDir()
 })
 
 afterEach(() => {
-  for (const dir of tempDirs) {
-    rmSync(dir, { recursive: true, force: true })
+  try {
+    for (const dir of tempDirs) {
+      rmSync(dir, { recursive: true, force: true })
+    }
+    tempDirs = []
+    if (originalKaltCodeConfigDir === undefined) {
+      delete process.env.KALTCODE_CONFIG_DIR
+    } else {
+      process.env.KALTCODE_CONFIG_DIR = originalKaltCodeConfigDir
+    }
+    if (originalClaudeConfigDir === undefined) {
+      delete process.env.CLAUDE_CONFIG_DIR
+    } else {
+      process.env.CLAUDE_CONFIG_DIR = originalClaudeConfigDir
+    }
+    clearConfigHomeDirCache()
+    rmSync(testConfigDir, { recursive: true, force: true })
+  } finally {
+    releaseSharedMutationLock();
   }
-  tempDirs = []
-  if (originalKaltCodeConfigDir === undefined) {
-    delete process.env.KALTCODE_CONFIG_DIR
-  } else {
-    process.env.KALTCODE_CONFIG_DIR = originalKaltCodeConfigDir
-  }
-  if (originalClaudeConfigDir === undefined) {
-    delete process.env.CLAUDE_CONFIG_DIR
-  } else {
-    process.env.CLAUDE_CONFIG_DIR = originalClaudeConfigDir
-  }
-  clearConfigHomeDirCache()
-  rmSync(testConfigDir, { recursive: true, force: true })
 })
 
 function clearConfigHomeDirCache(): void {
