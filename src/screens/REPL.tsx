@@ -920,6 +920,7 @@ function _temp(f) {
 }
 export type Props = {
     commands: Command[];
+    pendingCommands?: Promise<Command[]>;
     debug: boolean;
     initialTools: Tool[];
     // Initial messages to populate the REPL with
@@ -969,6 +970,7 @@ export type Props = {
 export type Screen = "prompt" | "transcript";
 export function REPL({
     commands: initialCommands,
+    pendingCommands,
     debug,
     initialTools,
     initialMessages,
@@ -1096,6 +1098,21 @@ export function REPL({
 
     // Local state for commands (hot-reloadable when skill files change)
     const [localCommands, setLocalCommands] = useState(initialCommands);
+
+    useEffect(() => {
+        if (!pendingCommands) return;
+        let cancelled = false;
+        pendingCommands
+            .then((commands) => {
+                if (!cancelled) {
+                    setLocalCommands(commands);
+                }
+            })
+            .catch(logError);
+        return () => {
+            cancelled = true;
+        };
+    }, [pendingCommands]);
 
     // Watch for skill file changes and reload all commands
     useSkillsChange(

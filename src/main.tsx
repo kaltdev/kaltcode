@@ -160,7 +160,11 @@ import {
     setMainThreadAgentType,
     setTeleportedSessionInfo,
 } from "./bootstrap/state.js";
-import { filterCommandsForRemoteMode, getCommands } from "./commands.js";
+import {
+    type Command,
+    filterCommandsForRemoteMode,
+    getCommands,
+} from "./commands.js";
 import type { StatsStore } from "./context/stats.js";
 import {
     launchAssistantInstallWizard,
@@ -192,7 +196,9 @@ import {
 } from "./services/plugins/pluginCliCommands.js";
 import { initBundledSkills } from "./skills/bundled/index.js";
 import type { AgentColorName } from "./tools/AgentTool/agentColorManager.js";
+import { getBuiltInAgents } from "./tools/AgentTool/builtInAgents.js";
 import {
+    type AgentDefinitionsResult,
     getActiveAgentsFromList,
     getAgentDefinitionsWithOverrides,
     isBuiltInAgent,
@@ -718,6 +724,55 @@ export function startDeferredPrefetches(): void {
         );
     }
 }
+
+const STARTUP_DISCOVERY_TIMEOUT_MS = 2_500;
+
+type StartupDiscoveryResult<T> =
+    | { type: "resolved"; value: T }
+    | { type: "rejected"; error: unknown }
+    | { type: "timed-out"; promise: Promise<T> };
+
+function waitForStartupDiscovery<T>(
+    label: string,
+    promise: Promise<T>,
+    timeoutMs: number,
+): Promise<StartupDiscoveryResult<T>> {
+    return new Promise((resolveDiscovery) => {
+        let settled = false;
+        const timer = setTimeout(() => {
+            if (settled) return;
+            settled = true;
+            logForDebugging(
+                `[STARTUP] ${label} discovery still pending after ${timeoutMs}ms; continuing with fallback`,
+            );
+            resolveDiscovery({ type: "timed-out", promise });
+        }, timeoutMs);
+
+        promise.then(
+            (value) => {
+                if (settled) return;
+                settled = true;
+                clearTimeout(timer);
+                resolveDiscovery({ type: "resolved", value });
+            },
+            (error) => {
+                if (settled) return;
+                settled = true;
+                clearTimeout(timer);
+                resolveDiscovery({ type: "rejected", error });
+            },
+        );
+    });
+}
+
+function getFallbackAgentDefinitions(): AgentDefinitionsResult {
+    const builtInAgents = getBuiltInAgents();
+    return {
+        activeAgents: getActiveAgentsFromList(builtInAgents),
+        allAgents: builtInAgents,
+    };
+}
+
 function loadSettingsFromFlag(settingsFile: string): void {
     try {
         const trimmedSettings = settingsFile.trim();
@@ -3127,11 +3182,78 @@ async function run(): Promise<CommanderCommand> {
             const commandsStart = Date.now();
             // Join the promises kicked before setup() (or start fresh if
             // worktreeEnabled gated the early kick). Both memoized by cwd.
-            const [commands, agentDefinitionsResult] = await Promise.all([
-                commandsPromise ?? getCommands(currentCwd),
-                agentDefsPromise ??
-                    getAgentDefinitionsWithOverrides(currentCwd),
-            ]);
+            const commandsLoadPromise = commandsPromise ?? getCommands(currentCwd);
+            const agentDefinitionsLoadPromise =
+                agentDefsPromise ?? getAgentDefinitionsWithOverrides(currentCwd);
+            let commands: Command[];
+            let pendingCommands: Promise<Command[]> | undefined;
+            let agentDefinitionsResult: AgentDefinitionsResult;
+            if (isNonInteractiveSession) {
+                [commands, agentDefinitionsResult] = await Promise.all([
+                    commandsLoadPromise,
+                    agentDefinitionsLoadPromise,
+                ]);
+            } else {
+                const [commandsResult, agentDefinitionsResult_] =
+                    await Promise.all([
+                        waitForStartupDiscovery(
+                            "command",
+                            commandsLoadPromise,
+                            STARTUP_DISCOVERY_TIMEOUT_MS,
+                        ),
+                        waitForStartupDiscovery(
+                            "agent",
+                            agentDefinitionsLoadPromise,
+                            STARTUP_DISCOVERY_TIMEOUT_MS,
+                        ),
+                    ]);
+
+                if (commandsResult.type === "resolved") {
+                    commands = commandsResult.value;
+                } else {
+                    commands = [];
+                    if (commandsResult.type === "timed-out") {
+                        pendingCommands = commandsResult.promise
+                            .then((loadedCommands) => {
+                                logForDebugging(
+                                    `[STARTUP] Deferred command discovery completed with ${loadedCommands.length} commands`,
+                                );
+                                return loadedCommands;
+                            })
+                            .catch((error) => {
+                                logForDebugging(
+                                    `[STARTUP] Deferred command discovery failed: ${errorMessage(error)}`,
+                                );
+                                logError(error);
+                                return [];
+                            });
+                    } else {
+                        logForDebugging(
+                            `[STARTUP] Command discovery failed: ${errorMessage(commandsResult.error)}`,
+                        );
+                        logError(commandsResult.error);
+                    }
+                }
+
+                if (agentDefinitionsResult_.type === "resolved") {
+                    agentDefinitionsResult = agentDefinitionsResult_.value;
+                } else {
+                    agentDefinitionsResult = getFallbackAgentDefinitions();
+                    if (agentDefinitionsResult_.type === "timed-out") {
+                        agentDefinitionsResult_.promise.catch((error) => {
+                            logForDebugging(
+                                `[STARTUP] Deferred agent discovery failed: ${errorMessage(error)}`,
+                            );
+                            logError(error);
+                        });
+                    } else {
+                        logForDebugging(
+                            `[STARTUP] Agent discovery failed: ${errorMessage(agentDefinitionsResult_.error)}`,
+                        );
+                        logError(agentDefinitionsResult_.error);
+                    }
+                }
+            }
             logForDebugging(
                 `[STARTUP] Commands and agents loaded in ${Date.now() - commandsStart}ms`,
             );
@@ -4503,6 +4625,7 @@ async function run(): Promise<CommanderCommand> {
             const sessionConfig = {
                 debug: debug || debugToStderr,
                 commands: [...commands, ...mcpCommands],
+                pendingCommands,
                 initialTools,
                 mcpClients,
                 autoConnectIdeFlag: ide,
