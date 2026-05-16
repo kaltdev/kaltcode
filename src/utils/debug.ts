@@ -1,3 +1,4 @@
+import { existsSync, statSync } from 'fs'
 import { appendFile, mkdir, symlink, unlink } from 'fs/promises'
 import memoize from 'lodash-es/memoize.js'
 import { dirname, join } from 'path'
@@ -228,11 +229,27 @@ export function logForDebugging(
 }
 
 export function getDebugLogPath(): string {
-  return (
-    getDebugFilePath() ??
-    process.env.KALT_CODE_DEBUG_LOGS_DIR ??
-    join(getClaudeConfigHomeDir(), 'debug', `${getSessionId()}.txt`)
-  )
+  const debugFilePath = getDebugFilePath()
+  if (debugFilePath) {
+    return debugFilePath
+  }
+
+  const debugLogsPath = process.env.KALT_CODE_DEBUG_LOGS_DIR
+  if (debugLogsPath) {
+    try {
+      if (existsSync(debugLogsPath) && statSync(debugLogsPath).isDirectory()) {
+        return join(debugLogsPath, `${getSessionId()}.txt`)
+      }
+    } catch {
+      // Fall through and treat the value as an explicit file path.
+    }
+    if (debugLogsPath.endsWith('/') || debugLogsPath.endsWith('\\')) {
+      return join(debugLogsPath, `${getSessionId()}.txt`)
+    }
+    return debugLogsPath
+  }
+
+  return join(getClaudeConfigHomeDir(), 'debug', `${getSessionId()}.txt`)
 }
 
 /**

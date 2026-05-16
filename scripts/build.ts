@@ -8,8 +8,7 @@
  * - src/ path aliases
  */
 
-import { readFileSync, readdirSync, writeFileSync } from "fs";
-import { join } from "path";
+import { readFileSync } from "fs";
 import { noTelemetryPlugin } from "./no-telemetry-plugin";
 import { CLI_EXTERNALS, SDK_EXTERNALS } from "./externals.js";
 
@@ -62,71 +61,14 @@ const featureFlags: Record<string, boolean> = {
     HOOK_PROMPTS: true, // Allow tools to request interactive user prompts
 };
 
-// ── Pre-process: replace feature() calls with boolean literals ──────
-// Bun v1.3.9+ resolves `import { feature } from 'bun:bundle'` natively
-// before plugins can intercept it via onResolve. The bun: namespace is
-// handled by Bun's C++ resolver which runs before the JS plugin phase,
-// so the previous onResolve/onLoad shim was silently ineffective — ALL
-// feature() calls evaluated to false regardless of the featureFlags map.
-//
-// Fix: pre-process source files to strip the bun:bundle import and
-// replace feature('FLAG') calls with their boolean literal. Files are
-// modified in-place before Bun.build() and restored in a finally block.
-
-// Match feature('FLAG') calls, including multi-line: feature(\n  'FLAG',\n)
-const featureCallRe = /\bfeature\(\s*['"](\w+)['"][,\s]*\)/gs;
-const featureImportRe =
-    /import\s*\{[^}]*\bfeature\b[^}]*\}\s*from\s*['"]bun:bundle['"];?\s*\n?/g;
-const modifiedFiles = new Map<string, string>(); // path → original content
-
-function preProcessFeatureFlags(dir: string) {
-    for (const ent of readdirSync(dir, { withFileTypes: true })) {
-        const full = join(dir, ent.name);
-        if (ent.isDirectory()) {
-            preProcessFeatureFlags(full);
-            continue;
-        }
-        if (!/\.(ts|tsx)$/.test(ent.name)) continue;
-
-        const raw = readFileSync(full, "utf-8");
-        if (!raw.includes("feature(")) continue;
-
-        let contents = raw;
-        contents = contents.replace(featureImportRe, "");
-        contents = contents.replace(featureCallRe, (_match, name) =>
-            String((featureFlags as Record<string, boolean>)[name] ?? false),
-        );
-
-        if (contents !== raw) {
-            modifiedFiles.set(full, raw);
-            writeFileSync(full, contents);
-        }
-    }
-}
-
-function restoreModifiedFiles() {
-    for (const [path, original] of modifiedFiles) {
-        writeFileSync(path, original);
-    }
-    modifiedFiles.clear();
-}
-
-preProcessFeatureFlags(join(import.meta.dir, "..", "src"));
-const numModified = modifiedFiles.size;
-
-// Restore source files on abrupt termination (Ctrl+C, kill, etc.)
-for (const signal of ["SIGINT", "SIGTERM"] as const) {
-    process.on(signal, () => {
-        restoreModifiedFiles();
-        process.exit(signal === "SIGINT" ? 130 : 143);
-    });
-}
+const enabledFeatures = Object.entries(featureFlags)
+    .filter(([, enabled]) => enabled)
+    .map(([name]) => name);
 
 let result: Awaited<ReturnType<typeof Bun.build>> | undefined;
 let sdkResult: Awaited<ReturnType<typeof Bun.build>> | undefined;
 
-try {
-    result = await Bun.build({
+result = await Bun.build({
         entrypoints: ["./src/entrypoints/cli.tsx"],
         outdir: "./dist",
         target: "node",
@@ -135,6 +77,7 @@ try {
         sourcemap: "external",
         minify: false,
         naming: "cli.mjs",
+        features: enabledFeatures,
         define: {
             // MACRO.* build-time constants
             // Keep the internal compatibility version high enough to pass
@@ -189,12 +132,6 @@ export async function handleBgFlag() { throw new Error("Background sessions are 
                             'export async function selfHostedRunnerMain() { throw new Error("Self-hosted runner is unavailable in the open build."); }',
                         ],
                     ] as const);
-
-                    // bun:bundle feature() replacement is handled by the source
-                    // pre-processing step above (see preProcessFeatureFlags).
-                    // The previous onResolve/onLoad shim was ineffective in Bun
-                    // v1.3.9+ because the bun: namespace is resolved natively
-                    // before the JS plugin phase runs.
 
                     build.onResolve(
                         {
@@ -500,7 +437,7 @@ ${exports}
             },
         ],
         external: CLI_EXTERNALS,
-    });
+});
 
     if (!result.success) {
         console.error("Build failed:");
@@ -516,7 +453,7 @@ ${exports}
     // SDK is a separate bundle for npm consumption - must NOT bundle React/Ink
     console.log("Building SDK bundle...");
 
-    sdkResult = await Bun.build({
+sdkResult = await Bun.build({
         entrypoints: ["./src/entrypoints/sdk/index.ts"],
         outdir: "./dist",
         target: "node",
@@ -525,6 +462,7 @@ ${exports}
         sourcemap: "external",
         minify: false,
         naming: "sdk.mjs",
+        features: enabledFeatures,
         define: {
             "MACRO.VERSION": JSON.stringify(version),
             "MACRO.DISPLAY_VERSION": JSON.stringify(version),
@@ -1081,7 +1019,7 @@ ${parts.join("\n")}
                 },
             },
         ],
-    });
+});
 
     if (!sdkResult.success) {
         console.error("SDK build failed:");
@@ -1092,14 +1030,6 @@ ${parts.join("\n")}
     } else {
         console.log(`✓ Built SDK bundle → dist/sdk.mjs`);
     }
-} finally {
-    // Always restore source files, even if Bun.build() throws
-    restoreModifiedFiles();
-    console.log(
-        `  🔄 feature-flags: pre-processed ${numModified} files (restored)`,
-    );
-}
-
 // ── Validate SDK bundle for React/Ink leakage ──────────────────────────────
 if (sdkResult?.success) {
     const sdkBundle = readFileSync("./dist/sdk.mjs", "utf-8");

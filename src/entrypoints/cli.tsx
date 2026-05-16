@@ -1,3 +1,4 @@
+import { feature } from 'bun:bundle';
 import {
     applyProfileEnvToProcessEnv,
     buildStartupEnvFromProfile,
@@ -66,7 +67,7 @@ if (process.env.CLAUDE_CODE_REMOTE === "true") {
 // module-level consts at import time — init() runs too late. feature() gate
 // DCEs this entire block from external builds.
 // eslint-disable-next-line custom-rules/no-top-level-side-effects, custom-rules/no-process-env-top-level
-if (false && process.env.CLAUDE_CODE_ABLATION_BASELINE) {
+if (feature('ABLATION_BASELINE') && process.env.CLAUDE_CODE_ABLATION_BASELINE) {
     for (const k of [
         "CLAUDE_CODE_SIMPLE",
         "CLAUDE_CODE_DISABLE_THINKING",
@@ -184,7 +185,7 @@ async function main(): Promise<void> {
     // Fast-path for --dump-system-prompt: output the rendered system prompt and exit.
     // Used by prompt sensitivity evals to extract the system prompt at a specific commit.
     // Ant-only: eliminated from external builds via feature flag.
-    if (true && args[0] === "--dump-system-prompt") {
+    if (feature('DUMP_SYSTEM_PROMPT') && args[0] === "--dump-system-prompt") {
         profileCheckpoint("cli_dump_system_prompt_path");
         const { enableConfigs } = await import("../utils/config.js");
         enableConfigs();
@@ -210,7 +211,7 @@ async function main(): Promise<void> {
             await import("../utils/claudeInChrome/chromeNativeHost.js");
         await runChromeNativeHost();
         return;
-    } else if (false && process.argv[2] === "--computer-use-mcp") {
+    } else if (feature('CHICAGO_MCP') && process.argv[2] === "--computer-use-mcp") {
         profileCheckpoint("cli_computer_use_mcp_path");
         const { runComputerUseMcpServer } =
             await import("../utils/computerUse/mcpServer.js");
@@ -223,7 +224,7 @@ async function main(): Promise<void> {
     // perf-sensitive. No enableConfigs(), no analytics sinks at this layer —
     // workers are lean. If a worker kind needs configs/auth (assistant will),
     // it calls them inside its run() fn.
-    if (false && args[0] === "--daemon-worker") {
+    if (feature('DAEMON') && args[0] === "--daemon-worker") {
         const { runDaemonWorker } = await import("../daemon/workerRegistry.js");
         await runDaemonWorker(args[1]);
         return;
@@ -234,7 +235,7 @@ async function main(): Promise<void> {
     // feature() must stay inline for build-time dead code elimination;
     // isBridgeEnabled() checks the runtime GrowthBook gate.
     if (
-        false &&
+        feature('BRIDGE_MODE') &&
         (args[0] === "remote-control" ||
             args[0] === "rc" ||
             args[0] === "remote" ||
@@ -281,7 +282,7 @@ async function main(): Promise<void> {
     }
 
     // Fast-path for `claude daemon [subcommand]`: long-running supervisor.
-    if (false && args[0] === "daemon") {
+    if (feature('DAEMON') && args[0] === "daemon") {
         profileCheckpoint("cli_daemon_path");
         const { enableConfigs } = await import("../utils/config.js");
         enableConfigs();
@@ -296,7 +297,7 @@ async function main(): Promise<void> {
     // Session management against the ~/.claude/sessions/ registry. Flag
     // literals are inlined so bg.js only loads when actually dispatching.
     if (
-        false &&
+        feature('BG_SESSIONS') &&
         (args[0] === "ps" ||
             args[0] === "logs" ||
             args[0] === "attach" ||
@@ -329,7 +330,7 @@ async function main(): Promise<void> {
 
     // Fast-path for template job commands.
     if (
-        false &&
+        feature('TEMPLATES') &&
         (args[0] === "new" || args[0] === "list" || args[0] === "reply")
     ) {
         profileCheckpoint("cli_templates_path");
@@ -344,7 +345,7 @@ async function main(): Promise<void> {
 
     // Fast-path for `claude environment-runner`: headless BYOC runner.
     // feature() must stay inline for build-time dead code elimination.
-    if (false && args[0] === "environment-runner") {
+    if (feature('BYOC_ENVIRONMENT_RUNNER') && args[0] === "environment-runner") {
         profileCheckpoint("cli_environment_runner_path");
         const { environmentRunnerMain } =
             await import("../environment-runner/main.js");
@@ -355,7 +356,7 @@ async function main(): Promise<void> {
     // Fast-path for `claude self-hosted-runner`: headless self-hosted-runner
     // targeting the SelfHostedRunnerWorkerService API (register + poll; poll IS
     // heartbeat). feature() must stay inline for build-time dead code elimination.
-    if (false && args[0] === "self-hosted-runner") {
+    if (feature('SELF_HOSTED_RUNNER') && args[0] === "self-hosted-runner") {
         profileCheckpoint("cli_self_hosted_runner_path");
         const { selfHostedRunnerMain } =
             await import("../self-hosted-runner/main.js");

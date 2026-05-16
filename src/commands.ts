@@ -261,9 +261,16 @@ export const INTERNAL_ONLY_COMMANDS = [
 
 // Declared as a function so that we don't run this until getCommands is called,
 // since underlying functions read from config, which can't be read at module initialization time
-const COMMANDS = memoize((): Command[] =>
-    (
-        [
+const COMMANDS = memoize((): Command[] => {
+    const startedAt = Date.now();
+    logForDebugging("[STARTUP] COMMANDS: constructing built-in command list");
+    const authCommands = !isUsing3PServices()
+        ? [logout, login()].filter(Boolean)
+        : [];
+    logForDebugging(
+        `[STARTUP] COMMANDS: auth commands constructed in ${Date.now() - startedAt}ms`,
+    );
+    const rawCommands = [
             addDir,
             advisor,
             agents,
@@ -353,7 +360,7 @@ const COMMANDS = memoize((): Command[] =>
             hooks,
             exportCommand,
             sandboxToggle,
-            ...(!isUsing3PServices() ? [logout, login()].filter(Boolean) : []),
+            ...authCommands,
             passes,
             ...(peersCmd ? [peersCmd] : []),
             tasks,
@@ -362,9 +369,18 @@ const COMMANDS = memoize((): Command[] =>
             ...(process.env.USER_TYPE === "ant" && !process.env.IS_DEMO
                 ? INTERNAL_ONLY_COMMANDS
                 : []),
-        ] as unknown[]
-    ).filter(isCommand),
-);
+        ] as unknown[];
+    logForDebugging(
+        `[STARTUP] COMMANDS: raw built-in command list ready in ${Date.now() - startedAt}ms ` +
+            `(raw=${rawCommands.length})`,
+    );
+    const commands = rawCommands.filter(isCommand);
+    logForDebugging(
+        `[STARTUP] COMMANDS: built-in command list ready in ${Date.now() - startedAt}ms ` +
+            `(commands=${commands.length})`,
+    );
+    return commands;
+});
 
 export const builtInCommandNames = memoize(
     (): Set<string> =>
@@ -473,6 +489,8 @@ export function meetsAvailabilityRequirement(
  * because loading is expensive (disk I/O, dynamic imports).
  */
 const loadAllCommands = memoize(async (cwd: string): Promise<Command[]> => {
+    const startedAt = Date.now();
+    logForDebugging(`[STARTUP] loadAllCommands: loading command sources`);
     const [
         { skillDirCommands, pluginSkills, bundledSkills, builtinPluginSkills },
         pluginCommands,
@@ -482,16 +500,32 @@ const loadAllCommands = memoize(async (cwd: string): Promise<Command[]> => {
         getPluginCommands(),
         getWorkflowCommands ? getWorkflowCommands(cwd) : Promise.resolve([]),
     ]);
+    logForDebugging(
+        `[STARTUP] loadAllCommands: command sources loaded in ${Date.now() - startedAt}ms ` +
+            `(skills=${skillDirCommands.length}, pluginSkills=${pluginSkills.length}, bundledSkills=${bundledSkills.length}, builtinPluginSkills=${builtinPluginSkills.length}, pluginCommands=${pluginCommands.length}, workflowCommands=${workflowCommands.length})`,
+    );
 
-    return [
+    const builtInCommandsStartedAt = Date.now();
+    const builtInCommands = COMMANDS();
+    logForDebugging(
+        `[STARTUP] loadAllCommands: built-in commands constructed in ${Date.now() - builtInCommandsStartedAt}ms ` +
+            `(builtins=${builtInCommands.length})`,
+    );
+
+    const commands = [
         ...bundledSkills,
         ...builtinPluginSkills,
         ...skillDirCommands,
         ...workflowCommands,
         ...pluginCommands,
         ...pluginSkills,
-        ...COMMANDS(),
+        ...builtInCommands,
     ];
+    logForDebugging(
+        `[STARTUP] loadAllCommands: all commands loaded in ${Date.now() - startedAt}ms ` +
+            `(total=${commands.length})`,
+    );
+    return commands;
 });
 
 /**
@@ -500,7 +534,12 @@ const loadAllCommands = memoize(async (cwd: string): Promise<Command[]> => {
  * auth changes (e.g. /login) take effect immediately.
  */
 export async function getCommands(cwd: string): Promise<Command[]> {
+    const startedAt = Date.now();
     const allCommands = await loadAllCommands(cwd);
+    logForDebugging(
+        `[STARTUP] getCommands: loaded raw commands in ${Date.now() - startedAt}ms ` +
+            `(total=${allCommands.length})`,
+    );
 
     // Get dynamic skills discovered during file operations
     const dynamicSkills = getDynamicSkills();
@@ -511,6 +550,10 @@ export async function getCommands(cwd: string): Promise<Command[]> {
     );
 
     if (dynamicSkills.length === 0) {
+        logForDebugging(
+            `[STARTUP] getCommands: filtered commands in ${Date.now() - startedAt}ms ` +
+                `(enabled=${baseCommands.length}, dynamic=0)`,
+        );
         return baseCommands;
     }
 
@@ -524,6 +567,10 @@ export async function getCommands(cwd: string): Promise<Command[]> {
     );
 
     if (uniqueDynamicSkills.length === 0) {
+        logForDebugging(
+            `[STARTUP] getCommands: filtered commands in ${Date.now() - startedAt}ms ` +
+                `(enabled=${baseCommands.length}, dynamic=0)`,
+        );
         return baseCommands;
     }
 
@@ -532,14 +579,23 @@ export async function getCommands(cwd: string): Promise<Command[]> {
     const insertIndex = baseCommands.findIndex((c) => builtInNames.has(c.name));
 
     if (insertIndex === -1) {
+        logForDebugging(
+            `[STARTUP] getCommands: filtered commands in ${Date.now() - startedAt}ms ` +
+                `(enabled=${baseCommands.length + uniqueDynamicSkills.length}, dynamic=${uniqueDynamicSkills.length})`,
+        );
         return [...baseCommands, ...uniqueDynamicSkills];
     }
 
-    return [
+    const commands = [
         ...baseCommands.slice(0, insertIndex),
         ...uniqueDynamicSkills,
         ...baseCommands.slice(insertIndex),
     ];
+    logForDebugging(
+        `[STARTUP] getCommands: filtered commands in ${Date.now() - startedAt}ms ` +
+            `(enabled=${commands.length}, dynamic=${uniqueDynamicSkills.length})`,
+    );
+    return commands;
 }
 
 /**

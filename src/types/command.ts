@@ -205,20 +205,54 @@ export type CommandBase = {
 export type Command = CommandBase &
     (PromptCommand | LocalCommand | LocalJSXCommand);
 
+function getPropertyDescriptor(
+    value: object,
+    property: PropertyKey,
+): PropertyDescriptor | undefined {
+    let current: object | null = value;
+    while (current) {
+        const descriptor = Object.getOwnPropertyDescriptor(current, property);
+        if (descriptor) {
+            return descriptor;
+        }
+        current = Object.getPrototypeOf(current);
+    }
+    return undefined;
+}
+
+function hasStringValue(value: object, property: PropertyKey): boolean {
+    const descriptor = getPropertyDescriptor(value, property);
+    return typeof descriptor?.value === "string";
+}
+
+function hasStringValueOrGetter(value: object, property: PropertyKey): boolean {
+    const descriptor = getPropertyDescriptor(value, property);
+    return (
+        typeof descriptor?.value === "string" ||
+        typeof descriptor?.get === "function"
+    );
+}
+
 /**
  * Runtime type guard that validates a value is a well-formed Command object.
  * Used to reject noop tree-shaking stubs (e.g. bare functions or empty objects)
  * that bundlers may generate for missing/dead-code-eliminated modules.
+ *
+ * Do not read command.description here. Some commands expose descriptions via
+ * getters that perform expensive availability checks, and command discovery runs
+ * on the startup path.
  */
 export function isCommand(value: unknown): value is Command {
     if (!value || typeof value !== "object") return false;
-    const obj = value as Record<string, unknown>;
+    const obj = value as object;
+    const typeDescriptor = getPropertyDescriptor(obj, "type");
+    const type = typeDescriptor?.value;
     return (
-        typeof obj.name === "string" &&
-        obj.name.length > 0 &&
-        typeof obj.description === "string" &&
-        typeof obj.type === "string" &&
-        ["prompt", "local", "local-jsx"].includes(obj.type as string)
+        hasStringValue(obj, "name") &&
+        (value as { name: string }).name.length > 0 &&
+        hasStringValueOrGetter(obj, "description") &&
+        typeof type === "string" &&
+        ["prompt", "local", "local-jsx"].includes(type)
     );
 }
 
