@@ -996,6 +996,59 @@ const JSON_REPAIR_SUFFIXES = [
     "}]}",
 ];
 
+const RAW_TOOL_CALLS_REQUESTED_PREFIX = "Tool calls requested:";
+
+type ParsedRawToolCall = {
+    id: string;
+    name: string;
+    argumentsJson: string;
+};
+
+function couldBeRawToolCallsRequestedPrefix(text: string): boolean {
+    const trimmedStart = text.trimStart();
+    return (
+        RAW_TOOL_CALLS_REQUESTED_PREFIX.startsWith(trimmedStart) ||
+        trimmedStart.startsWith(RAW_TOOL_CALLS_REQUESTED_PREFIX)
+    );
+}
+
+function parseRawToolCallsRequestedText(
+    text: string,
+): ParsedRawToolCall[] | null {
+    const trimmed = text.trim();
+    if (!trimmed.startsWith(RAW_TOOL_CALLS_REQUESTED_PREFIX)) {
+        return null;
+    }
+
+    const lines = trimmed
+        .slice(RAW_TOOL_CALLS_REQUESTED_PREFIX.length)
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+
+    if (lines.length === 0) return null;
+
+    const toolCalls: ParsedRawToolCall[] = [];
+    for (const line of lines) {
+        const match = line.match(
+            /^-\s*([A-Za-z_][A-Za-z0-9_.-]*)\(([\s\S]*)\)\s*\[id:\s*([^\]\s]+)\]\s*$/,
+        );
+        if (!match) return null;
+
+        const [, name, rawArguments, id] = match;
+        if (!name || !id || rawArguments === undefined) return null;
+
+        const normalizedArguments = normalizeToolArguments(name, rawArguments);
+        toolCalls.push({
+            id,
+            name,
+            argumentsJson: JSON.stringify(normalizedArguments ?? {}),
+        });
+    }
+
+    return toolCalls.length > 0 ? toolCalls : null;
+}
+
 function repairPossiblyTruncatedObjectJson(raw: string): string | null {
     try {
         const parsed = JSON.parse(raw);
@@ -1049,6 +1102,8 @@ async function* openaiStreamToAnthropic(
     let hasEmittedFinalUsage = false;
     let hasProcessedFinishReason = false;
     const streamState = createStreamState();
+    let bufferedRawToolCallsText: string | null = null;
+    let emittedRawToolCallsFromText = false;
 
     // Emit message_start
     yield {
@@ -1145,6 +1200,87 @@ async function* openaiStreamToAnthropic(
         };
         contentBlockIndex++;
         hasEmittedContentStart = false;
+    };
+
+    const emitTextDelta = async function* (text: string) {
+        if (!text) return;
+        if (!hasEmittedContentStart) {
+            yield {
+                type: "content_block_start",
+                index: contentBlockIndex,
+                content_block: { type: "text", text: "" },
+            };
+            hasEmittedContentStart = true;
+        }
+
+        const visible = thinkFilter.feed(text);
+        if (visible) {
+            yield {
+                type: "content_block_delta",
+                index: contentBlockIndex,
+                delta: { type: "text_delta", text: visible },
+            };
+        }
+        processStreamChunk(streamState, text);
+    };
+
+    const emitParsedRawToolCalls = async function* (
+        toolCalls: ParsedRawToolCall[],
+    ) {
+        if (hasEmittedThinkingStart && !hasClosedThinking) {
+            yield { type: "content_block_stop", index: contentBlockIndex };
+            contentBlockIndex++;
+            hasClosedThinking = true;
+        }
+        if (hasEmittedContentStart) {
+            yield* closeActiveContentBlock();
+        }
+
+        for (const toolCall of toolCalls) {
+            const toolBlockIndex = contentBlockIndex;
+            yield {
+                type: "content_block_start",
+                index: toolBlockIndex,
+                content_block: {
+                    type: "tool_use",
+                    id: toolCall.id,
+                    name: toolCall.name,
+                    input: {},
+                },
+            };
+            contentBlockIndex++;
+            yield {
+                type: "content_block_delta",
+                index: toolBlockIndex,
+                delta: {
+                    type: "input_json_delta",
+                    partial_json: toolCall.argumentsJson,
+                },
+            };
+            yield { type: "content_block_stop", index: toolBlockIndex };
+            processStreamChunk(streamState, toolCall.argumentsJson);
+        }
+    };
+
+    const flushBufferedRawToolCallsText = async function* (
+        parseAsToolCalls: boolean,
+    ) {
+        if (bufferedRawToolCallsText === null) return false;
+
+        const buffered = bufferedRawToolCallsText;
+        bufferedRawToolCallsText = null;
+
+        if (parseAsToolCalls) {
+            const parsed = parseRawToolCallsRequestedText(buffered);
+            if (parsed) {
+                yield* emitParsedRawToolCalls(parsed);
+                emittedRawToolCallsFromText = true;
+                return true;
+            }
+        }
+
+        yield* emitTextDelta(buffered);
+        return false;
     };
 
     try {
@@ -1247,28 +1383,32 @@ async function* openaiStreamToAnthropic(
                             contentBlockIndex++;
                             hasClosedThinking = true;
                         }
-                        if (!hasEmittedContentStart) {
-                            yield {
-                                type: "content_block_start",
-                                index: contentBlockIndex,
-                                content_block: { type: "text", text: "" },
-                            };
-                            hasEmittedContentStart = true;
-                        }
 
-                        const visible = thinkFilter.feed(delta.content);
-                        if (visible) {
-                            yield {
-                                type: "content_block_delta",
-                                index: contentBlockIndex,
-                                delta: { type: "text_delta", text: visible },
-                            };
+                        if (
+                            !hasEmittedContentStart &&
+                            bufferedRawToolCallsText === null &&
+                            activeToolCalls.size === 0 &&
+                            couldBeRawToolCallsRequestedPrefix(delta.content)
+                        ) {
+                            bufferedRawToolCallsText = delta.content;
+                        } else if (bufferedRawToolCallsText !== null) {
+                            bufferedRawToolCallsText += delta.content;
+                            if (
+                                !couldBeRawToolCallsRequestedPrefix(
+                                    bufferedRawToolCallsText,
+                                )
+                            ) {
+                                yield* flushBufferedRawToolCallsText(false);
+                            }
+                        } else {
+                            yield* emitTextDelta(delta.content);
                         }
-                        processStreamChunk(streamState, delta.content);
                     }
 
                     // Tool calls
                     if (delta.tool_calls) {
+                        yield* flushBufferedRawToolCallsText(false);
+
                         for (const tc of delta.tool_calls) {
                             if (tc.id && tc.function?.name) {
                                 // New tool call starting — close any open thinking block first
@@ -1384,6 +1524,8 @@ async function* openaiStreamToAnthropic(
                             contentBlockIndex++;
                             hasClosedThinking = true;
                         }
+                        yield* flushBufferedRawToolCallsText(true);
+
                         // Close any open content blocks
                         if (hasEmittedContentStart) {
                             yield* closeActiveContentBlock();
@@ -1462,6 +1604,7 @@ async function* openaiStreamToAnthropic(
                         }
 
                         const stopReason =
+                            emittedRawToolCallsFromText ||
                             choice.finish_reason === "tool_calls"
                                 ? "tool_use"
                                 : choice.finish_reason === "length"
@@ -2581,11 +2724,26 @@ class OpenAIShimMessages {
             choice?.message?.content !== "" && choice?.message?.content != null
                 ? choice?.message?.content
                 : null;
+        let parsedRawToolCallsFromText = false;
         if (typeof rawContent === "string" && rawContent) {
-            content.push({
-                type: "text",
-                text: stripThinkTags(rawContent),
-            });
+            const parsedRawToolCalls =
+                parseRawToolCallsRequestedText(rawContent);
+            if (parsedRawToolCalls) {
+                parsedRawToolCallsFromText = true;
+                for (const toolCall of parsedRawToolCalls) {
+                    content.push({
+                        type: "tool_use",
+                        id: toolCall.id,
+                        name: toolCall.name,
+                        input: JSON.parse(toolCall.argumentsJson),
+                    });
+                }
+            } else {
+                content.push({
+                    type: "text",
+                    text: stripThinkTags(rawContent),
+                });
+            }
         } else if (Array.isArray(rawContent) && rawContent.length > 0) {
             const parts: string[] = [];
             for (const part of rawContent) {
@@ -2633,7 +2791,7 @@ class OpenAIShimMessages {
         }
 
         const stopReason =
-            choice?.finish_reason === "tool_calls"
+            parsedRawToolCallsFromText || choice?.finish_reason === "tool_calls"
                 ? "tool_use"
                 : choice?.finish_reason === "length"
                   ? "max_tokens"

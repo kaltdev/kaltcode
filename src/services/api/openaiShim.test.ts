@@ -1,10 +1,10 @@
-import { afterEach, beforeEach, expect, test } from "bun:test"
+import { afterEach, beforeEach, expect, test } from "bun:test";
 import { registerGateway } from "../../integrations/index.ts";
 import { createOpenAIShimClient } from "./openaiShim.ts";
 import {
-  acquireSharedMutationLock,
-  releaseSharedMutationLock,
-} from "../../test/sharedMutationLock.js"
+    acquireSharedMutationLock,
+    releaseSharedMutationLock,
+} from "../../test/sharedMutationLock.js";
 
 type FetchType = typeof globalThis.fetch;
 
@@ -92,7 +92,7 @@ function makeStreamChunks(chunks: unknown[]): string[] {
 }
 
 beforeEach(async () => {
-  await acquireSharedMutationLock("openaiShim.test.ts");
+    await acquireSharedMutationLock("openaiShim.test.ts");
     process.env.OPENAI_BASE_URL = "http://example.test/v1";
     process.env.OPENAI_API_KEY = "test-key";
     delete process.env.OPENAI_MODEL;
@@ -125,47 +125,56 @@ beforeEach(async () => {
 });
 
 afterEach(() => {
-  try {
-      restoreEnv("OPENAI_BASE_URL", originalEnv.OPENAI_BASE_URL);
-      restoreEnv("OPENAI_API_KEY", originalEnv.OPENAI_API_KEY);
-      restoreEnv("OPENAI_MODEL", originalEnv.OPENAI_MODEL);
-      restoreEnv("OPENAI_API_FORMAT", originalEnv.OPENAI_API_FORMAT);
-      restoreEnv("OPENAI_AUTH_HEADER", originalEnv.OPENAI_AUTH_HEADER);
-      restoreEnv("OPENAI_AUTH_SCHEME", originalEnv.OPENAI_AUTH_SCHEME);
-      restoreEnv(
-          "OPENAI_AUTH_HEADER_VALUE",
-          originalEnv.OPENAI_AUTH_HEADER_VALUE,
-      );
-      restoreEnv("CLAUDE_CODE_USE_GITHUB", originalEnv.CLAUDE_CODE_USE_GITHUB);
-      restoreEnv("GITHUB_TOKEN", originalEnv.GITHUB_TOKEN);
-      restoreEnv("GH_TOKEN", originalEnv.GH_TOKEN);
-      restoreEnv("CLAUDE_CODE_USE_OPENAI", originalEnv.CLAUDE_CODE_USE_OPENAI);
-      restoreEnv("CLAUDE_CODE_USE_GEMINI", originalEnv.CLAUDE_CODE_USE_GEMINI);
-      restoreEnv("GEMINI_API_KEY", originalEnv.GEMINI_API_KEY);
-      restoreEnv("GOOGLE_API_KEY", originalEnv.GOOGLE_API_KEY);
-      restoreEnv("GEMINI_ACCESS_TOKEN", originalEnv.GEMINI_ACCESS_TOKEN);
-      restoreEnv("GEMINI_AUTH_MODE", originalEnv.GEMINI_AUTH_MODE);
-      restoreEnv("GEMINI_BASE_URL", originalEnv.GEMINI_BASE_URL);
-      restoreEnv("GEMINI_MODEL", originalEnv.GEMINI_MODEL);
-      restoreEnv("GOOGLE_CLOUD_PROJECT", originalEnv.GOOGLE_CLOUD_PROJECT);
-      restoreEnv(
-          "ANTHROPIC_CUSTOM_HEADERS",
-          originalEnv.ANTHROPIC_CUSTOM_HEADERS,
-      );
-      restoreEnv("NVIDIA_API_KEY", originalEnv.NVIDIA_API_KEY);
-      restoreEnv("NVIDIA_NIM", originalEnv.NVIDIA_NIM);
-      restoreEnv("MINIMAX_API_KEY", originalEnv.MINIMAX_API_KEY);
-      restoreEnv("BNKR_API_KEY", originalEnv.BNKR_API_KEY);
-      restoreEnv("BANKR_BASE_URL", originalEnv.BANKR_BASE_URL);
-      restoreEnv("BANKR_MODEL", originalEnv.BANKR_MODEL);
-      restoreEnv("OPENROUTER_API_KEY", originalEnv.OPENROUTER_API_KEY);
-      restoreEnv("DEEPSEEK_API_KEY", originalEnv.DEEPSEEK_API_KEY);
-      restoreEnv("MIMO_API_KEY", originalEnv.MIMO_API_KEY);
+    try {
+        restoreEnv("OPENAI_BASE_URL", originalEnv.OPENAI_BASE_URL);
+        restoreEnv("OPENAI_API_KEY", originalEnv.OPENAI_API_KEY);
+        restoreEnv("OPENAI_MODEL", originalEnv.OPENAI_MODEL);
+        restoreEnv("OPENAI_API_FORMAT", originalEnv.OPENAI_API_FORMAT);
+        restoreEnv("OPENAI_AUTH_HEADER", originalEnv.OPENAI_AUTH_HEADER);
+        restoreEnv("OPENAI_AUTH_SCHEME", originalEnv.OPENAI_AUTH_SCHEME);
+        restoreEnv(
+            "OPENAI_AUTH_HEADER_VALUE",
+            originalEnv.OPENAI_AUTH_HEADER_VALUE,
+        );
+        restoreEnv(
+            "CLAUDE_CODE_USE_GITHUB",
+            originalEnv.CLAUDE_CODE_USE_GITHUB,
+        );
+        restoreEnv("GITHUB_TOKEN", originalEnv.GITHUB_TOKEN);
+        restoreEnv("GH_TOKEN", originalEnv.GH_TOKEN);
+        restoreEnv(
+            "CLAUDE_CODE_USE_OPENAI",
+            originalEnv.CLAUDE_CODE_USE_OPENAI,
+        );
+        restoreEnv(
+            "CLAUDE_CODE_USE_GEMINI",
+            originalEnv.CLAUDE_CODE_USE_GEMINI,
+        );
+        restoreEnv("GEMINI_API_KEY", originalEnv.GEMINI_API_KEY);
+        restoreEnv("GOOGLE_API_KEY", originalEnv.GOOGLE_API_KEY);
+        restoreEnv("GEMINI_ACCESS_TOKEN", originalEnv.GEMINI_ACCESS_TOKEN);
+        restoreEnv("GEMINI_AUTH_MODE", originalEnv.GEMINI_AUTH_MODE);
+        restoreEnv("GEMINI_BASE_URL", originalEnv.GEMINI_BASE_URL);
+        restoreEnv("GEMINI_MODEL", originalEnv.GEMINI_MODEL);
+        restoreEnv("GOOGLE_CLOUD_PROJECT", originalEnv.GOOGLE_CLOUD_PROJECT);
+        restoreEnv(
+            "ANTHROPIC_CUSTOM_HEADERS",
+            originalEnv.ANTHROPIC_CUSTOM_HEADERS,
+        );
+        restoreEnv("NVIDIA_API_KEY", originalEnv.NVIDIA_API_KEY);
+        restoreEnv("NVIDIA_NIM", originalEnv.NVIDIA_NIM);
+        restoreEnv("MINIMAX_API_KEY", originalEnv.MINIMAX_API_KEY);
+        restoreEnv("BNKR_API_KEY", originalEnv.BNKR_API_KEY);
+        restoreEnv("BANKR_BASE_URL", originalEnv.BANKR_BASE_URL);
+        restoreEnv("BANKR_MODEL", originalEnv.BANKR_MODEL);
+        restoreEnv("OPENROUTER_API_KEY", originalEnv.OPENROUTER_API_KEY);
+        restoreEnv("DEEPSEEK_API_KEY", originalEnv.DEEPSEEK_API_KEY);
+        restoreEnv("MIMO_API_KEY", originalEnv.MIMO_API_KEY);
 
-      globalThis.fetch = originalFetch;
-  } finally {
-    releaseSharedMutationLock();
-  }
+        globalThis.fetch = originalFetch;
+    } finally {
+        releaseSharedMutationLock();
+    }
 });
 
 test("strips canonical Anthropic headers from direct shim defaultHeaders", async () => {
@@ -1912,6 +1921,170 @@ test("preserves Gemini tool call extra_content from streaming chunks", async () 
             },
         },
     });
+});
+
+test("converts Gemini raw tool-call text into streaming tool_use blocks", async () => {
+    globalThis.fetch = (async (_input, _init) => {
+        const chunks = makeStreamChunks([
+            {
+                id: "chatcmpl-raw-tool",
+                object: "chat.completion.chunk",
+                model: "google/gemini-3.1-flash-lite-preview",
+                choices: [
+                    {
+                        index: 0,
+                        delta: {
+                            role: "assistant",
+                            content: "Tool calls",
+                        },
+                        finish_reason: null,
+                    },
+                ],
+            },
+            {
+                id: "chatcmpl-raw-tool",
+                object: "chat.completion.chunk",
+                model: "google/gemini-3.1-flash-lite-preview",
+                choices: [
+                    {
+                        index: 0,
+                        delta: {
+                            content:
+                                ' requested:\n- Write({"file_path":"style.css","content":"ul { padding: 0; }"}) [id: call79435b5a26564619b0151197]',
+                        },
+                        finish_reason: null,
+                    },
+                ],
+            },
+            {
+                id: "chatcmpl-raw-tool",
+                object: "chat.completion.chunk",
+                model: "google/gemini-3.1-flash-lite-preview",
+                choices: [
+                    {
+                        index: 0,
+                        delta: {},
+                        finish_reason: "stop",
+                    },
+                ],
+            },
+        ]);
+
+        return makeSseResponse(chunks);
+    }) as FetchType;
+
+    const client = createOpenAIShimClient({}) as OpenAIShimClient;
+
+    const result = await client.beta.messages
+        .create({
+            model: "google/gemini-3.1-flash-lite-preview",
+            messages: [{ role: "user", content: "Write CSS" }],
+            max_tokens: 64,
+            stream: true,
+        })
+        .withResponse();
+
+    const events: Array<Record<string, unknown>> = [];
+    for await (const event of result.data) {
+        events.push(event);
+    }
+
+    expect(
+        events.some(
+            (event) =>
+                event.type === "content_block_start" &&
+                (event.content_block as Record<string, unknown> | undefined)
+                    ?.type === "text",
+        ),
+    ).toBe(false);
+
+    const toolStart = events.find(
+        (event) =>
+            event.type === "content_block_start" &&
+            (event.content_block as Record<string, unknown> | undefined)
+                ?.type === "tool_use",
+    ) as { content_block?: Record<string, unknown> } | undefined;
+    expect(toolStart?.content_block).toMatchObject({
+        type: "tool_use",
+        id: "call79435b5a26564619b0151197",
+        name: "Write",
+    });
+
+    const toolInput = events
+        .filter(
+            (event) =>
+                event.type === "content_block_delta" &&
+                (event.delta as Record<string, unknown> | undefined)?.type ===
+                    "input_json_delta",
+        )
+        .map((event) => (event.delta as Record<string, unknown>).partial_json)
+        .join("");
+    expect(JSON.parse(toolInput)).toEqual({
+        file_path: "style.css",
+        content: "ul { padding: 0; }",
+    });
+
+    const stop = events.find((event) => event.type === "message_delta") as
+        | { delta?: Record<string, unknown> }
+        | undefined;
+    expect(stop?.delta?.stop_reason).toBe("tool_use");
+});
+
+test("converts Gemini raw tool-call text into non-streaming tool_use blocks", async () => {
+    globalThis.fetch = (async (_input, _init) => {
+        return new Response(
+            JSON.stringify({
+                id: "chatcmpl-raw-tool",
+                model: "google/gemini-3.1-flash-lite-preview",
+                choices: [
+                    {
+                        message: {
+                            role: "assistant",
+                            content:
+                                'Tool calls requested:\n- Agent({"description":"Verify the todo list application functionality.","prompt":"Check files.","subagent_type":"verification"}) [id: call9a8b7c6d5e4f3a2b1c0d9e8f]',
+                        },
+                        finish_reason: "stop",
+                    },
+                ],
+                usage: {
+                    prompt_tokens: 12,
+                    completion_tokens: 4,
+                    total_tokens: 16,
+                },
+            }),
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            },
+        );
+    }) as FetchType;
+
+    const client = createOpenAIShimClient({}) as OpenAIShimClient;
+
+    const message = (await client.beta.messages.create({
+        model: "google/gemini-3.1-flash-lite-preview",
+        messages: [{ role: "user", content: "Verify" }],
+        max_tokens: 64,
+        stream: false,
+    })) as {
+        stop_reason?: string;
+        content?: Array<Record<string, unknown>>;
+    };
+
+    expect(message.stop_reason).toBe("tool_use");
+    expect(message.content).toEqual([
+        {
+            type: "tool_use",
+            id: "call9a8b7c6d5e4f3a2b1c0d9e8f",
+            name: "Agent",
+            input: {
+                description: "Verify the todo list application functionality.",
+                prompt: "Check files.",
+                subagent_type: "verification",
+            },
+        },
+    ]);
 });
 
 test("normalizes plain string Bash tool arguments from OpenAI-compatible responses", async () => {
