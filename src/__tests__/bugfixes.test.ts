@@ -188,7 +188,7 @@ describe('Web search result count improvements', () => {
       'tools/WebSearchTool/WebSearchTool.ts',
     ).text()
 
-    expect(content).toContain("results.push('No results found.')")
+    expect(content).toMatch(/results\.push\(\s*(['"])No results found\.\1\s*\)/)
   })
 })
 
