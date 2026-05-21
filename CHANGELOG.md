@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.14.0](https://github.com/kaltdev/kaltcode/compare/v0.13.0...v0.14.0) (2026-05-21)
+
+
+### Features
+
+* Add codexplan alias and update spinner tips ([a69cd8b](https://github.com/kaltdev/kaltcode/commit/a69cd8b179351a982e8d780348141d7590156d81))
+* **integrations:** Add Xiaomi MiMo and OpenGateway handling ([07c1076](https://github.com/kaltdev/kaltcode/commit/07c10769daf190d0a27c571e0abb9b6d28a2539f))
+* **provider:** allow OpenGateway no-auth validation ([6159240](https://github.com/kaltdev/kaltcode/commit/61592401951c1597a0349c3514b418aa470ea5af))
+* **query:** Add tool failure loop guard ([7b1e8fc](https://github.com/kaltdev/kaltcode/commit/7b1e8fc2eea6410aa6895a29f931a3133ddcb7ca))
+* **tools:** Normalize tool inputs for validation ([fe10730](https://github.com/kaltdev/kaltcode/commit/fe1073084e1e0afd687fd31f261777ad50707f0d))
+
+
+### Bug Fixes
+
+* **stdin,mcp:** guard rawModeEnabledCount and defer MCP connections to ([dec767f](https://github.com/kaltdev/kaltcode/commit/dec767f87ccc9510b06f8120f12d72d2537cc9ed))
+* **ui:** Remove overflowX from TaskListV2 ([218a365](https://github.com/kaltdev/kaltcode/commit/218a365270e25e32e49869175e9e76ff30878e28))
+* **xml:** tolerate null/undefined in escape helpers ([0b9057f](https://github.com/kaltdev/kaltcode/commit/0b9057f75f8692a9580a96f8bb81211b9f5dedcd))
+
 ## [0.13.0](https://github.com/kaltdev/kaltcode/compare/v0.12.0...v0.13.0) (2026-05-17)
 
 
