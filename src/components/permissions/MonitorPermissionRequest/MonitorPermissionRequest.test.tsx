@@ -368,7 +368,7 @@ describe('MonitorPermissionRequest', () => {
     const mounted = await renderMonitorPermission(toolUseConfirm, { onDone })
 
     try {
-      mounted.stdin.write('\r')
+      mounted.stdin.write('1')
 
       await waitFor(() => onDone.mock.calls.length === 1)
       const decision = await decisionPromise
