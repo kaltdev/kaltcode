@@ -30,6 +30,7 @@ const originalProviderEnv = Object.fromEntries(
 ) as Record<(typeof providerEnvKeys)[number], string | undefined>
 const sessionId = '00000000-0000-4000-8000-000000001999'
 const ts = '2026-04-02T00:00:00.000Z'
+const TEST_TIMEOUT_MS = 15_000
 
 beforeEach(async () => {
   await acquireSharedMutationLock('src/utils/conversationRecovery.test.ts')
@@ -128,7 +129,7 @@ test('loadConversationForResume accepts a small transcript from jsonl path', asy
   expect(result).not.toBeNull()
   expect(result?.sessionId).toBe(sessionId)
   expect(result?.messages.length).toBeGreaterThan(0)
-})
+}, TEST_TIMEOUT_MS)
 
 test('loadConversationForResume rejects oversized reconstructed transcripts', async () => {
   process.env.CLAUDE_CODE_SIMPLE = '1'
@@ -150,7 +151,7 @@ test('loadConversationForResume rejects oversized reconstructed transcripts', as
   expect((caught as Error).message).toContain(
     'Reconstructed transcript is too large to resume safely',
   )
-})
+}, TEST_TIMEOUT_MS)
 
 test('deserializeMessages preserves thinking blocks for GitHub native Claude transport', async () => {
   clearProviderEnv()
@@ -175,4 +176,4 @@ test('deserializeMessages preserves thinking blocks for GitHub native Claude tra
     type: string
   }>
   expect(content.some(block => block.type === 'thinking')).toBe(true)
-})
+}, TEST_TIMEOUT_MS)

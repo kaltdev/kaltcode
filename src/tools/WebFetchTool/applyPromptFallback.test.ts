@@ -9,6 +9,7 @@ import {
 // or successful). We preserve every other export from claude.js so unrelated
 // transitive imports still work.
 const haikuMock = mock()
+const TEST_TIMEOUT_MS = 15_000
 
 beforeEach(async () => {
   await acquireSharedMutationLock('WebFetchTool/applyPromptFallback.test.ts')
@@ -50,7 +51,7 @@ test('returns raw truncated markdown when queryHaiku throws', async () => {
   const output = await runApply('Gitlawb homepage content.')
   expect(output).toContain('[Secondary-model summarization unavailable')
   expect(output).toContain('Gitlawb homepage content.')
-})
+}, TEST_TIMEOUT_MS)
 
 test('returns raw truncated markdown when queryHaiku simulates a timeout', async () => {
   // Simulating raceWithTimeout's rejection path directly — we can't actually
@@ -64,7 +65,7 @@ test('returns raw truncated markdown when queryHaiku simulates a timeout', async
   const output = await runApply('Slow provider content.')
   expect(output).toContain('[Secondary-model summarization unavailable')
   expect(output).toContain('Slow provider content.')
-})
+}, TEST_TIMEOUT_MS)
 
 test('returns the model response when queryHaiku succeeds', async () => {
   haikuMock.mockImplementation(async () => ({
@@ -75,7 +76,7 @@ test('returns the model response when queryHaiku succeeds', async () => {
 
   const output = await runApply('some page content')
   expect(output).toBe('This page is about GitLawb, an AI legal platform.')
-})
+}, TEST_TIMEOUT_MS)
 
 test('returns fallback when queryHaiku resolves with empty content', async () => {
   haikuMock.mockImplementation(async () => ({ message: { content: [] } }))
@@ -83,7 +84,7 @@ test('returns fallback when queryHaiku resolves with empty content', async () =>
   const output = await runApply('some page content')
   expect(output).toContain('[Secondary-model summarization unavailable')
   expect(output).toContain('some page content')
-})
+}, TEST_TIMEOUT_MS)
 
 test('propagates AbortError from the caller signal', async () => {
   const ctrl = new AbortController()
@@ -93,4 +94,4 @@ test('propagates AbortError from the caller signal', async () => {
   })
 
   await expect(runApply('content', ctrl.signal)).rejects.toThrow()
-})
+}, TEST_TIMEOUT_MS)

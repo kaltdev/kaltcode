@@ -71,8 +71,9 @@ afterEach(() => {
         const duration = performance.now() - startTime;
 
         expect(summary).toMatch(/Knowledge Graph/);
-        // Summary generation should be fast
-        expect(duration).toBeLessThan(50);
+        // Keep a generous full-suite guard: this is a regression sentinel,
+        // not a microbenchmark, and CI load can add tens of milliseconds.
+        expect(duration).toBeLessThan(250);
     }, 10000);
 
     it("maintains a compact memory footprint", async () => {

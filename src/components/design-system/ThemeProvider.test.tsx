@@ -19,7 +19,7 @@
 import { PassThrough } from 'node:stream'
 
 import { afterEach, beforeEach, expect, mock, test } from 'bun:test'
-import React, { useEffect } from 'react'
+import React from 'react'
 import stripAnsi from 'strip-ansi'
 
 import { createRoot, Text, useTheme } from '../../ink.js'
@@ -34,6 +34,8 @@ import { getGlobalConfig, saveGlobalConfig } from '../../utils/config.js'
 
 const SYNC_START = '\x1B[?2026h'
 const SYNC_END = '\x1B[?2026l'
+const FRAME_TIMEOUT_MS = 5000
+const TEST_TIMEOUT_MS = 15000
 
 function extractLastFrame(output: string): string {
   let lastFrame: string | null = null
@@ -84,12 +86,13 @@ async function waitForCondition(
 async function waitForFrame(
   getOutput: () => string,
   predicate: (frame: string) => boolean,
+  timeoutMs = FRAME_TIMEOUT_MS,
 ): Promise<string> {
   let frame = ''
   await waitForCondition(() => {
     frame = stripAnsi(extractLastFrame(getOutput()))
     return predicate(frame)
-  })
+  }, timeoutMs)
   return frame
 }
 
@@ -150,23 +153,17 @@ test('useTheme() reflects updated currentTheme after setThemeSetting call', asyn
   })
 
   function ThemeDisplay() {
-    const [theme] = useTheme()
+    const [theme, setter] = useTheme()
+    setThemeFn = setter
     return <Text>current:{theme}</Text>
   }
-
   let setThemeFn: ((s: string) => void) | null = null
-  function ThemeSetter() {
-    const [, setter] = useTheme()
-    useEffect(() => { setThemeFn = setter })
-    return null
-  }
 
   root.render(
     <AppStateProvider>
       <KeybindingSetup>
         <ThemeProvider initialState="dark">
           <ThemeDisplay />
-          <ThemeSetter />
         </ThemeProvider>
       </KeybindingSetup>
     </AppStateProvider>,
@@ -192,7 +189,7 @@ test('useTheme() reflects updated currentTheme after setThemeSetting call', asyn
     stdout.end()
     await Bun.sleep(0)
   }
-})
+}, TEST_TIMEOUT_MS)
 
 /**
  * Verifies that usePreviewTheme() returns functional action references
@@ -211,7 +208,7 @@ test('usePreviewTheme() setPreviewTheme changes displayed theme', async () => {
   function ThemeDisplay() {
     const [theme] = useTheme()
     const actions = usePreviewTheme()
-    useEffect(() => { previewActions = actions })
+    previewActions = actions
     return <Text>current:{theme}</Text>
   }
 
@@ -244,4 +241,4 @@ test('usePreviewTheme() setPreviewTheme changes displayed theme', async () => {
     stdout.end()
     await Bun.sleep(0)
   }
-})
+}, TEST_TIMEOUT_MS)

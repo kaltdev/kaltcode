@@ -605,6 +605,7 @@ export async function loadConversationForResume(
             const loaded = await loadMessagesFromJsonlPath(sourceJsonlFile);
             messages = loaded.messages;
             sessionId = loaded.sessionId;
+            assertResumeMessageSize(messages as Message[]);
         } else if (typeof source === "string") {
             // Load specific session by ID
             log = await getLastSessionLog(source as UUID);
