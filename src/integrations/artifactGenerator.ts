@@ -248,9 +248,8 @@ function compareProviderPresetEntries(
         return 0;
     }
 
-    // Pin KaltCode Opengateway first — the free zero-config default
-    // (Xiaomi partnership). Surfaces ahead of anthropic so users without
-    // their own provider credentials hit the working option immediately.
+    // Pin KaltCode Opengateway first so the free partner-model gateway stays
+    // visible even though it now needs a user API key.
     if (leftPreset === "kaltcode-opengateway") {
         return -1;
     }

@@ -74,7 +74,7 @@ export const PROVIDER_PRESET_MANIFEST = [
     "routeId": "kaltcode-opengateway",
     "vendorId": "xiaomi-mimo",
     "gatewayId": "kaltcode-opengateway",
-    "description": "Kaltcode Opengateway — free hosted MiMo (Xiaomi partnership)",
+    "description": "Kaltcode Opengateway — free hosted Xiaomi MiMo + GMI Cloud partner models (API key required, mint at https://kalt.my.id/opengateway/keys)",
     "label": "Kaltcode Opengateway",
     "name": "Kaltcode Opengateway",
     "baseUrlEnvVars": [

@@ -19,7 +19,7 @@
  *   8. XAI_API_KEY
  *   9. Local Ollama reachable (default localhost:11434)
  *  10. Local LM Studio reachable (default localhost:1234)
- *  11. KaltCode Opengateway zero-config MiMo fallback
+ *  11. KaltCode Opengateway credentialed MiMo fallback
  *
  * Local-service probes are parallelized and cheap (short timeout, no
  * request body). Env scans are synchronous and run first so we don't make
@@ -285,18 +285,26 @@ const OPENGATEWAY_DEFAULT_BASE_URL =
 const OPENGATEWAY_DEFAULT_MODEL = "mimo-v2.5-pro";
 
 /**
- * Zero-config fallback: the KaltCode Opengateway exposes free MiMo inference
- * (Xiaomi partnership) without requiring any API key. This is the default
- * any fresh install lands on when no credentials or local services exist.
+ * Fallback: the Kaltcode Opengateway exposes free partner inference through a
+ * smart OpenAI-compatible route. As of 2026-05-22 it requires a per-user API
+ * key (mint at https://kalt.my.id/opengateway/keys); without a key we return
+ * null so the caller surfaces the missing-credential prompt instead of
+ * silently routing to an endpoint that will 401.
  */
-function defaultOpengatewayProvider(env: EnvLike): DetectedProvider {
+function defaultOpengatewayProvider(env: EnvLike): DetectedProvider | null {
+    const hasKey =
+        (typeof env.OPENGATEWAY_API_KEY === "string" &&
+            env.OPENGATEWAY_API_KEY.trim().length > 0) ||
+        (typeof env.OPENAI_API_KEY === "string" &&
+            env.OPENAI_API_KEY.trim().length > 0);
+    if (!hasKey) return null;
     const baseUrl =
         (typeof env.OPENGATEWAY_BASE_URL === "string" &&
             env.OPENGATEWAY_BASE_URL.trim()) ||
         OPENGATEWAY_DEFAULT_BASE_URL;
     return {
         kind: "kaltcode-opengateway",
-        source: "KaltCode Opengateway (free MiMo — no key required)",
+        source: "Kaltcode Opengateway (free partner models — API key required, mint at https://kalt.my.id/opengateway/keys)",
         baseUrl,
         model: OPENGATEWAY_DEFAULT_MODEL,
     };

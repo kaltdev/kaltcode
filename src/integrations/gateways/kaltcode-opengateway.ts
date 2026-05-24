@@ -9,12 +9,19 @@ export default defineGateway({
     supportsModelRouting: true,
     vendorId: "xiaomi-mimo",
     setup: {
-        requiresAuth: false,
-        authMode: "none",
+        requiresAuth: true,
+        authMode: "api-key",
+        credentialEnvVars: ["OPENGATEWAY_API_KEY", "OPENAI_API_KEY"],
     },
     validation: {
         kind: "credential-env",
-        credentialEnvVars: [],
+        // OPENGATEWAY_API_KEY first so users who set both don't get their generic
+        // OpenAI key sent to opengateway by accident. OPENAI_API_KEY kept as a
+        // fallback because that's where existing openclaude configs already hold it.
+        credentialEnvVars: ["OPENGATEWAY_API_KEY", "OPENAI_API_KEY"],
+        missingCredentialMessage:
+            "OPENGATEWAY_API_KEY is required to use Gitlawb Opengateway.\n" +
+            "Mint a free API key at https://gitlawb.com/opengateway/keys and set it as OPENGATEWAY_API_KEY (or OPENAI_API_KEY when OPENAI_BASE_URL points at opengateway).",
         routing: {
             matchBaseUrlHosts: [
                 "opengateway.gitlawb.com",
@@ -25,9 +32,11 @@ export default defineGateway({
     transportConfig: {
         kind: "openai-compatible",
         openaiShim: {
+            // Opengateway expects `Authorization: Bearer ogw_live_...`. Previous
+            // `api-key` raw header was a leftover from the direct-Xiaomi era.
             defaultAuthHeader: {
-                name: "api-key",
-                scheme: "raw",
+                name: "authorization",
+                scheme: "bearer",
             },
             maxTokensField: "max_completion_tokens",
             removeBodyFields: ["store", "stream_options"],
@@ -38,7 +47,7 @@ export default defineGateway({
     preset: {
         id: "kaltcode-opengateway",
         description:
-            "Kaltcode Opengateway — free hosted MiMo (Xiaomi partnership)",
+            "Kaltcode Opengateway — free hosted Xiaomi MiMo + GMI Cloud partner models (API key required, mint at https://kalt.my.id/opengateway/keys)",
         label: "Kaltcode Opengateway",
         name: "Kaltcode Opengateway",
         vendorId: "xiaomi-mimo",

@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 const originalEnv = { ...process.env }
 const originalPlatform = process.platform
-const mockedClipboardPath = join(process.cwd(), 'kaltcode-clipboard.txt')
+let mockedClipboardPath = join(tmpdir(), 'kaltcode-clipboard.txt')
 
 const generateTempFilePathMock = mock(() => mockedClipboardPath)
 
@@ -32,17 +33,19 @@ async function flushClipboardCopy(): Promise<void> {
 
 async function waitForExecCall(
   command: string,
-  attempts = 20,
+  timeoutMs = 3000,
 ): Promise<(typeof execFileNoThrowMock.mock.calls)[number] | undefined> {
-  for (let attempt = 0; attempt < attempts; attempt++) {
+  const deadline = Date.now() + timeoutMs
+
+  while (Date.now() < deadline) {
     const call = execFileNoThrowMock.mock.calls.find(([cmd]) => cmd === command)
     if (call) {
       return call
     }
-    await flushClipboardCopy()
+    await new Promise(resolve => setTimeout(resolve, 25))
   }
 
-  return undefined
+  return execFileNoThrowMock.mock.calls.find(([cmd]) => cmd === command)
 }
 
 describe('Windows clipboard fallback', () => {
@@ -50,6 +53,10 @@ describe('Windows clipboard fallback', () => {
     installOscMocks()
     execFileNoThrowMock.mockClear()
     generateTempFilePathMock.mockClear()
+    mockedClipboardPath = join(
+      tmpdir(),
+      `kaltcode-clipboard-${Date.now()}-${Math.random()}.txt`,
+    )
     process.env = { ...originalEnv }
     delete process.env['SSH_CONNECTION']
     delete process.env['TMUX']
