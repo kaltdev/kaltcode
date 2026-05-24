@@ -1,179 +1,259 @@
-import { afterEach, beforeEach, expect, mock, test } from 'bun:test'
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { afterEach, beforeEach, expect, mock, test } from "bun:test";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
-  acquireSharedMutationLock,
-  releaseSharedMutationLock,
-} from '../test/sharedMutationLock.js'
+    acquireSharedMutationLock,
+    releaseSharedMutationLock,
+} from "../test/sharedMutationLock.js";
 
-const tempDirs: string[] = []
-const originalSimple = process.env.CLAUDE_CODE_SIMPLE
+const tempDirs: string[] = [];
+const originalSimple = process.env.CLAUDE_CODE_SIMPLE;
 const providerEnvKeys = [
-  'CLAUDE_CODE_USE_GEMINI',
-  'CLAUDE_CODE_USE_MISTRAL',
-  'CLAUDE_CODE_USE_GITHUB',
-  'CLAUDE_CODE_USE_BEDROCK',
-  'CLAUDE_CODE_USE_VERTEX',
-  'CLAUDE_CODE_USE_OPENAI',
-  'CLAUDE_CODE_USE_FOUNDRY',
-  'OPENAI_MODEL',
-  'OPENAI_BASE_URL',
-  'OPENAI_API_BASE',
-  'NVIDIA_NIM',
-  'MINIMAX_API_KEY',
-  'XAI_API_KEY',
-  'CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED',
-] as const
+    "CLAUDE_CODE_USE_GEMINI",
+    "CLAUDE_CODE_USE_MISTRAL",
+    "CLAUDE_CODE_USE_GITHUB",
+    "CLAUDE_CODE_USE_BEDROCK",
+    "CLAUDE_CODE_USE_VERTEX",
+    "CLAUDE_CODE_USE_OPENAI",
+    "CLAUDE_CODE_USE_FOUNDRY",
+    "OPENAI_MODEL",
+    "OPENAI_BASE_URL",
+    "OPENAI_API_BASE",
+    "NVIDIA_NIM",
+    "MINIMAX_API_KEY",
+    "XAI_API_KEY",
+    "CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED",
+] as const;
 const originalProviderEnv = Object.fromEntries(
-  providerEnvKeys.map(key => [key, process.env[key]]),
-) as Record<(typeof providerEnvKeys)[number], string | undefined>
-const sessionId = '00000000-0000-4000-8000-000000001999'
-const ts = '2026-04-02T00:00:00.000Z'
-const TEST_TIMEOUT_MS = 15_000
+    providerEnvKeys.map((key) => [key, process.env[key]]),
+) as Record<(typeof providerEnvKeys)[number], string | undefined>;
+const sessionId = "00000000-0000-4000-8000-000000001999";
+const ts = "2026-04-02T00:00:00.000Z";
+const TEST_TIMEOUT_MS = 15_000;
 
 beforeEach(async () => {
-  await acquireSharedMutationLock('src/utils/conversationRecovery.test.ts')
-})
+    await acquireSharedMutationLock("src/utils/conversationRecovery.test.ts");
+});
 
 function id(n: number): string {
-  return `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`
+    return `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 }
 
 function user(uuid: string, content: string) {
-  return {
-    type: 'user',
-    uuid,
-    parentUuid: null,
-    timestamp: ts,
-    cwd: '/tmp',
-    userType: 'external',
-    sessionId,
-    version: 'test',
-    isSidechain: false,
-    isMeta: false,
-    message: {
-      role: 'user',
-      content,
-    },
-  }
+    return {
+        type: "user",
+        uuid,
+        parentUuid: null,
+        timestamp: ts,
+        cwd: "/tmp",
+        userType: "external",
+        sessionId,
+        version: "test",
+        isSidechain: false,
+        isMeta: false,
+        message: {
+            role: "user",
+            content,
+        },
+    };
 }
 
 async function writeJsonl(entry: unknown): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), 'kaltcode-conversation-recovery-'))
-  tempDirs.push(dir)
-  const filePath = join(dir, 'resume.jsonl')
-  await writeFile(filePath, `${JSON.stringify(entry)}\n`)
-  return filePath
+    const dir = await mkdtemp(
+        join(tmpdir(), "kaltcode-conversation-recovery-"),
+    );
+    tempDirs.push(dir);
+    const filePath = join(dir, "resume.jsonl");
+    await writeFile(filePath, `${JSON.stringify(entry)}\n`);
+    return filePath;
 }
 
 afterEach(async () => {
-  try {
-    mock.restore()
-    if (originalSimple === undefined) {
-      delete process.env.CLAUDE_CODE_SIMPLE
-    } else {
-      process.env.CLAUDE_CODE_SIMPLE = originalSimple
+    try {
+        mock.restore();
+        if (originalSimple === undefined) {
+            delete process.env.CLAUDE_CODE_SIMPLE;
+        } else {
+            process.env.CLAUDE_CODE_SIMPLE = originalSimple;
+        }
+        for (const key of providerEnvKeys) {
+            const value = originalProviderEnv[key];
+            if (value === undefined) {
+                delete process.env[key];
+            } else {
+                process.env[key] = value;
+            }
+        }
+        await Promise.all(
+            tempDirs
+                .splice(0)
+                .map((dir) => rm(dir, { recursive: true, force: true })),
+        );
+    } finally {
+        releaseSharedMutationLock();
     }
-    for (const key of providerEnvKeys) {
-      const value = originalProviderEnv[key]
-      if (value === undefined) {
-        delete process.env[key]
-      } else {
-        process.env[key] = value
-      }
-    }
-    await Promise.all(tempDirs.splice(0).map(dir => rm(dir, { recursive: true, force: true })))
-  } finally {
-    releaseSharedMutationLock()
-  }
-})
+});
 
 async function importFreshConversationRecovery() {
-  mock.restore()
-  const getMockAPIProvider = () => {
-    if (process.env.CLAUDE_CODE_USE_GITHUB) return 'github'
-    if (process.env.CLAUDE_CODE_USE_OPENAI) return 'openai'
-    if (process.env.CLAUDE_CODE_USE_BEDROCK) return 'bedrock'
-    if (process.env.CLAUDE_CODE_USE_VERTEX) return 'vertex'
-    if (process.env.CLAUDE_CODE_USE_FOUNDRY) return 'foundry'
-    return 'firstParty'
-  }
-  mock.module('./model/providers.js', () => ({
-    getAPIProvider: getMockAPIProvider,
-    usesAnthropicAccountFlow: () => getMockAPIProvider() === 'firstParty',
-    isGithubNativeAnthropicMode: (resolvedModel?: string) =>
-      Boolean(process.env.CLAUDE_CODE_USE_GITHUB) &&
-      (resolvedModel ?? process.env.OPENAI_MODEL ?? '')
-        .toLowerCase()
-        .includes('claude-'),
-    getAPIProviderForStatsig: getMockAPIProvider,
-    isFirstPartyAnthropicBaseUrl: () => true,
-  }))
-  const nonce = `${Date.now()}-${Math.random()}`
-  return import(`./conversationRecovery.ts?conversationRecoveryTest=${nonce}`)
+    mock.restore();
+    const getMockAPIProvider = () => {
+        if (process.env.CLAUDE_CODE_USE_GITHUB) return "github";
+        if (process.env.CLAUDE_CODE_USE_OPENAI) return "openai";
+        if (process.env.CLAUDE_CODE_USE_BEDROCK) return "bedrock";
+        if (process.env.CLAUDE_CODE_USE_VERTEX) return "vertex";
+        if (process.env.CLAUDE_CODE_USE_FOUNDRY) return "foundry";
+        return "firstParty";
+    };
+    mock.module("./model/providers.js", () => ({
+        getAPIProvider: getMockAPIProvider,
+        usesAnthropicAccountFlow: () => getMockAPIProvider() === "firstParty",
+        isGithubNativeAnthropicMode: (resolvedModel?: string) =>
+            Boolean(process.env.CLAUDE_CODE_USE_GITHUB) &&
+            (resolvedModel ?? process.env.OPENAI_MODEL ?? "")
+                .toLowerCase()
+                .includes("claude-"),
+        getAPIProviderForStatsig: getMockAPIProvider,
+        isFirstPartyAnthropicBaseUrl: () => true,
+    }));
+    const nonce = `${Date.now()}-${Math.random()}`;
+    return import(
+        `./conversationRecovery.ts?conversationRecoveryTest=${nonce}`
+    );
 }
 
 function clearProviderEnv(): void {
-  for (const key of providerEnvKeys) {
-    delete process.env[key]
-  }
+    for (const key of providerEnvKeys) {
+        delete process.env[key];
+    }
 }
 
-test('loadConversationForResume accepts a small transcript from jsonl path', async () => {
-  process.env.CLAUDE_CODE_SIMPLE = '1'
-  const path = await writeJsonl(user(id(1), 'hello'))
-  const { loadConversationForResume } = await importFreshConversationRecovery()
+test(
+    "loadConversationForResume accepts a small transcript from jsonl path",
+    async () => {
+        process.env.CLAUDE_CODE_SIMPLE = "1";
+        const path = await writeJsonl(user(id(1), "hello"));
+        const { loadConversationForResume } =
+            await importFreshConversationRecovery();
 
-  const result = await loadConversationForResume('fixture', path)
-  expect(result).not.toBeNull()
-  expect(result?.sessionId).toBe(sessionId)
-  expect(result?.messages.length).toBeGreaterThan(0)
-}, TEST_TIMEOUT_MS)
+        const result = await loadConversationForResume("fixture", path);
+        expect(result).not.toBeNull();
+        expect(result?.sessionId).toBe(sessionId);
+        expect(result?.messages.length).toBeGreaterThan(0);
+    },
+    TEST_TIMEOUT_MS,
+);
 
-test('loadConversationForResume rejects oversized reconstructed transcripts', async () => {
-  process.env.CLAUDE_CODE_SIMPLE = '1'
-  const hugeContent = 'x'.repeat(8 * 1024 * 1024 + 32 * 1024)
-  const path = await writeJsonl(user(id(2), hugeContent))
-  const {
-    loadConversationForResume,
-    ResumeTranscriptTooLargeError,
-  } = await importFreshConversationRecovery()
+test(
+    "loadConversationForResume rejects oversized reconstructed transcripts",
+    async () => {
+        process.env.CLAUDE_CODE_SIMPLE = "1";
+        const hugeContent = "x".repeat(8 * 1024 * 1024 + 32 * 1024);
+        const path = await writeJsonl(user(id(2), hugeContent));
+        const { loadConversationForResume, ResumeTranscriptTooLargeError } =
+            await importFreshConversationRecovery();
 
-  let caught: unknown
-  try {
-    await loadConversationForResume('fixture', path)
-  } catch (error) {
-    caught = error
-  }
+        let caught: unknown;
+        try {
+            await loadConversationForResume("fixture", path);
+        } catch (error) {
+            caught = error;
+        }
 
-  expect(caught).toBeInstanceOf(ResumeTranscriptTooLargeError)
-  expect((caught as Error).message).toContain(
-    'Reconstructed transcript is too large to resume safely',
-  )
-}, TEST_TIMEOUT_MS)
+        expect(caught).toBeInstanceOf(ResumeTranscriptTooLargeError);
+        expect((caught as Error).message).toContain(
+            "Reconstructed transcript is too large to resume safely",
+        );
+    },
+    TEST_TIMEOUT_MS,
+);
 
-test('deserializeMessages preserves thinking blocks for GitHub native Claude transport', async () => {
-  clearProviderEnv()
-  process.env.CLAUDE_CODE_USE_GITHUB = '1'
-  process.env.OPENAI_MODEL = 'claude-sonnet-4-6'
-  const { deserializeMessages } = await importFreshConversationRecovery()
+test(
+    "deserializeMessages preserves thinking blocks for GitHub native Claude transport",
+    async () => {
+        clearProviderEnv();
+        process.env.CLAUDE_CODE_USE_GITHUB = "1";
+        process.env.OPENAI_MODEL = "claude-sonnet-4-6";
+        const { deserializeMessages } = await importFreshConversationRecovery();
 
-  const deserialized = deserializeMessages([
-    {
-      type: 'assistant',
-      message: {
-        role: 'assistant',
-        content: [
-          { type: 'thinking', thinking: 'need a plan' },
-          { type: 'text', text: 'working on it' },
-        ],
-      },
-    } as any,
-  ])
+        const deserialized = deserializeMessages([
+            {
+                type: "assistant",
+                message: {
+                    role: "assistant",
+                    content: [
+                        { type: "thinking", thinking: "need a plan" },
+                        { type: "text", text: "working on it" },
+                    ],
+                },
+            } as any,
+        ]);
 
-  const content = (deserialized[0] as any)?.message?.content as Array<{
-    type: string
-  }>
-  expect(content.some(block => block.type === 'thinking')).toBe(true)
-}, TEST_TIMEOUT_MS)
+        const content = (deserialized[0] as any)?.message?.content as Array<{
+            type: string;
+        }>;
+        expect(content.some((block) => block.type === "thinking")).toBe(true);
+    },
+    TEST_TIMEOUT_MS,
+);
+
+test("deserializeMessages preserves thinking blocks for DeepSeek 3P provider (#957)", async () => {
+    // Regression: DeepSeek requires `reasoning_content` echoed back on assistant
+    // messages in thinking mode. The shim reads the thinking block to populate
+    // that field — stripping it on resume left the shim with no source and the
+    // provider 400'd ("reasoning_content in the thinking mode must be passed
+    // back"). preserveReasoningContent: true (from runtimeMetadata's DeepSeek
+    // shim config inference) must opt the provider out of the 3P thinking strip.
+    clearProviderEnv();
+    process.env.CLAUDE_CODE_USE_OPENAI = "1";
+    process.env.OPENAI_BASE_URL = "https://api.deepseek.com/v1";
+    process.env.OPENAI_MODEL = "deepseek-v4-flash";
+    const { deserializeMessages } = await importFreshConversationRecovery();
+
+    const deserialized = deserializeMessages([
+        {
+            type: "assistant",
+            message: {
+                role: "assistant",
+                content: [
+                    { type: "thinking", thinking: "chain of thought" },
+                    { type: "text", text: "answer" },
+                ],
+            },
+        } as any,
+    ]);
+
+    const content = (deserialized[0] as any)?.message?.content as Array<{
+        type: string;
+    }>;
+    expect(content.some((block) => block.type === "thinking")).toBe(true);
+});
+
+test("deserializeMessages still strips thinking blocks for generic OpenAI 3P (no preserveReasoningContent)", async () => {
+    // Counter-test: providers that don't set preserveReasoningContent keep the
+    // original strip behaviour from #248 — thinking blocks were causing 400s
+    // there, and the fix for #957 must not regress that path.
+    clearProviderEnv();
+    process.env.CLAUDE_CODE_USE_OPENAI = "1";
+    process.env.OPENAI_BASE_URL = "https://api.openai.com/v1";
+    process.env.OPENAI_MODEL = "gpt-5-mini";
+    const { deserializeMessages } = await importFreshConversationRecovery();
+
+    const deserialized = deserializeMessages([
+        {
+            type: "assistant",
+            message: {
+                role: "assistant",
+                content: [
+                    { type: "thinking", thinking: "noise" },
+                    { type: "text", text: "answer" },
+                ],
+            },
+        } as any,
+    ]);
+
+    const content = (deserialized[0] as any)?.message?.content as Array<{
+        type: string;
+    }>;
+    expect(content.some((block) => block.type === "thinking")).toBe(false);
+});

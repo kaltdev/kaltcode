@@ -103,7 +103,7 @@ Close PowerShell, open a new one, and try again:
 kalt-code
 ```
 
-If PowerShell still says `openclaude` is not recognized, npm's global bin
+If PowerShell still says `kalt-code` is not recognized, npm's global bin
 folder may be missing from your user `Path`. Add it, then open a new
 PowerShell window:
 
