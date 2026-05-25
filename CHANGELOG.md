@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.15.0](https://github.com/kaltdev/kaltcode/compare/v0.14.0...v0.15.0) (2026-05-25)
+
+
+### Features
+
+* add /request-size context diagnostics ([f766c44](https://github.com/kaltdev/kaltcode/commit/f766c443d0cd4b22823fd38072fdd56d901ab4bd))
+* **safety:** warn at startup when 3P provider + permissive mode skip ([db481b6](https://github.com/kaltdev/kaltcode/commit/db481b688815674c7f554732d82fc8cc1e861859))
+* **xai:** add xAI/Grok OAuth provider (browser + device-code) ([e67628a](https://github.com/kaltdev/kaltcode/commit/e67628a074409104dc6c51b40b70cf037414a12d))
+
+
+### Bug Fixes
+
+* **bash:** preserve captured stdout in error message on non-zero exit ([6849f40](https://github.com/kaltdev/kaltcode/commit/6849f404fea3cb11489ca9a274f29212b9acb099))
+* **compact:** clear native tool results after time compaction ([5ddcf2f](https://github.com/kaltdev/kaltcode/commit/5ddcf2f2446248edfb3e0a511c3da51357d822c1))
+* harden XAA OAuth callback state handling ([537c1b7](https://github.com/kaltdev/kaltcode/commit/537c1b7ddc18ee0bf6a4d142279e74991ba83db8))
+* **json-schema:** support top-level non-object roots via wrap/unwrap ([3a4b23f](https://github.com/kaltdev/kaltcode/commit/3a4b23f272fe4cae9dfda9560360cd7d87e36d3e))
+* **recovery:** keep thinking blocks on resume for reasoning-echo ([83d402c](https://github.com/kaltdev/kaltcode/commit/83d402c32b7d561c5dea93def60d437bf170a27a))
+* register built-in agents in grpc server ([5d8c888](https://github.com/kaltdev/kaltcode/commit/5d8c888b8eb4eb111adc2a7411fbcd22b66ece21))
+* **retry:** adjust max_tokens on OpenRouter 402 credit shortfall ([903d57e](https://github.com/kaltdev/kaltcode/commit/903d57ec886e10242c58f3d0febb644e0e3844a4))
+
 ## [0.14.0](https://github.com/kaltdev/kaltcode/compare/v0.13.0...v0.14.0) (2026-05-21)
 
 
