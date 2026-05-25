@@ -29,9 +29,9 @@ import { getSecureStorage } from "../../utils/secureStorage/index.js";
 import { getInitialSettings } from "../../utils/settings/settings.js";
 import { jsonParse } from "../../utils/slowOperations.js";
 import {
-  shouldCompleteXaaIdpCallback,
-  validateXaaIdpCallbackParams,
-} from './xaaIdpCallback.js'
+    shouldCompleteXaaIdpCallback,
+    validateXaaIdpCallbackParams,
+} from "./xaaIdpCallback.js";
 import { buildRedirectUri, findAvailablePort } from "./oauthPort.js";
 
 export function isXaaEnabled(): boolean {
@@ -342,37 +342,38 @@ function waitForCallback(
                 return;
             }
             const result = validateXaaIdpCallbackParams(
-                   {
-                     code: parsed.query.code,
-                     state: parsed.query.state,
-                     error: parsed.query.error,
-                     error_description: parsed.query.error_description,
-                   },
-                   expectedState,
-                 )
+                {
+                    code: parsed.query.code,
+                    state: parsed.query.state,
+                    error: parsed.query.error,
+                    error_description: parsed.query.error_description,
+                },
+                expectedState,
+            );
 
-                 if (!shouldCompleteXaaIdpCallback(result)) {
+            if (!shouldCompleteXaaIdpCallback(result)) {
                 res.writeHead(400, { "Content-Type": "text/html" });
-                res.end('<html><body><h3>State mismatch</h3></body></html>')
+                res.end("<html><body><h3>State mismatch</h3></body></html>");
                 return;
             }
 
-            if (result.type === 'error') {
-                   const safeErr = xss(result.error)
-                   const safeDesc = result.errorDescription
-                     ? xss(result.errorDescription)
-                     : ''
+            if (result.type === "error") {
+                const safeErr = xss(result.error);
+                const safeDesc = result.errorDescription
+                    ? xss(result.errorDescription)
+                    : "";
                 res.writeHead(400, { "Content-Type": "text/html" });
                 res.end(
-                        `<html><body><h3>IdP login failed</h3><p>${safeErr}</p><p>${safeDesc}</p></body></html>`,
-                      )
-                      rejectOnce(
-                        new Error(
-                          `XAA IdP: ${result.error}${
-                            result.errorDescription ? ` — ${result.errorDescription}` : ''
-                          }`,
-                        ),
-                      )
+                    `<html><body><h3>IdP login failed</h3><p>${safeErr}</p><p>${safeDesc}</p></body></html>`,
+                );
+                rejectOnce(
+                    new Error(
+                        `XAA IdP: ${result.error}${
+                            result.errorDescription
+                                ? ` — ${result.errorDescription}`
+                                : ""
+                        }`,
+                    ),
                 );
                 return;
             }
@@ -388,7 +389,7 @@ function waitForCallback(
             res.end(
                 "<html><body><h3>IdP login complete — you can close this window.</h3></body></html>",
             );
-    resolveOnce(result.code);
+            resolveOnce(result.code);
         });
 
         server.on("error", (err: NodeJS.ErrnoException) => {

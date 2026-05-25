@@ -14,6 +14,7 @@ const originalEnv = {
     OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
     OPENAI_BASE_URL: process.env.OPENAI_BASE_URL,
     OPENAI_API_BASE: process.env.OPENAI_API_BASE,
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     OPENAI_MODEL: process.env.OPENAI_MODEL,
     CLAUDE_CODE_USE_OPENAI: process.env.CLAUDE_CODE_USE_OPENAI,
     CLAUDE_CODE_USE_GEMINI: process.env.CLAUDE_CODE_USE_GEMINI,
@@ -48,6 +49,7 @@ function restoreEnvValue(key: keyof typeof originalEnv): void {
 function clearProviderEnv(): void {
     delete process.env.OPENAI_BASE_URL;
     delete process.env.OPENAI_API_BASE;
+    delete process.env.OPENAI_API_KEY;
     delete process.env.OPENAI_MODEL;
     delete process.env.CLAUDE_CODE_USE_OPENAI;
     delete process.env.CLAUDE_CODE_USE_GEMINI;
@@ -78,6 +80,7 @@ afterEach(() => {
             restoreEnvValue("OPENROUTER_API_KEY");
             restoreEnvValue("OPENAI_BASE_URL");
             restoreEnvValue("OPENAI_API_BASE");
+            restoreEnvValue("OPENAI_API_KEY");
             restoreEnvValue("OPENAI_MODEL");
             restoreEnvValue("CLAUDE_CODE_USE_OPENAI");
             restoreEnvValue("CLAUDE_CODE_USE_GEMINI");
