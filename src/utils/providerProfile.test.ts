@@ -13,6 +13,10 @@ import { test as bunTest } from "bun:test";
 
 import { DEFAULT_CODEX_BASE_URL } from "../services/api/providerConfig.js";
 import {
+    acquireSharedMutationLock,
+    releaseSharedMutationLock,
+} from "../test/sharedMutationLock.js";
+import {
     getGlobalConfig,
     saveGlobalConfig,
     type ProviderProfile as ConfigProviderProfile,
@@ -575,26 +579,31 @@ test("xai OAuth profile still honors an explicit XAI_API_KEY override", async ()
 // leaving a stale startup file that hit the missing-cred warning on
 // every non-interactive launch after logout.
 test("persists xAI OAuth profile with marker so logout cleanup can clear it", async () => {
-    const tempDir = mkdtempSync(join(tmpdir(), "kaltcode-provider-"));
-    const configDir = mkdtempSync(join(tmpdir(), "kaltcode-provider-config-"));
+    await acquireSharedMutationLock("utils/providerProfile.test.ts:xai-oauth");
+    let tempDir = "";
+    let configDir = "";
+    const previousCwd = process.cwd();
     const previousClaudeConfigDir = process.env.CLAUDE_CONFIG_DIR;
     const previousKaltCodeConfigDir = process.env.KALTCODE_CONFIG_DIR;
     const previousConfig = getGlobalConfig();
     const previousProviderProfiles = previousConfig.providerProfiles;
     const previousActiveProviderProfileId =
         previousConfig.activeProviderProfileId;
-    process.chdir(tempDir);
-    process.env.CLAUDE_CONFIG_DIR = configDir;
-    process.env.KALTCODE_CONFIG_DIR = configDir;
 
     try {
+        tempDir = mkdtempSync(join(tmpdir(), "kaltcode-provider-"));
+        configDir = mkdtempSync(join(tmpdir(), "kaltcode-provider-config-"));
+        process.chdir(tempDir);
+        process.env.CLAUDE_CONFIG_DIR = configDir;
+        process.env.KALTCODE_CONFIG_DIR = configDir;
+
         const nonce = `${Date.now()}-${Math.random()}`;
         await import(`../integrations/index.js?ts=${nonce}`);
         const { setActiveProviderProfile } = await import(
             `./providerProfiles.js?ts=${nonce}`
         );
         const { clearPersistedXaiOAuthProfile, isPersistedXaiOAuthProfile } =
-            await import("./providerProfile.js");
+            await import(`./providerProfile.js?ts=${nonce}`);
 
         const xaiOAuthProfile: ConfigProviderProfile = {
             id: "xai_oauth_prof",
@@ -629,7 +638,7 @@ test("persists xAI OAuth profile with marker so logout cleanup can clear it", as
         assert.equal(removed, profilePath);
         assert.equal(existsSync(profilePath), false);
     } finally {
-        process.chdir(originalCwd);
+        process.chdir(previousCwd);
         if (previousClaudeConfigDir === undefined) {
             delete process.env.CLAUDE_CONFIG_DIR;
         } else {
@@ -645,8 +654,13 @@ test("persists xAI OAuth profile with marker so logout cleanup can clear it", as
             providerProfiles: previousProviderProfiles,
             activeProviderProfileId: previousActiveProviderProfileId,
         }));
-        rmSync(tempDir, { recursive: true, force: true });
-        rmSync(configDir, { recursive: true, force: true });
+        if (tempDir) {
+            rmSync(tempDir, { recursive: true, force: true });
+        }
+        if (configDir) {
+            rmSync(configDir, { recursive: true, force: true });
+        }
+        releaseSharedMutationLock();
     }
 });
 test("xai non-OAuth profile (legacy api-key flow) still accepts OPENAI_API_KEY fallback", async () => {
