@@ -82,14 +82,14 @@ describe("retry configuration", () => {
         expect(getDefaultMaxRetries()).toBe(10);
     });
 
-    test("reads retry attempts from OPENCLAUDE_MAX_RETRIES", async () => {
-        process.env.OPENCLAUDE_MAX_RETRIES = "4";
+    test("reads retry attempts from KALTCODE_MAX_RETRIES", async () => {
+        process.env.KALTCODE_MAX_RETRIES = "4";
         const { getDefaultMaxRetries } = await importFreshWithRetryModule();
         expect(getDefaultMaxRetries()).toBe(4);
     });
 
     test("allows zero retry attempts", async () => {
-        process.env.OPENCLAUDE_MAX_RETRIES = "0";
+        process.env.KALTCODE_MAX_RETRIES = "0";
         const { getDefaultMaxRetries } = await importFreshWithRetryModule();
         expect(getDefaultMaxRetries()).toBe(0);
     });
@@ -100,21 +100,21 @@ describe("retry configuration", () => {
         expect(getDefaultMaxRetries()).toBe(0);
     });
 
-    test("prefers OPENCLAUDE_MAX_RETRIES over legacy CLAUDE_CODE_MAX_RETRIES", async () => {
-        process.env.OPENCLAUDE_MAX_RETRIES = "3";
+    test("prefers KALTCODE_MAX_RETRIES over legacy CLAUDE_CODE_MAX_RETRIES", async () => {
+        process.env.KALTCODE_MAX_RETRIES = "3";
         process.env.CLAUDE_CODE_MAX_RETRIES = "0";
         const { getDefaultMaxRetries } = await importFreshWithRetryModule();
         expect(getDefaultMaxRetries()).toBe(3);
     });
 
     test("falls back to default retry attempts for invalid values", async () => {
-        process.env.OPENCLAUDE_MAX_RETRIES = "nope";
+        process.env.KALTCODE_MAX_RETRIES = "nope";
         const { getDefaultMaxRetries } = await importFreshWithRetryModule();
         expect(getDefaultMaxRetries()).toBe(10);
     });
 
     test("caps retry attempts to a bounded value", async () => {
-        process.env.OPENCLAUDE_MAX_RETRIES = "1000";
+        process.env.KALTCODE_MAX_RETRIES = "1000";
         const { getDefaultMaxRetries } = await importFreshWithRetryModule();
         expect(getDefaultMaxRetries()).toBe(100);
     });
