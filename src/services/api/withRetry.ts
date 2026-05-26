@@ -1,3 +1,4 @@
+import { feature } from "bun:bundle";
 import type Anthropic from "@anthropic-ai/sdk";
 import {
     APIConnectionError,
@@ -24,6 +25,7 @@ import {
     isEnterpriseSubscriber,
 } from "../../utils/auth.js";
 import { isEnvTruthy } from "../../utils/envUtils.js";
+import { validateBoundedIntEnvVar } from "../../utils/envValidation.js";
 import { errorMessage } from "../../utils/errors.js";
 import {
     type CooldownReason,
@@ -52,9 +54,12 @@ import { extractConnectionErrorDetails } from "./errorUtils.js";
 const abortError = () => new APIUserAbortError();
 
 const DEFAULT_MAX_RETRIES = 10;
+const MAX_CONFIGURABLE_RETRIES = 100;
 const FLOOR_OUTPUT_TOKENS = 3000;
 const MAX_529_RETRIES = 3;
-export const BASE_DELAY_MS = 500;
+export const DEFAULT_RETRY_DELAY_MS = 500;
+export const BASE_DELAY_MS = DEFAULT_RETRY_DELAY_MS;
+const MAX_RETRY_DELAY_BASE_MS = 60_000;
 
 // Foreground query sources where the user IS blocking on the result — these
 // retry on 529. Everything else (summaries, titles, suggestions, classifiers)
@@ -80,7 +85,7 @@ const FOREGROUND_529_RETRY_SOURCES = new Set<QuerySource>([
     // type-only). bash_classifier is internal-only; feature-gate so the string
     // tree-shakes out of external builds (excluded-strings.txt).
     "auto_mode",
-    ...(false ? (["bash_classifier"] as const) : []),
+    ...(feature("BASH_CLASSIFIER") ? (["bash_classifier"] as const) : []),
 ]);
 
 function shouldRetry529(querySource: QuerySource | undefined): boolean {
@@ -91,7 +96,7 @@ function shouldRetry529(querySource: QuerySource | undefined): boolean {
     );
 }
 
-// KALT_CODE_UNATTENDED_RETRY: for unattended sessions (internal-only). Retries 429/529
+// CLAUDE_CODE_UNATTENDED_RETRY: for unattended sessions (internal-only). Retries 429/529
 // indefinitely with higher backoff and periodic keep-alive yields so the host
 // environment does not mark the session idle mid-wait.
 // TODO(ANT-344): the keep-alive via SystemAPIErrorMessage yields is a stopgap
@@ -101,7 +106,9 @@ const PERSISTENT_RESET_CAP_MS = 6 * 60 * 60 * 1000;
 const HEARTBEAT_INTERVAL_MS = 30_000;
 
 function isPersistentRetryEnabled(): boolean {
-    return false ? isEnvTruthy(process.env.KALT_CODE_UNATTENDED_RETRY) : false;
+    return feature("UNATTENDED_RETRY")
+        ? isEnvTruthy(process.env.CLAUDE_CODE_UNATTENDED_RETRY)
+        : false;
 }
 
 function isQuotaExhausted(error: any): boolean {
@@ -356,7 +363,7 @@ export async function* withRetry<T>(
             if (
                 is529Error(error) &&
                 // If FALLBACK_FOR_ALL_PRIMARY_MODELS is not set, fall through only if the primary model is a non-custom Opus model.
-                // TODO: Revisit if the isNonCustomOpusModel check should still exist, or if isNonCustomOpusModel is a stale artifact of when Kalt Code was hardcoded on Opus.
+                // TODO: Revisit if the isNonCustomOpusModel check should still exist, or if isNonCustomOpusModel is a stale artifact of when Claude Code was hardcoded on Opus.
                 (process.env.FALLBACK_FOR_ALL_PRIMARY_MODELS ||
                     (!isClaudeAISubscriber() &&
                         isNonCustomOpusModel(options.model)))
@@ -608,8 +615,9 @@ export function getRetryDelay(
         }
     }
 
+    const baseDelayMs = getDefaultRetryDelayMs();
     const baseDelay = Math.min(
-        BASE_DELAY_MS * Math.pow(2, attempt - 1),
+        baseDelayMs * Math.pow(2, attempt - 1),
         maxDelayMs,
     );
     const jitter = Math.random() * 0.25 * baseDelay;
@@ -732,7 +740,7 @@ function isOAuthTokenRevokedError(error: unknown): boolean {
 }
 
 function isBedrockAuthError(error: unknown): boolean {
-    if (isEnvTruthy(process.env.KALT_CODE_USE_BEDROCK)) {
+    if (isEnvTruthy(process.env.CLAUDE_CODE_USE_BEDROCK)) {
         // AWS libs reject without an API call if .aws holds a past Expiration value
         // otherwise, API calls that receive expired tokens give generic 403
         // "The security token included in the request is invalid"
@@ -771,7 +779,7 @@ function isGoogleAuthLibraryCredentialError(error: unknown): boolean {
 }
 
 function isVertexAuthError(error: unknown): boolean {
-    if (isEnvTruthy(process.env.KALT_CODE_USE_VERTEX)) {
+    if (isEnvTruthy(process.env.CLAUDE_CODE_USE_VERTEX)) {
         // SDK-level: google-auth-library fails in prepareOptions() before the HTTP call
         if (isGoogleAuthLibraryCredentialError(error)) {
             return true;
@@ -813,7 +821,7 @@ function shouldRetry(error: APIError): boolean {
     // credentials. Bypass x-should-retry:false — the server assumes we'd retry
     // the same bad key, but our key is fine.
     if (
-        isEnvTruthy(process.env.KALT_CODE_REMOTE) &&
+        isEnvTruthy(process.env.CLAUDE_CODE_REMOTE) &&
         (error.status === 401 || error.status === 403)
     ) {
         return true;
@@ -897,13 +905,61 @@ function shouldRetry(error: APIError): boolean {
 }
 
 export function getDefaultMaxRetries(): number {
-    if (process.env.KALT_CODE_MAX_RETRIES) {
-        return parseInt(process.env.KALT_CODE_MAX_RETRIES, 10);
+    const kaltCodeMaxRetries = process.env.KALTCODE_MAX_RETRIES;
+    if (kaltCodeMaxRetries) {
+        return validateRetryAttemptsEnvVar(
+            "KALTCODE_MAX_RETRIES",
+            kaltCodeMaxRetries,
+        );
     }
+
+    const legacyMaxRetries = process.env.CLAUDE_CODE_MAX_RETRIES;
+    if (legacyMaxRetries) {
+        logForDebugging(
+            "CLAUDE_CODE_MAX_RETRIES is deprecated; use KALTCODE_MAX_RETRIES instead",
+        );
+        return validateRetryAttemptsEnvVar(
+            "CLAUDE_CODE_MAX_RETRIES",
+            legacyMaxRetries,
+        );
+    }
+
     return DEFAULT_MAX_RETRIES;
+}
+
+export function getDefaultRetryDelayMs(): number {
+    return validateBoundedIntEnvVar(
+        "KALTCODE_RETRY_DELAY_MS",
+        process.env.KALTCODE_RETRY_DELAY_MS,
+        DEFAULT_RETRY_DELAY_MS,
+        MAX_RETRY_DELAY_BASE_MS,
+    ).effective;
 }
 function getMaxRetries(options: RetryOptions): number {
     return options.maxRetries ?? getDefaultMaxRetries();
+}
+
+function validateRetryAttemptsEnvVar(
+    envVarName: string,
+    value: string | undefined,
+): number {
+    if (!value) {
+        return DEFAULT_MAX_RETRIES;
+    }
+    const parsed = parseInt(value, 10);
+    if (isNaN(parsed) || parsed < 0) {
+        logForDebugging(
+            `${envVarName} Invalid value "${value}" (using default: ${DEFAULT_MAX_RETRIES})`,
+        );
+        return DEFAULT_MAX_RETRIES;
+    }
+    if (parsed > MAX_CONFIGURABLE_RETRIES) {
+        logForDebugging(
+            `${envVarName} Capped from ${parsed} to ${MAX_CONFIGURABLE_RETRIES}`,
+        );
+        return MAX_CONFIGURABLE_RETRIES;
+    }
+    return parsed;
 }
 
 const DEFAULT_FAST_MODE_FALLBACK_HOLD_MS = 30 * 60 * 1000; // 30 minutes
