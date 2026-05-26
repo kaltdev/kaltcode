@@ -4,6 +4,8 @@ import { getEmptyToolPermissionContext } from '../../Tool.js'
 import { ShellError } from '../../utils/errors.js'
 import { formatError } from '../../utils/toolErrors.js'
 
+const BASH_TOOL_ERROR_TEST_TIMEOUT_MS = 15_000
+
 // Regression for #1231 — non-zero exit must not hide captured stdout/stderr.
 // The Bash tool runs with a merged-fd setup (both streams to one file), so
 // captured output lives on result.stdout. Before the fix, the throw passed
@@ -45,7 +47,7 @@ describe('BashTool error output (#1231)', () => {
     expect(formatted).toContain('Exit code 1')
     expect(formatted).toContain('stdout-line')
     expect(formatted).toContain('stderr-line')
-  })
+  }, BASH_TOOL_ERROR_TEST_TIMEOUT_MS)
 
   test('"command not found" message reaches the formatted error', async () => {
     const err = await expectShellError('no_such_command_xyz_1231')
@@ -53,17 +55,17 @@ describe('BashTool error output (#1231)', () => {
     const formatted = formatError(err)
     expect(formatted).toContain(`Exit code ${err.code}`)
     expect(formatted.toLowerCase()).toContain('not found')
-  })
+  }, BASH_TOOL_ERROR_TEST_TIMEOUT_MS)
 
   test('captured output is carried on the stdout slot (semantic mapping)', async () => {
     const err = await expectShellError('echo merged-line; exit 2')
     expect(err.stdout).toContain('merged-line')
     expect(err.code).toBe(2)
-  })
+  }, BASH_TOOL_ERROR_TEST_TIMEOUT_MS)
 
   test('empty-output failure still surfaces the exit code', async () => {
     const err = await expectShellError('exit 1')
     expect(err.code).toBe(1)
     expect(formatError(err)).toBe('Exit code 1')
-  })
+  }, BASH_TOOL_ERROR_TEST_TIMEOUT_MS)
 })

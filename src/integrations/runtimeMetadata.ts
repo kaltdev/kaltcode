@@ -260,7 +260,14 @@ function findModelDescriptorForApiName(
     if (!trimmedModel) {
         return null;
     }
-    const normalizedModel = trimmedModel.toLowerCase();
+    const modelNameCandidates = [trimmedModel];
+    const slashIndex = trimmedModel.indexOf("/");
+    if (slashIndex !== -1 && slashIndex < trimmedModel.length - 1) {
+        modelNameCandidates.push(trimmedModel.slice(slashIndex + 1));
+    }
+    const normalizedModelNameCandidates = modelNameCandidates.map((value) =>
+        value.toLowerCase(),
+    );
 
     ensureIntegrationsLoaded();
     const models = getAllModels()
@@ -286,14 +293,26 @@ function findModelDescriptorForApiName(
         });
 
     for (const candidate of models) {
-        if (candidate.names.some((name) => trimmedModel === name.trim())) {
+        if (
+            candidate.names.some((name) => {
+                const trimmedName = name.trim();
+                return modelNameCandidates.some(
+                    (candidateName) => candidateName === trimmedName,
+                );
+            })
+        ) {
             return candidate.model;
         }
     }
 
     for (const candidate of models) {
         if (
-            candidate.names.some((name) => trimmedModel.startsWith(name.trim()))
+            candidate.names.some((name) => {
+                const trimmedName = name.trim();
+                return modelNameCandidates.some((candidateName) =>
+                    candidateName.startsWith(trimmedName),
+                );
+            })
         ) {
             return candidate.model;
         }
@@ -303,9 +322,10 @@ function findModelDescriptorForApiName(
         if (
             candidate.names.some((name) => {
                 const normalizedName = name.trim().toLowerCase();
-                return (
-                    normalizedModel === normalizedName ||
-                    normalizedModel.startsWith(normalizedName)
+                return normalizedModelNameCandidates.some(
+                    (normalizedModel) =>
+                        normalizedModel === normalizedName ||
+                        normalizedModel.startsWith(normalizedName),
                 );
             })
         ) {

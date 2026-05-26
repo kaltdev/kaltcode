@@ -10,12 +10,18 @@ describe("kaltcode launcher heap guard", () => {
 
         expect(source).toContain("--max-old-space-size=");
         expect(source).toContain("--expose-gc");
-        expect(source).toContain("spawnSync(process.execPath");
-        expect(
-            source.indexOf("relaunchWithLongSessionHeapIfNeeded()"),
-        ).toBeLessThan(
-            source.indexOf("await import(pathToFileURL(distPath).href)"),
+        expect(source).toMatch(/spawnSync\s*\(\s*process\.execPath/);
+
+        const relaunchCall = source.indexOf(
+            "relaunchWithLongSessionHeapIfNeeded();",
         );
+        const cliImport = source.indexOf(
+            "await import(pathToFileURL(distPath).href)",
+        );
+
+        expect(relaunchCall).toBeGreaterThan(-1);
+        expect(cliImport).toBeGreaterThan(-1);
+        expect(relaunchCall).toBeLessThan(cliImport);
     });
 
     test("keeps user and troubleshooting escape hatches", () => {
@@ -24,6 +30,8 @@ describe("kaltcode launcher heap guard", () => {
         expect(source).toContain("KALTCODE_DISABLE_HEAP_RELAUNCH");
         expect(source).toContain("KALTCODE_NODE_MAX_OLD_SPACE_SIZE_MB");
         expect(source).toContain("process.env.NODE_OPTIONS");
-        expect(source).toContain("hasNodeOptionFlag('--max-old-space-size')");
+        expect(source).toMatch(
+            /hasNodeOptionFlag\(\s*['"]--max-old-space-size['"]\s*\)/,
+        );
     });
 });

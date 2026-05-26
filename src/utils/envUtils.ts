@@ -186,10 +186,16 @@ export function resolveClaudeConfigHomeDir(
   return resolveKaltCodeConfigHomeDir(options)
 }
 
+let claudeConfigHomeDirForTesting: string | undefined
+
 // Memoized: 150+ callers, many on hot paths. Keyed off config env vars so
 // tests that change them get a fresh value without explicit cache.clear.
 export const getClaudeConfigHomeDir = memoize(
   (): string => {
+    if (claudeConfigHomeDirForTesting) {
+      return claudeConfigHomeDirForTesting
+    }
+
     const configDirEnv = process.env[KALTCODE_CONFIG_DIR_ENV]
     const legacyConfigDirEnv = process.env[LEGACY_CLAUDE_CONFIG_DIR_ENV]
     const migrationSucceeded =
@@ -204,10 +210,19 @@ export const getClaudeConfigHomeDir = memoize(
     })
   },
   () =>
-    `${process.env[KALTCODE_CONFIG_DIR_ENV] ?? ''}\0${
+    `${claudeConfigHomeDirForTesting ?? ''}\0${
+      process.env[KALTCODE_CONFIG_DIR_ENV] ?? ''
+    }\0${
       process.env[LEGACY_CLAUDE_CONFIG_DIR_ENV] ?? ''
     }`,
 )
+
+export function setClaudeConfigHomeDirForTesting(
+  dir: string | undefined,
+): void {
+  claudeConfigHomeDirForTesting = dir?.normalize('NFC')
+  getClaudeConfigHomeDir.cache.clear?.()
+}
 
 export function getTeamsDir(): string {
   return join(getClaudeConfigHomeDir(), 'teams')

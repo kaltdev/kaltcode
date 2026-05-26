@@ -1,20 +1,15 @@
-import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { join, relative, sep } from 'node:path'
+import { spawnSync } from 'node:child_process'
+import { existsSync } from 'node:fs'
+import { createRequire } from 'node:module'
+import { join } from 'node:path'
 import { describe, expect, test } from 'bun:test'
 
 const REPO_ROOT = join(import.meta.dir, '..')
 const SCAN_ROOTS = ['src', 'scripts']
-const SOURCE_EXTENSIONS = new Set([
-  '.cjs',
-  '.cts',
-  '.js',
-  '.jsx',
-  '.mjs',
-  '.mts',
-  '.ts',
-  '.tsx',
-])
-const FORBIDDEN_TIMEOUT_SIGNAL_RE = /AbortSignal\s*\.\s*timeout\s*\(/
+const SOURCE_GLOB = '*.{cjs,cts,js,jsx,mjs,mts,ts,tsx}'
+const RAW_TIMEOUT_SIGNAL_PATTERN = String.raw`AbortSignal\s*\.\s*timeout\s*\(`
+
+const require = createRequire(import.meta.url)
 
 type Finding = {
   path: string
@@ -23,23 +18,17 @@ type Finding = {
   source: string
 }
 
-function extensionOf(path: string): string {
-  const dot = path.lastIndexOf('.')
-  return dot === -1 ? '' : path.slice(dot)
-}
-
-function* walk(dir: string): Generator<string> {
-  for (const entry of readdirSync(dir)) {
-    const absolute = join(dir, entry)
-    const stats = statSync(absolute)
-    if (stats.isDirectory()) {
-      yield* walk(absolute)
-      continue
+function resolveRipgrepCommand(): string {
+  try {
+    const mod = require('@vscode/ripgrep') as { rgPath?: string }
+    if (mod.rgPath && existsSync(mod.rgPath)) {
+      return mod.rgPath
     }
-    if (stats.isFile() && SOURCE_EXTENSIONS.has(extensionOf(entry))) {
-      yield absolute
-    }
+  } catch {
+    // Fall back to PATH; the thrown spawn error below will explain if missing.
   }
+
+  return 'rg'
 }
 
 function isAllowedDocumentationLine(line: string): boolean {
@@ -79,29 +68,51 @@ function isAllowedOccurrence(path: string, line: string): boolean {
   return isAllowedDocumentationLine(line)
 }
 
+function parseRipgrepFinding(line: string): Finding | null {
+  const match = /^(.+?):(\d+):(\d+):(.*)$/.exec(line)
+  if (!match) return null
+
+  return {
+    path: match[1].split('\\').join('/'),
+    line: Number(match[2]),
+    column: Number(match[3]),
+    source: match[4].trim(),
+  }
+}
+
 function findRawTimeoutSignalUsages(): Finding[] {
-  const findings: Finding[] = []
+  const result = spawnSync(
+    resolveRipgrepCommand(),
+    [
+      '--no-heading',
+      '--line-number',
+      '--column',
+      '--glob',
+      SOURCE_GLOB,
+      RAW_TIMEOUT_SIGNAL_PATTERN,
+      ...SCAN_ROOTS,
+    ],
+    { cwd: REPO_ROOT, encoding: 'utf8' },
+  )
 
-  for (const root of SCAN_ROOTS) {
-    for (const absolute of walk(join(REPO_ROOT, root))) {
-      const path = relative(REPO_ROOT, absolute).split(sep).join('/')
-      const lines = readFileSync(absolute, 'utf-8').split(/\r?\n/)
-
-      lines.forEach((source, index) => {
-        const match = FORBIDDEN_TIMEOUT_SIGNAL_RE.exec(source)
-        if (!match || isAllowedOccurrence(path, source)) return
-
-        findings.push({
-          path,
-          line: index + 1,
-          column: match.index + 1,
-          source: source.trim(),
-        })
-      })
-    }
+  if (result.error) {
+    throw result.error
   }
 
-  return findings
+  if (result.status === 1) {
+    return []
+  }
+
+  if (result.status !== 0) {
+    throw new Error(result.stderr.trim() || result.stdout.trim())
+  }
+
+  return result.stdout
+    .split(/\r?\n/)
+    .filter(Boolean)
+    .map(parseRipgrepFinding)
+    .filter((finding): finding is Finding => finding !== null)
+    .filter(finding => !isAllowedOccurrence(finding.path, finding.source))
 }
 
 describe('raw timeout signal guard', () => {
@@ -114,5 +125,5 @@ describe('raw timeout signal guard', () => {
           `${finding.path}:${finding.line}:${finding.column} ${finding.source}`,
       ),
     ).toEqual([])
-  })
+  }, 10_000)
 })

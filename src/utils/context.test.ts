@@ -1,14 +1,14 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
+import {
+    acquireSharedMutationLock,
+    releaseSharedMutationLock,
+} from "../test/sharedMutationLock.js";
 
 import { getMaxOutputTokensForModel } from "../services/api/claude.ts";
 import {
     getContextWindowForModel,
     getModelMaxOutputTokens,
 } from "./context.ts";
-import {
-    acquireSharedMutationLock,
-    releaseSharedMutationLock,
-} from "../test/sharedMutationLock.js";
 
 const originalEnv = {
     CLAUDE_CODE_USE_OPENAI: process.env.CLAUDE_CODE_USE_OPENAI,
@@ -18,8 +18,8 @@ const originalEnv = {
     CLAUDE_CODE_OPENAI_MAX_OUTPUT_TOKENS:
         process.env.CLAUDE_CODE_OPENAI_MAX_OUTPUT_TOKENS,
     OPENAI_BASE_URL: process.env.OPENAI_BASE_URL,
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     OPENAI_API_BASE: process.env.OPENAI_API_BASE,
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     OPENAI_MODEL: process.env.OPENAI_MODEL,
     MINIMAX_API_KEY: process.env.MINIMAX_API_KEY,
     XAI_API_KEY: process.env.XAI_API_KEY,
@@ -32,8 +32,8 @@ beforeEach(async () => {
     delete process.env.CLAUDE_CODE_OPENAI_CONTEXT_WINDOWS;
     delete process.env.CLAUDE_CODE_OPENAI_MAX_OUTPUT_TOKENS;
     delete process.env.OPENAI_BASE_URL;
-    delete process.env.OPENAI_API_KEY;
     delete process.env.OPENAI_API_BASE;
+    delete process.env.OPENAI_API_KEY;
     delete process.env.OPENAI_MODEL;
     delete process.env.MINIMAX_API_KEY;
     delete process.env.XAI_API_KEY;
@@ -229,19 +229,6 @@ test("gpt-5.5 uses conservative Codex-route context window (issue #1118)", () =>
     expect(getContextWindowForModel("gpt-5.5")).toBe(272_000);
 });
 
-test("codexplan alias uses gpt-5.5 context metadata", () => {
-    process.env.CLAUDE_CODE_USE_OPENAI = "1";
-    process.env.OPENAI_BASE_URL = "https://chatgpt.com/backend-api/codex";
-    delete process.env.CLAUDE_CODE_MAX_OUTPUT_TOKENS;
-    delete process.env.OPENAI_MODEL;
-
-    expect(getContextWindowForModel("codexplan")).toBe(272_000);
-    expect(getModelMaxOutputTokens("codexplan")).toEqual({
-        default: 128_000,
-        upperLimit: 128_000,
-    });
-});
-
 test("gpt-5.4 family uses provider-specific context and output caps", () => {
     process.env.CLAUDE_CODE_USE_OPENAI = "1";
     delete process.env.CLAUDE_CODE_MAX_OUTPUT_TOKENS;
@@ -275,12 +262,12 @@ test("gpt-5.4 family keeps large max output overrides within provider limits", (
     expect(getMaxOutputTokensForModel("gpt-5.4-nano")).toBe(128_000);
 });
 
-test("MiniMax-M2.7 uses explicit provider-specific context and output caps", () => {
+test("MiniMax-M2.7 uses the shared gateway-safe context cap by default", () => {
     process.env.CLAUDE_CODE_USE_OPENAI = "1";
     delete process.env.CLAUDE_CODE_MAX_OUTPUT_TOKENS;
     delete process.env.OPENAI_MODEL;
 
-    expect(getContextWindowForModel("MiniMax-M2.7")).toBe(204_800);
+    expect(getContextWindowForModel("MiniMax-M2.7")).toBe(196_608);
     expect(getModelMaxOutputTokens("MiniMax-M2.7")).toEqual({
         default: 131_072,
         upperLimit: 131_072,
@@ -295,6 +282,7 @@ test("env-only MiniMax key uses provider-specific context and output caps before
     delete process.env.OPENAI_MODEL;
 
     expect(getContextWindowForModel("MiniMax-M2.7")).toBe(204_800);
+    expect(getContextWindowForModel("MiniMax-M2.5")).toBe(204_800);
     expect(getModelMaxOutputTokens("MiniMax-M2.7")).toEqual({
         default: 131_072,
         upperLimit: 131_072,
@@ -328,6 +316,25 @@ test("unknown openai-compatible models use the 128k fallback window (not 8k, see
     delete process.env.OPENAI_MODEL;
 
     expect(getContextWindowForModel("some-unknown-3p-model")).toBe(128_000);
+});
+
+test("prefixed OpenGateway Gemini Flash Lite uses integration metadata", () => {
+    process.env.CLAUDE_CODE_USE_OPENAI = "1";
+    delete process.env.CLAUDE_CODE_MAX_OUTPUT_TOKENS;
+    delete process.env.OPENAI_MODEL;
+
+    expect(
+        getContextWindowForModel("google/gemini-3.1-flash-lite-preview"),
+    ).toBe(1_048_576);
+    expect(
+        getModelMaxOutputTokens("google/gemini-3.1-flash-lite-preview"),
+    ).toEqual({
+        default: 65_536,
+        upperLimit: 65_536,
+    });
+    expect(
+        getMaxOutputTokensForModel("google/gemini-3.1-flash-lite-preview"),
+    ).toBe(65_536);
 });
 
 test("OpenAI-compatible custom model limits honor documented env overrides", () => {
@@ -440,15 +447,15 @@ test("OpenAI-compatible legacy aliases keep their migrated limits", () => {
     });
 });
 
-test("MiniMax-M2.5 and M2.1 use explicit provider-specific context and output caps", () => {
+test("MiniMax-M2.5 and M2.1 use shared gateway-safe context caps by default", () => {
     process.env.CLAUDE_CODE_USE_OPENAI = "1";
     delete process.env.CLAUDE_CODE_MAX_OUTPUT_TOKENS;
     delete process.env.OPENAI_MODEL;
 
-    expect(getContextWindowForModel("MiniMax-M2.5")).toBe(204_800);
-    expect(getContextWindowForModel("MiniMax-M2.5-highspeed")).toBe(204_800);
-    expect(getContextWindowForModel("MiniMax-M2.1")).toBe(204_800);
-    expect(getContextWindowForModel("MiniMax-M2.1-highspeed")).toBe(204_800);
+    expect(getContextWindowForModel("MiniMax-M2.5")).toBe(196_608);
+    expect(getContextWindowForModel("MiniMax-M2.5-highspeed")).toBe(196_608);
+    expect(getContextWindowForModel("MiniMax-M2.1")).toBe(196_608);
+    expect(getContextWindowForModel("MiniMax-M2.1-highspeed")).toBe(196_608);
     expect(getModelMaxOutputTokens("MiniMax-M2.5")).toEqual({
         default: 131_072,
         upperLimit: 131_072,

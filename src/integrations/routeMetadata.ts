@@ -267,12 +267,34 @@ export function getMiniMaxBaseUrlOverride(
         return openAIBaseUrl;
     }
 
+    const anthropicBaseUrl = processEnv.ANTHROPIC_BASE_URL?.trim();
+    if (isMiniMaxBaseUrl(anthropicBaseUrl)) {
+        return anthropicBaseUrl;
+    }
+
     const openAIApiBase = processEnv.OPENAI_API_BASE?.trim();
     if (isMiniMaxBaseUrl(openAIApiBase)) {
         return openAIApiBase;
     }
 
     return undefined;
+}
+
+function isMiniMaxModelName(value: string | undefined): boolean {
+    const normalized = value?.trim().toLowerCase();
+    return Boolean(
+        normalized &&
+        (normalized.startsWith("minimax-") ||
+            normalized.startsWith("minimax/")),
+    );
+}
+
+function hasMiniMaxRouteIntent(processEnv: NodeJS.ProcessEnv): boolean {
+    return (
+        getMiniMaxBaseUrlOverride(processEnv) !== undefined ||
+        isMiniMaxModelName(processEnv.OPENAI_MODEL) ||
+        isMiniMaxModelName(processEnv.ANTHROPIC_MODEL)
+    );
 }
 
 export function getXaiBaseUrlOverride(
@@ -332,12 +354,19 @@ export function hasXaiEnvOnlyProviderIntent(
 export function hasMiniMaxEnvOnlyProviderIntent(
     processEnv: NodeJS.ProcessEnv = process.env,
 ): boolean {
+    const hasExplicitMiniMaxIntent = hasMiniMaxRouteIntent(processEnv);
+    const hasMiniMaxCredential =
+        hasNonEmptyEnvValue(processEnv.MINIMAX_API_KEY) ||
+        (isMiniMaxBaseUrl(processEnv.ANTHROPIC_BASE_URL) &&
+            hasNonEmptyEnvValue(processEnv.ANTHROPIC_API_KEY));
+
     return (
-        hasNonEmptyEnvValue(processEnv.MINIMAX_API_KEY) &&
-        !hasNonEmptyEnvValue(processEnv.OPENAI_API_KEY) &&
-        !hasNonEmptyEnvValue(processEnv.XAI_API_KEY) &&
+        hasMiniMaxCredential &&
         !hasConflictingOpenAIBaseUrlForRoute(processEnv, isMiniMaxBaseUrl) &&
-        hasNoExplicitNonOpenAICompatibleProvider(processEnv)
+        (hasExplicitMiniMaxIntent ||
+            (!hasNonEmptyEnvValue(processEnv.OPENAI_API_KEY) &&
+                !hasNonEmptyEnvValue(processEnv.XAI_API_KEY) &&
+                hasNoExplicitNonOpenAICompatibleProvider(processEnv)))
     );
 }
 
@@ -371,6 +400,13 @@ export function hasXiaomiMimoEnvOnlyProviderIntent(
 export function resolveEnvOnlyProviderRouteId(
     processEnv: NodeJS.ProcessEnv = process.env,
 ): "xai" | "minimax" | "venice" | "xiaomi-mimo" | null {
+    if (
+        hasMiniMaxRouteIntent(processEnv) &&
+        hasMiniMaxEnvOnlyProviderIntent(processEnv)
+    ) {
+        return "minimax";
+    }
+
     if (hasXaiEnvOnlyProviderIntent(processEnv)) {
         return "xai";
     }
@@ -585,6 +621,8 @@ export function resolveActiveRouteIdFromEnv(
     if (isEnvTruthy(processEnv.CLAUDE_CODE_USE_VERTEX)) {
         return "vertex";
     }
+    const envOnlyRouteId = resolveEnvOnlyProviderRouteId(processEnv);
+    if (envOnlyRouteId) return envOnlyRouteId;
 
     if (isEnvTruthy(processEnv.CLAUDE_CODE_USE_OPENAI)) {
         const baseUrl =
@@ -620,9 +658,6 @@ export function resolveActiveRouteIdFromEnv(
 
         return "custom";
     }
-
-    const envOnlyRouteId = resolveEnvOnlyProviderRouteId(processEnv);
-    if (envOnlyRouteId) return envOnlyRouteId;
 
     return "anthropic";
 }
