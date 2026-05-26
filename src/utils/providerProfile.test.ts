@@ -599,31 +599,30 @@ test("persists xAI OAuth profile with marker so logout cleanup can clear it", as
 
         const nonce = `${Date.now()}-${Math.random()}`;
         await import(`../integrations/index.js?ts=${nonce}`);
-        const { setActiveProviderProfile } = await import(
+        const { addProviderProfile, setActiveProviderProfile } = await import(
             `./providerProfiles.js?ts=${nonce}`
         );
         const { clearPersistedXaiOAuthProfile, isPersistedXaiOAuthProfile } =
             await import(`./providerProfile.js?ts=${nonce}`);
 
-        const xaiOAuthProfile: ConfigProviderProfile = {
-            id: "xai_oauth_prof",
+        const xaiOAuthProfile = {
             name: "xAI OAuth",
             provider: "xai",
             baseUrl: "https://api.x.ai/v1",
             model: "grok-4.3",
             apiKey: "",
-        };
+        } satisfies Omit<ConfigProviderProfile, "id">;
 
-        saveGlobalConfig((current) => ({
-            ...current,
-            providerProfiles: [xaiOAuthProfile],
-        }));
+        const createdProfile = addProviderProfile(xaiOAuthProfile, {
+            makeActive: false,
+        });
 
-        const result = setActiveProviderProfile("xai_oauth_prof");
+        assert.ok(createdProfile);
+        const result = setActiveProviderProfile(createdProfile.id);
         const profilePath = join(configDir, ".kaltcode-profile.json");
         const persisted = JSON.parse(readFileSync(profilePath, "utf8"));
 
-        assert.equal(result?.id, "xai_oauth_prof");
+        assert.equal(result?.id, createdProfile.id);
         assert.equal(persisted.profile, "xai");
         assert.equal(persisted.env.XAI_CREDENTIAL_SOURCE, "oauth");
         assert.equal(persisted.env.OPENAI_BASE_URL, "https://api.x.ai/v1");
