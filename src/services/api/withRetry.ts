@@ -928,9 +928,32 @@ export function getDefaultMaxRetries(): number {
 }
 
 export function getDefaultRetryDelayMs(): number {
+    const kaltCodeRetryDelayMs = process.env.KALTCODE_RETRY_DELAY_MS;
+    if (kaltCodeRetryDelayMs) {
+        return validateBoundedIntEnvVar(
+            "KALTCODE_RETRY_DELAY_MS",
+            kaltCodeRetryDelayMs,
+            DEFAULT_RETRY_DELAY_MS,
+            MAX_RETRY_DELAY_BASE_MS,
+        ).effective;
+    }
+
+    const legacyRetryDelayMs = process.env.OPENCLAUDE_RETRY_DELAY_MS;
+    if (legacyRetryDelayMs) {
+        logForDebugging(
+            "OPENCLAUDE_RETRY_DELAY_MS is deprecated; use KALTCODE_RETRY_DELAY_MS instead",
+        );
+        return validateBoundedIntEnvVar(
+            "OPENCLAUDE_RETRY_DELAY_MS",
+            legacyRetryDelayMs,
+            DEFAULT_RETRY_DELAY_MS,
+            MAX_RETRY_DELAY_BASE_MS,
+        ).effective;
+    }
+
     return validateBoundedIntEnvVar(
         "KALTCODE_RETRY_DELAY_MS",
-        process.env.KALTCODE_RETRY_DELAY_MS,
+        undefined,
         DEFAULT_RETRY_DELAY_MS,
         MAX_RETRY_DELAY_BASE_MS,
     ).effective;

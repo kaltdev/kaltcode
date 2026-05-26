@@ -30,6 +30,7 @@ const envKeys = [
     "CLAUDE_CODE_MAX_RETRIES",
     "KALTCODE_MAX_RETRIES",
     "KALTCODE_RETRY_DELAY_MS",
+    "OPENCLAUDE_RETRY_DELAY_MS",
     "OPENAI_MODEL",
     "OPENAI_BASE_URL",
     "OPENAI_API_BASE",
@@ -124,8 +125,21 @@ describe("retry configuration", () => {
         expect(getDefaultRetryDelayMs()).toBe(500);
     });
 
+    test("reads retry delay from KALTCODE_RETRY_DELAY_MS", async () => {
+        process.env.KALTCODE_RETRY_DELAY_MS = "1500";
+        const { getDefaultRetryDelayMs } = await importFreshWithRetryModule();
+        expect(getDefaultRetryDelayMs()).toBe(1500);
+    });
+
     test("reads retry delay from OPENCLAUDE_RETRY_DELAY_MS", async () => {
         process.env.OPENCLAUDE_RETRY_DELAY_MS = "1500";
+        const { getDefaultRetryDelayMs } = await importFreshWithRetryModule();
+        expect(getDefaultRetryDelayMs()).toBe(1500);
+    });
+
+    test("prefers KALTCODE_RETRY_DELAY_MS over OPENCLAUDE_RETRY_DELAY_MS", async () => {
+        process.env.KALTCODE_RETRY_DELAY_MS = "1500";
+        process.env.OPENCLAUDE_RETRY_DELAY_MS = "2000";
         const { getDefaultRetryDelayMs } = await importFreshWithRetryModule();
         expect(getDefaultRetryDelayMs()).toBe(1500);
     });

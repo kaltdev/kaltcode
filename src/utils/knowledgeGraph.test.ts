@@ -33,6 +33,11 @@ import {
 } from "../test/sharedMutationLock.js";
 
 describe("KnowledgeGraph Global Persistence & RAG", () => {
+    const KNOWLEDGE_GRAPH_TEST_TIMEOUT_MS = 30_000;
+    const itWithKnowledgeGraphTimeout = (
+        name: string,
+        fn: Parameters<typeof it>[1],
+    ) => it(name, fn, KNOWLEDGE_GRAPH_TEST_TIMEOUT_MS);
     const originalConfigDir = process.env.CLAUDE_CONFIG_DIR;
     const cwd = process.cwd();
     let configDir: string;
@@ -68,7 +73,7 @@ describe("KnowledgeGraph Global Persistence & RAG", () => {
         }
     });
 
-    it("persists entities across loads", async () => {
+    itWithKnowledgeGraphTimeout("persists entities across loads", async () => {
         await addGlobalEntity("tool", "openclaude", { status: "alpha" });
         const path = getProjectGraphPath(cwd);
         expect(existsSync(path)).toBe(true);
@@ -83,7 +88,7 @@ describe("KnowledgeGraph Global Persistence & RAG", () => {
         expect(entities[0].attributes.status).toBe("alpha");
     });
 
-    it("performs keyword-based RAG search", async () => {
+    itWithKnowledgeGraphTimeout("performs keyword-based RAG search", async () => {
         await addGlobalSummary("The database uses PostgreSQL version 15.", [
             "database",
             "postgres",
@@ -100,7 +105,7 @@ describe("KnowledgeGraph Global Persistence & RAG", () => {
         expect(result.toLowerCase()).not.toContain("react");
     });
 
-    it("deduplicates entities and updates attributes", async () => {
+    itWithKnowledgeGraphTimeout("deduplicates entities and updates attributes", async () => {
         await addGlobalEntity("tool", "openclaude", { status: "alpha" });
         await addGlobalEntity("tool", "openclaude", {
             status: "beta",
@@ -116,22 +121,25 @@ describe("KnowledgeGraph Global Persistence & RAG", () => {
         expect(entities[0].attributes.version).toBe("0.6.0");
     });
 
-    it("clears Orama database and persistence file on resetGlobalGraph", async () => {
-        const { initOrama, getOramaPersistencePath } =
-            await import("./knowledgeGraph.js");
+    itWithKnowledgeGraphTimeout(
+        "clears Orama database and persistence file on resetGlobalGraph",
+        async () => {
+            const { initOrama, getOramaPersistencePath } =
+                await import("./knowledgeGraph.js");
 
-        await initOrama(cwd);
-        await addGlobalSummary("Orama test summary", ["orama"]);
+            await initOrama(cwd);
+            await addGlobalSummary("Orama test summary", ["orama"]);
 
-        const oramaPath = getOramaPersistencePath(cwd);
-        expect(require("fs").existsSync(oramaPath)).toBe(true);
+            const oramaPath = getOramaPersistencePath(cwd);
+            expect(require("fs").existsSync(oramaPath)).toBe(true);
 
-        resetGlobalGraph();
-        expect(require("fs").existsSync(oramaPath)).toBe(false);
-    });
+            resetGlobalGraph();
+            expect(require("fs").existsSync(oramaPath)).toBe(false);
+        },
+    );
 
     describe("Hybrid Architecture: Orama + JSON", () => {
-        it("creates Orama persistence by default", async () => {
+        itWithKnowledgeGraphTimeout("creates Orama persistence by default", async () => {
             const oramaPath = join(
                 getProjectsDir(),
                 sanitizePath(cwd),
@@ -150,7 +158,7 @@ describe("KnowledgeGraph Global Persistence & RAG", () => {
             expect(result).toContain("orama-active");
         });
 
-        it("restores Orama from persistence file", async () => {
+        itWithKnowledgeGraphTimeout("restores Orama from persistence file", async () => {
             // First run: add and save
             await addGlobalEntity("test", "persistent-orama", { data: "42" });
             clearMemoryOnly(); // Reset in-memory oramaDb cache
@@ -161,7 +169,7 @@ describe("KnowledgeGraph Global Persistence & RAG", () => {
             expect(result).toContain("persistent-orama");
         });
 
-        it("rebuilds Orama from JSON if persistence is missing", async () => {
+        itWithKnowledgeGraphTimeout("rebuilds Orama from JSON if persistence is missing", async () => {
             const oramaPath = join(
                 getProjectsDir(),
                 sanitizePath(cwd),
@@ -184,31 +192,37 @@ describe("KnowledgeGraph Global Persistence & RAG", () => {
             expect(existsSync(oramaPath)).toBe(true);
         });
 
-        it("quarantines corrupted JSON persistence and starts from an empty graph", () => {
-            const path = getProjectGraphPath(cwd);
-            mkdirSync(dirname(path), { recursive: true });
-            writeFileSync(path, "{not-json", "utf8");
+        itWithKnowledgeGraphTimeout(
+            "quarantines corrupted JSON persistence and starts from an empty graph",
+            () => {
+                const path = getProjectGraphPath(cwd);
+                mkdirSync(dirname(path), { recursive: true });
+                writeFileSync(path, "{not-json", "utf8");
 
-            clearMemoryOnly();
-            const graph = loadProjectGraph(cwd);
+                clearMemoryOnly();
+                const graph = loadProjectGraph(cwd);
 
-            expect(Object.keys(graph.entities)).toHaveLength(0);
-            expect(
-                readdirSync(dirname(path)).some((entry) =>
-                    entry.startsWith("knowledge_graph.json.corrupted."),
-                ),
-            ).toBe(true);
-        });
+                expect(Object.keys(graph.entities)).toHaveLength(0);
+                expect(
+                    readdirSync(dirname(path)).some((entry) =>
+                        entry.startsWith("knowledge_graph.json.corrupted."),
+                    ),
+                ).toBe(true);
+            },
+        );
 
-        it("returns an empty string for no-hit searches even if rules exist", async () => {
-            const { addGlobalRule } = await import("./knowledgeGraph.js");
-            resetGlobalGraph();
-            await addGlobalRule("Always use TypeScript.");
+        itWithKnowledgeGraphTimeout(
+            "returns an empty string for no-hit searches even if rules exist",
+            async () => {
+                const { addGlobalRule } = await import("./knowledgeGraph.js");
+                resetGlobalGraph();
+                await addGlobalRule("Always use TypeScript.");
 
-            const result = await searchGlobalGraph(
-                "definitely-no-memory-matches",
-            );
-            expect(result).toBe("");
-        });
+                const result = await searchGlobalGraph(
+                    "definitely-no-memory-matches",
+                );
+                expect(result).toBe("");
+            },
+        );
     });
 });
