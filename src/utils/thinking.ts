@@ -11,6 +11,7 @@ import { resolveAntModel } from './model/antModels.js'
 import { get3PModelCapabilityOverride } from './model/modelSupportOverrides.js'
 import { getAPIProvider } from './model/providers.js'
 import { getSettingsWithErrors } from './settings/settings.js'
+import { isEnvTruthy } from './envUtils.js
 
 export type ThinkingConfig =
   | { type: 'adaptive' }
@@ -143,6 +144,10 @@ export function modelSupportsThinking(model: string): boolean {
       return descriptorSupportsThinking
     }
   }
+  const routeId = resolveActiveRouteIdFromEnv(process.env)
+     if (routeId === 'ollama') {
+       return false
+     }
   // 3P (Bedrock/Vertex): only Opus 4+ and Sonnet 4+
   return canonical.includes('sonnet-4') || canonical.includes('opus-4')
 }
@@ -197,4 +202,15 @@ export function shouldEnableThinkingByDefault(): boolean {
 
   // Enable thinking by default unless explicitly disabled.
   return true
+}
+
+export function shouldUseThinkingForModel(
+  model: string,
+  thinkingConfig: ThinkingConfig,
+): boolean {
+  return (
+    thinkingConfig.type !== 'disabled' &&
+    !isEnvTruthy(process.env.CLAUDE_CODE_DISABLE_THINKING) &&
+    modelSupportsThinking(model)
+  )
 }
