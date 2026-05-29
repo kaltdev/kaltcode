@@ -3,14 +3,8 @@ import {
   releaseSharedMutationLock,
 } from '../../src/test/sharedMutationLock.js'
 
-beforeEach(async () => {
+beforeAll(async () => {
   await acquireSharedMutationLock("package-consumer-types.test.ts");
-});
-afterEach(() => {
-  try {
-  } finally {
-    releaseSharedMutationLock();
-  }
 });
 
 /**
@@ -24,7 +18,7 @@ afterEach(() => {
  * - Missing local imports for re-exported types
  * - Self-referential type wrappers
  */
-import { afterAll, describe, expect, test, beforeEach, afterEach } from 'bun:test'
+import { afterAll, describe, expect, test, beforeAll } from 'bun:test'
 import { execFileSync, execSync } from 'child_process'
 import { existsSync, mkdirSync, rmSync, writeFileSync, cpSync, readFileSync } from 'fs'
 import { join } from 'path'
@@ -132,12 +126,16 @@ function ensureBuildArtifacts(): void {
 }
 
 afterAll(() => {
-  for (const dir of tempDirs) {
-    try {
-      if (existsSync(dir)) rmSync(dir, { recursive: true, force: true })
-    } catch {
-      // Windows EBUSY — ignore, will be cleaned on next run or reboot
+  try {
+    for (const dir of tempDirs) {
+      try {
+        if (existsSync(dir)) rmSync(dir, { recursive: true, force: true })
+      } catch {
+        // Windows EBUSY — ignore, will be cleaned on next run or reboot
+      }
     }
+  } finally {
+    releaseSharedMutationLock();
   }
 })
 
