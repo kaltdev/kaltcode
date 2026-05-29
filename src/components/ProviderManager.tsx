@@ -110,6 +110,10 @@ type Screen =
     | "select-active"
     | "select-edit"
     | "select-delete";
+type CodexOAuthPersistenceResult = { warning?: string };
+type PersistCodexOAuthCredentials = (options?: {
+    profileId?: string;
+}) => CodexOAuthPersistenceResult | void;
 
 type DraftField =
     | "name"
@@ -237,7 +241,7 @@ function getPresetLabel(
     preset: ProviderPreset,
     label: string,
 ): React.ReactNode {
-    if (preset === "gitlawb-opengateway") {
+    if (preset === "kaltcode-opengateway") {
         return (
             <Text>
                 <Text>{label} </Text>
@@ -624,7 +628,7 @@ function CodexOAuthSetup({
             idToken?: string;
             apiKey?: string;
         },
-        persistCredentials: (options?: { profileId?: string }) => void,
+        persistCredentials: PersistCodexOAuthCredentials,
     ) => void | Promise<void>;
 }): React.ReactNode {
     const handleAuthenticated = React.useCallback(
@@ -636,7 +640,7 @@ function CodexOAuthSetup({
                 idToken?: string;
                 apiKey?: string;
             },
-            persistCredentials: (options?: { profileId?: string }) => void,
+            persistCredentials: PersistCodexOAuthCredentials,
         ) => {
             await onConfigured(tokens, persistCredentials);
         },
@@ -1145,17 +1149,21 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
         return clearStartupProviderOverrides();
     }
 
+    function formatWarningsForMessage(warnings: string[]): string {
+        const joined = warnings.join("; ");
+        return /[.!?]$/.test(joined.trim()) ? joined : `${joined}.`;
+    }
     function buildCodexOAuthActivationMessage(options: {
         prefix: string;
         activationWarning: string | null;
         warnings: string[];
     }): string {
         if (options.activationWarning) {
-            return `${options.prefix}. Saved for next startup. Warning: ${options.warnings.join("; ")}.`;
+            return `${options.prefix}. Saved for next startup. Warning: ${formatWarningsForMessage(options.warnings)}`;
         }
 
         if (options.warnings.length > 0) {
-            return `${options.prefix}. Kalt Code switched to it for this session with warnings: ${options.warnings.join("; ")}.`;
+            return `${options.prefix}. Kalt Code switched to it for this session with warnings: ${formatWarningsForMessage(options.warnings)}`;
         }
 
         return `${options.prefix}. Kalt Code switched to it for this session.`;
@@ -1931,7 +1939,7 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
 
         if (canUseCodexOAuth) {
             // Insert after DeepSeek so Codex OAuth keeps its established position
-            // in the picker even with Gitlawb Opengateway pinned at the top.
+            // in the picker even with KaltCode Opengateway pinned at the top.
             options.splice(7, 0, {
                 value: "codex-oauth",
                 label: (
@@ -2624,7 +2632,14 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
                             return;
                         }
 
-                        persistCredentials({ profileId: saved.id });
+                        const persistenceResult = persistCredentials({
+                            profileId: saved.id,
+                        });
+                        const storageWarning =
+                            persistenceResult &&
+                            typeof persistenceResult === "object"
+                                ? persistenceResult.warning
+                                : null;
                         const settingsOverrideError =
                             clearStartupProviderOverrideFromUserSettings();
                         const activationWarning =
@@ -2633,6 +2648,7 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
                         setStoredCodexOAuthProfileId(saved.id);
                         refreshProfiles();
                         const warnings = [
+                            storageWarning,
                             activationWarning,
                             settingsOverrideError
                                 ? `could not clear startup provider override (${settingsOverrideError})`
