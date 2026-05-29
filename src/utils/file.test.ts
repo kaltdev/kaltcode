@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
+import * as actualGrowthbook from '../services/analytics/growthbook.js'
 import {
   acquireSharedMutationLock,
   releaseSharedMutationLock,
@@ -8,6 +9,7 @@ async function importFileModuleWithKillswitchEnabled(
   killswitchEnabled: boolean,
 ) {
   mock.module('../services/analytics/growthbook.js', () => ({
+    ...actualGrowthbook,
     getFeatureValue_CACHED_MAY_BE_STALE: () => killswitchEnabled,
   }))
 

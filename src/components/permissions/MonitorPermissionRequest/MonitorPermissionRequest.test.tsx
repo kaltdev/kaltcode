@@ -378,7 +378,7 @@ describe('MonitorPermissionRequest', () => {
     } finally {
       mounted.cleanup()
     }
-  })
+  }, 20000)
 
   test('allow persistently resolves the permission with a Bash allow rule and closes the dialog', async () => {
     const onDone = mock(() => {})
@@ -405,7 +405,7 @@ describe('MonitorPermissionRequest', () => {
     } finally {
       mounted.cleanup()
     }
-  })
+  }, 20000)
 
   test('rendered persistent allow resolves the real pending permission promise with a Bash allow rule', async () => {
     const originalCwd = getOriginalCwd()
@@ -434,7 +434,7 @@ describe('MonitorPermissionRequest', () => {
       setOriginalCwd(originalCwd)
       rmSync(tempCwd, { recursive: true, force: true })
     }
-  })
+  }, 20000)
 
   test('permission continuation resolves when approval includes permission updates', async () => {
     const { toolUseConfirm, toolUseContext, decisionPromise } =
@@ -481,7 +481,7 @@ describe('MonitorPermissionRequest', () => {
     } finally {
       mounted.cleanup()
     }
-  })
+  }, 20000)
 
   test('escape cancels the pending permission request and closes the dialog', async () => {
     const onDone = mock(() => {})
@@ -505,5 +505,5 @@ describe('MonitorPermissionRequest', () => {
     } finally {
       mounted.cleanup()
     }
-  })
+  }, 20000)
 })

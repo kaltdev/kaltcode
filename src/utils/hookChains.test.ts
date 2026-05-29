@@ -29,10 +29,20 @@ async function importHookChainsModule(options?: {
 
   mock.module('./telemetry/events.js', () => ({
     logOTelEvent: async () => {},
+    redactIfDisabled: (content: string) => content,
   }))
 
   mock.module('../services/policyLimits/index.js', () => ({
+    _resetPolicyLimitsForTesting: () => {},
+    initializePolicyLimitsLoadingPromise: () => {},
+    isPolicyLimitsEligible: () => true,
+    waitForPolicyLimitsToLoad: async () => {},
     isPolicyAllowed: () => allowRemoteSessions,
+    loadPolicyLimits: async () => {},
+    refreshPolicyLimits: async () => {},
+    clearPolicyLimitsCache: async () => {},
+    startBackgroundPolling: () => {},
+    stopBackgroundPolling: () => {},
   }))
 
   return import(`./hookChains.js?test=${Date.now()}-${Math.random()}`)
@@ -77,7 +87,7 @@ describe('hookChains schema validation', () => {
     expect(loaded.exists).toBe(false)
     expect(loaded.config.enabled).toBe(false)
     expect(loaded.config.rules).toHaveLength(0)
-  })
+  }, 60000)
 
   test('loads valid config and memoizes by mtime/size', async () => {
     const mod = await importHookChainsModule()

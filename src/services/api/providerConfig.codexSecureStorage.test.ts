@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, mock, test, beforeEach } from 'bun:test'
+import { afterEach, describe, expect, mock, test, beforeEach, beforeAll } from 'bun:test'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -22,7 +22,14 @@ mock.module('node:os', () => ({
   homedir: () => mockHomedir(),
 }))
 
-import { resolveCodexApiCredentials } from './providerConfig.js'
+let resolveCodexApiCredentials: typeof import('./providerConfig.js').resolveCodexApiCredentials
+
+beforeAll(async () => {
+  const providerConfig = await import(
+    `./providerConfig.js?cacheBust=${Date.now()}-${Math.random()}`
+  )
+  resolveCodexApiCredentials = providerConfig.resolveCodexApiCredentials
+})
 
 beforeEach(async () => {
   await acquireSharedMutationLock("providerConfig.codexSecureStorage.test.ts");

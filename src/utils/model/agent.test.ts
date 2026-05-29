@@ -1,273 +1,631 @@
-import { describe, test, expect, beforeEach, afterEach, mock } from 'bun:test'
+import { describe, test, expect, beforeEach, afterEach, mock } from "bun:test";
 import {
-  acquireSharedMutationLock,
-  releaseSharedMutationLock,
-} from '../../test/sharedMutationLock.js'
+    acquireSharedMutationLock,
+    releaseSharedMutationLock,
+} from "../../test/sharedMutationLock.js";
 
-describe('getAgentModel provider-aware fallback', () => {
-  beforeEach(async () => {
-    await acquireSharedMutationLock('src/utils/model/agent.test.ts')
-  })
+const originalSubagentModel = process.env.CLAUDE_CODE_SUBAGENT_MODEL;
+const originalOpenAIModel = process.env.OPENAI_MODEL;
+const allowedModelsRef: { value?: string[] } = { value: undefined };
 
-  // Restore all mocks after each test
-  afterEach(() => {
-    try {
-      mock.restore()
-    } finally {
-      releaseSharedMutationLock()
-    }
-  })
+type MockProvider =
+    | "firstParty"
+    | "bedrock"
+    | "vertex"
+    | "foundry"
+    | "openai"
+    | "gemini"
+    | "mistral"
+    | "github"
+    | "nvidia-nim"
+    | "minimax"
+    | "codex";
 
-  describe('Claude-native providers', () => {
-    test('haiku alias resolves to haiku model for official Anthropic API', async () => {
-      // Mock providers to return firstParty with official URL
-      mock.module('./providers.js', () => ({
-        getAPIProvider: () => 'firstParty',
-        isFirstPartyAnthropicBaseUrl: () => true,
-      }))
+function mockProvider(
+    provider: MockProvider,
+    isFirstPartyAnthropicBaseUrl = false,
+): void {
+    mock.module("./providers.js", () => ({
+        getAPIProvider: () => provider,
+        getAPIProviderForStatsig: () => provider,
+        isFirstPartyAnthropicBaseUrl: () => isFirstPartyAnthropicBaseUrl,
+        isGithubNativeAnthropicMode: () => false,
+        usesAnthropicAccountFlow: () => provider === "firstParty",
+    }));
+}
 
-      // Import after mock is set up
-      const { getAgentModel } = await import('./agent.js')
-      const result = getAgentModel('haiku', 'claude-sonnet-4-6', undefined, 'default')
+function setAvailableModelsForTest(availableModels?: string[]): void {
+    allowedModelsRef.value = availableModels;
+}
 
-      // Should resolve haiku alias, not inherit parent
-      expect(result).toContain('haiku')
-      expect(result).not.toBe('claude-sonnet-4-6')
-    })
+// Keep resolver tests independent from process-global settings mocks in other
+// test files; modelAllowlist itself owns the detailed allowlist semantics.
+function mockModelAllowlist(): void {
+    mock.module("./modelAllowlist.js", () => ({
+        isModelAllowed: (model: string) => {
+            const availableModels = allowedModelsRef.value;
+            if (availableModels === undefined) return true;
+            if (availableModels.length === 0) return false;
 
-    test('haiku alias resolves for Bedrock provider', async () => {
-      mock.module('./providers.js', () => ({
-        getAPIProvider: () => 'bedrock',
-        isFirstPartyAnthropicBaseUrl: () => false,
-      }))
+            const normalizedModel = model.trim().toLowerCase();
+            return availableModels.some(
+                (availableModel) =>
+                    availableModel.trim().toLowerCase() === normalizedModel,
+            );
+        },
+    }));
+}
 
-      const { getAgentModel } = await import('./agent.js')
-      const result = getAgentModel('haiku', 'claude-sonnet-4-6', undefined, 'default')
+async function importAgentModule(): Promise<typeof import("./agent.js")> {
+    const stamp = `${Date.now()}-${Math.random()}`;
+    return import(`./agent.ts?agent-test=${stamp}`);
+}
 
-      // Should resolve haiku alias for Bedrock
-      expect(result).toContain('haiku')
-    })
+describe("getAgentModel provider-aware fallback", () => {
+    beforeEach(async () => {
+        await acquireSharedMutationLock("utils/model/agent.test.ts");
+        delete process.env.CLAUDE_CODE_SUBAGENT_MODEL;
+        setAvailableModelsForTest();
+        mockModelAllowlist();
+    });
 
-    test('haiku alias resolves for Vertex provider', async () => {
-      mock.module('./providers.js', () => ({
-        getAPIProvider: () => 'vertex',
-        isFirstPartyAnthropicBaseUrl: () => false,
-      }))
+    // Restore all mocks after each test
+    afterEach(() => {
+        try {
+            mock.restore();
+            setAvailableModelsForTest();
+            if (originalSubagentModel === undefined) {
+                delete process.env.CLAUDE_CODE_SUBAGENT_MODEL;
+            } else {
+                process.env.CLAUDE_CODE_SUBAGENT_MODEL = originalSubagentModel;
+            }
+            if (originalOpenAIModel === undefined) {
+                delete process.env.OPENAI_MODEL;
+            } else {
+                process.env.OPENAI_MODEL = originalOpenAIModel;
+            }
+        } finally {
+            releaseSharedMutationLock();
+        }
+    });
 
-      const { getAgentModel } = await import('./agent.js')
-      const result = getAgentModel('haiku', 'claude-sonnet-4-6', undefined, 'default')
+    describe("Claude-native providers", () => {
+        test("haiku alias resolves to haiku model for official Anthropic API", async () => {
+            // Mock providers to return firstParty with official URL
+            mockProvider("firstParty", true);
 
-      // Should resolve haiku alias for Vertex
-      expect(result).toContain('haiku')
-    })
+            // Import after mock is set up
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                "haiku",
+                "claude-sonnet-4-6",
+                undefined,
+                "default",
+            );
 
-    test('haiku alias resolves for Foundry provider', async () => {
-      mock.module('./providers.js', () => ({
-        getAPIProvider: () => 'foundry',
-        isFirstPartyAnthropicBaseUrl: () => false,
-      }))
+            // Should resolve haiku alias, not inherit parent
+            expect(result).toContain("haiku");
+            expect(result).not.toBe("claude-sonnet-4-6");
+        }, 20000);
 
-      const { getAgentModel } = await import('./agent.js')
-      const result = getAgentModel('haiku', 'claude-sonnet-4-6', undefined, 'default')
+        test("haiku alias resolves for Bedrock provider", async () => {
+            mockProvider("bedrock");
 
-      // Should resolve haiku alias for Foundry
-      expect(result).toContain('haiku')
-    })
-  })
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                "haiku",
+                "claude-sonnet-4-6",
+                undefined,
+                "default",
+            );
 
-  describe('Non-Claude-native providers', () => {
-    test('haiku alias inherits parent model for OpenAI provider', async () => {
-      mock.module('./providers.js', () => ({
-        getAPIProvider: () => 'openai',
-        isFirstPartyAnthropicBaseUrl: () => false,
-      }))
+            // Should resolve haiku alias for Bedrock
+            expect(result).toContain("haiku");
+        });
 
-      const { getAgentModel } = await import('./agent.js')
-      const result = getAgentModel('haiku', 'gpt-4o-mini', undefined, 'default')
+        test("haiku alias resolves for Vertex provider", async () => {
+            mockProvider("vertex");
 
-      // Should inherit parent model for OpenAI (no haiku concept)
-      expect(result).toBe('gpt-4o-mini')
-    })
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                "haiku",
+                "claude-sonnet-4-6",
+                undefined,
+                "default",
+            );
 
-    test('haiku alias inherits parent model for Gemini provider', async () => {
-      mock.module('./providers.js', () => ({
-        getAPIProvider: () => 'gemini',
-        isFirstPartyAnthropicBaseUrl: () => false,
-      }))
+            // Should resolve haiku alias for Vertex
+            expect(result).toContain("haiku");
+        });
 
-      const { getAgentModel } = await import('./agent.js')
-      const result = getAgentModel('haiku', 'gemini-2.5-pro', undefined, 'default')
+        test("haiku alias resolves for Foundry provider", async () => {
+            mockProvider("foundry");
 
-      // Should inherit parent model for Gemini
-      expect(result).toBe('gemini-2.5-pro')
-    })
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                "haiku",
+                "claude-sonnet-4-6",
+                undefined,
+                "default",
+            );
 
-    test('haiku alias inherits parent model for custom Anthropic-compatible URL', async () => {
-      // firstParty provider but with custom URL (not official Anthropic)
-      mock.module('./providers.js', () => ({
-        getAPIProvider: () => 'firstParty',
-        isFirstPartyAnthropicBaseUrl: () => false,
-      }))
+            // Should resolve haiku alias for Foundry
+            expect(result).toContain("haiku");
+        });
+    });
 
-      const { getAgentModel } = await import('./agent.js')
-      const result = getAgentModel('haiku', 'claude-sonnet-4-6', undefined, 'default')
+    describe("Non-Claude-native providers", () => {
+        test("haiku alias inherits parent model for OpenAI provider", async () => {
+            mockProvider("openai");
 
-      // Should inherit parent for custom Anthropic-compatible URL
-      expect(result).toBe('claude-sonnet-4-6')
-    })
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                "haiku",
+                "gpt-4o-mini",
+                undefined,
+                "default",
+            );
 
-    test('sonnet alias inherits parent model for OpenAI provider', async () => {
-      mock.module('./providers.js', () => ({
-        getAPIProvider: () => 'openai',
-        isFirstPartyAnthropicBaseUrl: () => false,
-      }))
+            // Should inherit parent model for OpenAI (no haiku concept)
+            expect(result).toBe("gpt-4o-mini");
+        });
 
-      const { getAgentModel } = await import('./agent.js')
-      const result = getAgentModel('sonnet', 'gpt-4o-mini', undefined, 'default')
+        test("haiku alias inherits parent model for Gemini provider", async () => {
+            mockProvider("gemini");
 
-      // Should inherit parent model for OpenAI
-      expect(result).toBe('gpt-4o-mini')
-    })
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                "haiku",
+                "gemini-2.5-pro",
+                undefined,
+                "default",
+            );
 
-    test('haiku alias inherits parent model for Mistral provider', async () => {
-      mock.module('./providers.js', () => ({
-        getAPIProvider: () => 'mistral',
-        isFirstPartyAnthropicBaseUrl: () => false,
-      }))
+            // Should inherit parent model for Gemini
+            expect(result).toBe("gemini-2.5-pro");
+        });
 
-      const { getAgentModel } = await import('./agent.js')
-      const result = getAgentModel('haiku', 'mistral-small-latest', undefined, 'default')
+        test("haiku alias inherits parent model for custom Anthropic-compatible URL", async () => {
+            // firstParty provider but with custom URL (not official Anthropic)
+            mockProvider("firstParty");
 
-      // Should inherit parent model for Mistral (no haiku concept)
-      expect(result).toBe('mistral-small-latest')
-    })
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                "haiku",
+                "claude-sonnet-4-6",
+                undefined,
+                "default",
+            );
 
-    test('haiku alias inherits parent model for GitHub Copilot provider', async () => {
-      mock.module('./providers.js', () => ({
-        getAPIProvider: () => 'github',
-        isFirstPartyAnthropicBaseUrl: () => false,
-      }))
+            // Should inherit parent for custom Anthropic-compatible URL
+            expect(result).toBe("claude-sonnet-4-6");
+        });
 
-      const { getAgentModel } = await import('./agent.js')
-      const result = getAgentModel('haiku', 'gpt-4o-mini', undefined, 'default')
+        test("sonnet alias inherits parent model for OpenAI provider", async () => {
+            mockProvider("openai");
 
-      // Should inherit parent model for GitHub Copilot
-      expect(result).toBe('gpt-4o-mini')
-    })
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                "sonnet",
+                "gpt-4o-mini",
+                undefined,
+                "default",
+            );
 
-    test('haiku alias inherits parent model for NVIDIA NIM provider', async () => {
-      mock.module('./providers.js', () => ({
-        getAPIProvider: () => 'nvidia-nim',
-        isFirstPartyAnthropicBaseUrl: () => false,
-      }))
+            // Should inherit parent model for OpenAI
+            expect(result).toBe("gpt-4o-mini");
+        });
 
-      const { getAgentModel } = await import('./agent.js')
-      const result = getAgentModel('haiku', 'meta/llama-3.1-8b-instruct', undefined, 'default')
+        test("haiku alias inherits parent model for Mistral provider", async () => {
+            mockProvider("mistral");
 
-      // Should inherit parent model for NVIDIA NIM (no haiku concept)
-      expect(result).toBe('meta/llama-3.1-8b-instruct')
-    })
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                "haiku",
+                "mistral-small-latest",
+                undefined,
+                "default",
+            );
 
-    test('haiku alias inherits parent model for MiniMax provider', async () => {
-      mock.module('./providers.js', () => ({
-        getAPIProvider: () => 'minimax',
-        isFirstPartyAnthropicBaseUrl: () => false,
-      }))
+            // Should inherit parent model for Mistral (no haiku concept)
+            expect(result).toBe("mistral-small-latest");
+        });
 
-      const { getAgentModel } = await import('./agent.js')
-      const result = getAgentModel('haiku', 'MiniMax-M2.5-highspeed', undefined, 'default')
+        test("haiku alias inherits parent model for GitHub Copilot provider", async () => {
+            mockProvider("github");
 
-      // Should inherit parent model for MiniMax (no haiku concept)
-      expect(result).toBe('MiniMax-M2.5-highspeed')
-    })
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                "haiku",
+                "gpt-4o-mini",
+                undefined,
+                "default",
+            );
 
-    test('haiku alias inherits parent model for Codex provider', async () => {
-      mock.module('./providers.js', () => ({
-        getAPIProvider: () => 'codex',
-        isFirstPartyAnthropicBaseUrl: () => false,
-      }))
+            // Should inherit parent model for GitHub Copilot
+            expect(result).toBe("gpt-4o-mini");
+        });
 
-      const { getAgentModel } = await import('./agent.js')
-      const result = getAgentModel('haiku', 'gpt-5.5-mini', undefined, 'default')
+        test("haiku alias inherits parent model for NVIDIA NIM provider", async () => {
+            mockProvider("nvidia-nim");
 
-      // Should inherit parent model for Codex provider (no haiku concept)
-      expect(result).toBe('gpt-5.5-mini')
-    })
-  })
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                "haiku",
+                "meta/llama-3.1-8b-instruct",
+                undefined,
+                "default",
+            );
 
-  describe('inherit behavior unchanged', () => {
-    test('inherit always returns parent model regardless of provider', async () => {
-      mock.module('./providers.js', () => ({
-        getAPIProvider: () => 'openai',
-        isFirstPartyAnthropicBaseUrl: () => false,
-      }))
+            // Should inherit parent model for NVIDIA NIM (no haiku concept)
+            expect(result).toBe("meta/llama-3.1-8b-instruct");
+        });
 
-      const { getAgentModel } = await import('./agent.js')
-      const result = getAgentModel('inherit', 'gpt-4o', undefined, 'default')
+        test("haiku alias inherits parent model for MiniMax provider", async () => {
+            mockProvider("minimax");
 
-      expect(result).toBe('gpt-4o')
-    })
-  })
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                "haiku",
+                "MiniMax-M2.5-highspeed",
+                undefined,
+                "default",
+            );
 
-  describe('checkIsClaudeNativeProvider helper', () => {
-    test('returns true for official Anthropic API', async () => {
-      mock.module('./providers.js', () => ({
-        getAPIProvider: () => 'firstParty',
-        isFirstPartyAnthropicBaseUrl: () => true,
-      }))
+            // Should inherit parent model for MiniMax (no haiku concept)
+            expect(result).toBe("MiniMax-M2.5-highspeed");
+        });
 
-      const { checkIsClaudeNativeProvider } = await import('./agent.js')
-      expect(checkIsClaudeNativeProvider()).toBe(true)
-    })
+        test("haiku alias inherits parent model for Codex provider", async () => {
+            mockProvider("codex");
 
-    test('returns true for Bedrock provider', async () => {
-      mock.module('./providers.js', () => ({
-        getAPIProvider: () => 'bedrock',
-        isFirstPartyAnthropicBaseUrl: () => false,
-      }))
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                "haiku",
+                "gpt-5.5-mini",
+                undefined,
+                "default",
+            );
 
-      const { checkIsClaudeNativeProvider } = await import('./agent.js')
-      expect(checkIsClaudeNativeProvider()).toBe(true)
-    })
+            // Should inherit parent model for Codex provider (no haiku concept)
+            expect(result).toBe("gpt-5.5-mini");
+        });
+    });
 
-    test('returns true for Vertex provider', async () => {
-      mock.module('./providers.js', () => ({
-        getAPIProvider: () => 'vertex',
-        isFirstPartyAnthropicBaseUrl: () => false,
-      }))
+    describe("inherit behavior unchanged", () => {
+        test("inherit always returns parent model regardless of provider", async () => {
+            mockProvider("openai");
 
-      const { checkIsClaudeNativeProvider } = await import('./agent.js')
-      expect(checkIsClaudeNativeProvider()).toBe(true)
-    })
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                "inherit",
+                "gpt-4o",
+                undefined,
+                "default",
+            );
 
-    test('returns true for Foundry provider', async () => {
-      mock.module('./providers.js', () => ({
-        getAPIProvider: () => 'foundry',
-        isFirstPartyAnthropicBaseUrl: () => false,
-      }))
+            expect(result).toBe("gpt-4o");
+        });
 
-      const { checkIsClaudeNativeProvider } = await import('./agent.js')
-      expect(checkIsClaudeNativeProvider()).toBe(true)
-    })
+        test("tool-specified inherit returns the runtime parent model", async () => {
+            mockProvider("openai");
 
-    test('returns false for OpenAI provider', async () => {
-      mock.module('./providers.js', () => ({
-        getAPIProvider: () => 'openai',
-        isFirstPartyAnthropicBaseUrl: () => false,
-      }))
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                undefined,
+                "gpt-4o",
+                "inherit",
+                "default",
+            );
 
-      const { checkIsClaudeNativeProvider } = await import('./agent.js')
-      expect(checkIsClaudeNativeProvider()).toBe(false)
-    })
+            expect(result).toBe("gpt-4o");
+        });
 
-    test('returns false for custom Anthropic URL', async () => {
-      mock.module('./providers.js', () => ({
-        getAPIProvider: () => 'firstParty',
-        isFirstPartyAnthropicBaseUrl: () => false,
-      }))
+        test("tool-specified inherit is case-insensitive and trimmed", async () => {
+            mockProvider("openai");
 
-      const { checkIsClaudeNativeProvider } = await import('./agent.js')
-      expect(checkIsClaudeNativeProvider()).toBe(false)
-    })
-  })
-})
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                undefined,
+                "gpt-4o",
+                " InHerit ",
+                "default",
+            );
+
+            expect(result).toBe("gpt-4o");
+        });
+    });
+
+    describe("tool-specified model override", () => {
+        test("preserves custom provider model IDs unchanged", async () => {
+            mockProvider("openai");
+
+            const { getAgentModel } = await importAgentModule();
+            const customModels = [
+                "gpt-5.5",
+                "mimo-v2.5-pro",
+                "deepseek-v4-flash",
+                "deepseek/deepseek-v4-flash:nitro",
+                "qwen3-coder-next:cloud",
+                "custom_model-v1.2:fast",
+            ];
+
+            for (const customModel of customModels) {
+                expect(
+                    getAgentModel(
+                        undefined,
+                        "claude-sonnet-4-6",
+                        customModel,
+                        "default",
+                    ),
+                ).toBe(customModel);
+            }
+        });
+
+        test("trims custom provider model IDs before resolving", async () => {
+            mockProvider("openai");
+
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                undefined,
+                "claude-sonnet-4-6",
+                "  qwen3-coder-next:cloud  ",
+                "default",
+            );
+
+            expect(result).toBe("qwen3-coder-next:cloud");
+        });
+
+        test("preserves alias tier matching for tool-specified aliases", async () => {
+            mockProvider("firstParty", true);
+
+            const { getAgentModel } = await importAgentModule();
+
+            expect(
+                getAgentModel(
+                    undefined,
+                    "claude-sonnet-4-6",
+                    "sonnet",
+                    "default",
+                ),
+            ).toBe("claude-sonnet-4-6");
+            expect(
+                getAgentModel(undefined, "claude-opus-4-6", "opus", "default"),
+            ).toBe("claude-opus-4-6");
+            expect(
+                getAgentModel(
+                    undefined,
+                    "claude-3-5-haiku-20241022",
+                    "haiku",
+                    "default",
+                ),
+            ).toBe("claude-3-5-haiku-20241022");
+        });
+
+        test("keeps existing direct alias parsing for non-Claude providers", async () => {
+            mockProvider("openai");
+            delete process.env.OPENAI_MODEL;
+
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                undefined,
+                "gpt-4o",
+                "haiku",
+                "default",
+            );
+
+            expect(result).toBe("gpt-4o-mini");
+        });
+
+        test("CLAUDE_CODE_SUBAGENT_MODEL overrides tool-specified custom model", async () => {
+            mockProvider("openai");
+            process.env.CLAUDE_CODE_SUBAGENT_MODEL =
+                "deepseek/deepseek-v4-flash:nitro";
+
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                "haiku",
+                "claude-sonnet-4-6",
+                "gpt-5.5",
+                "default",
+            );
+
+            expect(result).toBe("deepseek/deepseek-v4-flash:nitro");
+        });
+
+        test("rejects tool-specified custom model IDs outside availableModels", async () => {
+            mockProvider("openai");
+            setAvailableModelsForTest(["gpt-4o"]);
+
+            const { getAgentModel } = await importAgentModule();
+
+            expect(() =>
+                getAgentModel(undefined, "gpt-4o", "gpt-5.5", "default"),
+            ).toThrow(
+                "Model 'gpt-5.5' is not available. Your organization restricts model selection.",
+            );
+        });
+
+        test("allows tool-specified custom model IDs inside availableModels", async () => {
+            mockProvider("openai");
+            setAvailableModelsForTest(["gpt-5.5"]);
+
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                undefined,
+                "gpt-4o",
+                "gpt-5.5",
+                "default",
+            );
+
+            expect(result).toBe("gpt-5.5");
+        });
+
+        test("allows tool-specified aliases when the alias is in availableModels", async () => {
+            mockProvider("openai");
+            delete process.env.OPENAI_MODEL;
+            setAvailableModelsForTest(["haiku"]);
+
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                undefined,
+                "gpt-4o",
+                "haiku",
+                "default",
+            );
+
+            expect(result).toBe("gpt-4o-mini");
+        });
+
+        test("does not let tier-matching aliases bypass availableModels", async () => {
+            mockProvider("firstParty", true);
+            setAvailableModelsForTest(["claude-3-5-haiku-20241022"]);
+
+            const { getAgentModel } = await importAgentModule();
+
+            expect(() =>
+                getAgentModel(
+                    undefined,
+                    "claude-sonnet-4-6",
+                    "sonnet",
+                    "default",
+                ),
+            ).toThrow(
+                "Model 'sonnet' is not available. Your organization restricts model selection.",
+            );
+        });
+
+        test("keeps tier-matching aliases when the effective parent model is allowed", async () => {
+            mockProvider("firstParty", true);
+            setAvailableModelsForTest(["claude-sonnet-4-6"]);
+
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                undefined,
+                "claude-sonnet-4-6",
+                "sonnet",
+                "default",
+            );
+
+            expect(result).toBe("claude-sonnet-4-6");
+        });
+
+        test("keeps tool-specified inherit independent of availableModels", async () => {
+            mockProvider("openai");
+            setAvailableModelsForTest([]);
+
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                undefined,
+                "gpt-4o",
+                "inherit",
+                "default",
+            );
+
+            expect(result).toBe("gpt-4o");
+        });
+
+        test("inherits Bedrock parent region prefix for non-prefixed Bedrock model IDs", async () => {
+            mockProvider("bedrock");
+
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                undefined,
+                "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+                "anthropic.claude-3-5-sonnet-20241022-v2:0",
+                "default",
+            );
+
+            expect(result).toBe("eu.anthropic.claude-3-5-sonnet-20241022-v2:0");
+        });
+
+        test("allows inherited Bedrock region prefixes when the requested model ID is allowed", async () => {
+            mockProvider("bedrock");
+            setAvailableModelsForTest([
+                "anthropic.claude-3-5-sonnet-20241022-v2:0",
+            ]);
+
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                undefined,
+                "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+                "anthropic.claude-3-5-sonnet-20241022-v2:0",
+                "default",
+            );
+
+            expect(result).toBe("eu.anthropic.claude-3-5-sonnet-20241022-v2:0");
+        });
+
+        test("preserves explicit Bedrock region prefix on tool-specified model IDs", async () => {
+            mockProvider("bedrock");
+
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                undefined,
+                "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+                "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+                "default",
+            );
+
+            expect(result).toBe("us.anthropic.claude-3-5-sonnet-20241022-v2:0");
+        });
+
+        test("does not apply Bedrock region prefixes to non-Bedrock custom IDs", async () => {
+            mockProvider("bedrock");
+
+            const { getAgentModel } = await importAgentModule();
+            const result = getAgentModel(
+                undefined,
+                "eu.anthropic.claude-sonnet-4-5-20250929-v1:0",
+                "deepseek/deepseek-v4-flash:nitro",
+                "default",
+            );
+
+            expect(result).toBe("deepseek/deepseek-v4-flash:nitro");
+        });
+    });
+
+    describe("checkIsClaudeNativeProvider helper", () => {
+        test("returns true for official Anthropic API", async () => {
+            mockProvider("firstParty", true);
+
+            const { checkIsClaudeNativeProvider } = await importAgentModule();
+            expect(checkIsClaudeNativeProvider()).toBe(true);
+        });
+
+        test("returns true for Bedrock provider", async () => {
+            mockProvider("bedrock");
+
+            const { checkIsClaudeNativeProvider } = await importAgentModule();
+            expect(checkIsClaudeNativeProvider()).toBe(true);
+        });
+
+        test("returns true for Vertex provider", async () => {
+            mockProvider("vertex");
+
+            const { checkIsClaudeNativeProvider } = await importAgentModule();
+            expect(checkIsClaudeNativeProvider()).toBe(true);
+        });
+
+        test("returns true for Foundry provider", async () => {
+            mockProvider("foundry");
+
+            const { checkIsClaudeNativeProvider } = await importAgentModule();
+            expect(checkIsClaudeNativeProvider()).toBe(true);
+        });
+
+        test("returns false for OpenAI provider", async () => {
+            mockProvider("openai");
+
+            const { checkIsClaudeNativeProvider } = await importAgentModule();
+            expect(checkIsClaudeNativeProvider()).toBe(false);
+        });
+
+        test("returns false for custom Anthropic URL", async () => {
+            mockProvider("firstParty");
+
+            const { checkIsClaudeNativeProvider } = await importAgentModule();
+            expect(checkIsClaudeNativeProvider()).toBe(false);
+        });
+    });
+});

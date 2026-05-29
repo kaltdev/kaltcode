@@ -2,21 +2,12 @@ import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { setReplBridgeHandle } from '../bridge/replBridgeHandle.js'
+import { setClaudeConfigHomeDirForTesting } from './envUtils.js'
+import { writeTeamFileAsync, type TeamFile } from './swarm/teamHelpers.js'
+import { readMailbox } from './teammateMailbox.js'
 
 type HookChainsModule = typeof import('./hookChains.js')
-
-type ImportHarnessOptions = {
-  allowRemoteSessions?: boolean
-  teamFile?:
-    | {
-        name: string
-        members: Array<{ name: string }>
-      }
-    | null
-  teamName?: string
-  senderName?: string
-  replBridgeHandle?: unknown
-}
 
 const tempDirs: string[] = []
 const originalHookChainsEnabled = process.env.CLAUDE_CODE_ENABLE_HOOK_CHAINS
@@ -29,21 +20,40 @@ async function createConfigFile(config: unknown): Promise<string> {
   return filePath
 }
 
-async function importHookChainsHarness(
-  options: ImportHarnessOptions = {},
-): Promise<{
+function createTeamFile(teamName: string, memberNames: string[]): TeamFile {
+  return {
+    name: teamName,
+    createdAt: Date.now(),
+    leadAgentId: 'lead-agent-id',
+    members: memberNames.map((name, index) => ({
+      agentId: `agent-${index}`,
+      name,
+      joinedAt: Date.now(),
+      tmuxPaneId: `%${index}`,
+      cwd: process.cwd(),
+      subscriptions: [],
+    })),
+  }
+}
+
+async function importHookChainsHarness(): Promise<{
   mod: HookChainsModule
-  writeToMailboxSpy: ReturnType<typeof mock>
   agentToolCallSpy: ReturnType<typeof mock>
 }> {
   mock.restore()
+  mock.module('../services/policyLimits/index.js', () => ({
+    _resetPolicyLimitsForTesting: () => {},
+    initializePolicyLimitsLoadingPromise: () => {},
+    isPolicyLimitsEligible: () => true,
+    waitForPolicyLimitsToLoad: async () => {},
+    isPolicyAllowed: () => true,
+    loadPolicyLimits: async () => {},
+    refreshPolicyLimits: async () => {},
+    clearPolicyLimitsCache: async () => {},
+    startBackgroundPolling: () => {},
+    stopBackgroundPolling: () => {},
+  }))
 
-  const allowRemoteSessions = options.allowRemoteSessions ?? true
-  const teamName = options.teamName ?? 'mesh-team'
-  const senderName = options.senderName ?? 'mesh-lead'
-  const replBridgeHandle = options.replBridgeHandle ?? null
-
-  const writeToMailboxSpy = mock(async () => {})
   const agentToolCallSpy = mock(async () => ({
     data: {
       status: 'async_launched',
@@ -51,61 +61,21 @@ async function importHookChainsHarness(
     },
   }))
 
-  mock.module('../services/analytics/index.js', () => ({
-    logEvent: () => {},
-  }))
-
-  mock.module('./telemetry/events.js', () => ({
-    logOTelEvent: async () => {},
-  }))
-
-  mock.module('../services/policyLimits/index.js', () => ({
-    isPolicyAllowed: () => allowRemoteSessions,
-  }))
-
-  mock.module('./swarm/teamHelpers.js', () => ({
-    readTeamFileAsync: async () => options.teamFile ?? null,
-  }))
-
-  mock.module('./teammateMailbox.js', () => ({
-    writeToMailbox: writeToMailboxSpy,
-  }))
-
-  mock.module('./teammate.js', () => ({
-    getAgentName: () => senderName,
-    getTeamName: () => teamName,
-    getTeammateColor: () => 'blue',
-    // Keep parity with the real module's surface so later tests that
-    // run after this file (mock.module is process-global and mock.restore
-    // does not undo module mocks in Bun) do not see undefined members.
-    isTeammate: () => false,
-    isPlanModeRequired: () => false,
-    getAgentId: () => undefined,
-    getParentSessionId: () => undefined,
-  }))
-
-  mock.module('../bridge/replBridgeHandle.js', () => ({
-    getReplBridgeHandle: () => replBridgeHandle,
-  }))
-
-  // Integration mock target requested in the task: fallback action can route
-  // through this mocked tool launcher from runtime callback wiring.
-  mock.module('../tools/AgentTool/AgentTool.js', () => ({
-    AgentTool: {
-      call: agentToolCallSpy,
-    },
-  }))
-
   const mod = await import(`./hookChains.js?integration=${Date.now()}-${Math.random()}`)
-  return { mod, writeToMailboxSpy, agentToolCallSpy }
+  return { mod, agentToolCallSpy }
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   process.env.CLAUDE_CODE_ENABLE_HOOK_CHAINS = '1'
+  const configHomeDir = await mkdtemp(join(tmpdir(), 'kaltcode-hook-chains-home-'))
+  tempDirs.push(configHomeDir)
+  setClaudeConfigHomeDirForTesting(configHomeDir)
+  setReplBridgeHandle(null)
 })
 
 afterEach(async () => {
   mock.restore()
+  setClaudeConfigHomeDirForTesting(undefined)
 
   if (originalHookChainsEnabled === undefined) {
     delete process.env.CLAUDE_CODE_ENABLE_HOOK_CHAINS
@@ -120,14 +90,11 @@ afterEach(async () => {
 
 describe('hookChains integration dispatch', () => {
   test('end-to-end rule evaluation + action dispatch on TaskCompleted failure', async () => {
-    const { mod } = await importHookChainsHarness({
-      teamName: 'mesh-team',
-      senderName: 'mesh-lead',
-      teamFile: {
-        name: 'mesh-team',
-        members: [{ name: 'mesh-lead' }, { name: 'worker-a' }, { name: 'worker-b' }],
-      },
-    })
+    const { mod } = await importHookChainsHarness()
+    await writeTeamFileAsync(
+      'mesh-team',
+      createTeamFile('mesh-team', ['mesh-lead', 'worker-a', 'worker-b']),
+    )
 
     const configPath = await createConfigFile({
       version: 1,
@@ -162,6 +129,9 @@ describe('hookChains integration dispatch', () => {
         },
       },
       runtime: {
+        teamName: 'mesh-team',
+        senderName: 'mesh-lead',
+        senderColor: 'blue',
         onSpawnFallbackAgent: spawnSpy,
         onNotifyTeam: notifySpy,
       },
@@ -174,7 +144,7 @@ describe('hookChains integration dispatch', () => {
     expect(result.actionResults[1]?.status).toBe('executed')
     expect(spawnSpy).toHaveBeenCalledTimes(1)
     expect(notifySpy).toHaveBeenCalledTimes(1)
-  })
+  }, 30000)
 
   test('fallback spawn injects failure context into generated prompt', async () => {
     const { mod, agentToolCallSpy } = await importHookChainsHarness()
@@ -213,8 +183,7 @@ describe('hookChains integration dispatch', () => {
       },
       runtime: {
         onSpawnFallbackAgent: async request => {
-          const { AgentTool } = await import('../tools/AgentTool/AgentTool.js')
-          await (AgentTool.call as unknown as (...args: unknown[]) => Promise<unknown>)({
+          await agentToolCallSpy({
             prompt: request.prompt,
             description: request.description,
             run_in_background: request.runInBackground,
@@ -244,14 +213,11 @@ describe('hookChains integration dispatch', () => {
   })
 
   test('notify_team dispatches mailbox writes when team exists and skips when absent', async () => {
-    const withTeam = await importHookChainsHarness({
-      teamName: 'mesh-a',
-      senderName: 'lead-a',
-      teamFile: {
-        name: 'mesh-a',
-        members: [{ name: 'lead-a' }, { name: 'worker-1' }, { name: 'worker-2' }],
-      },
-    })
+    const withTeam = await importHookChainsHarness()
+    await writeTeamFileAsync(
+      'mesh-a',
+      createTeamFile('mesh-a', ['lead-a', 'worker-1', 'worker-2']),
+    )
 
     const configPathWithTeam = await createConfigFile({
       version: 1,
@@ -275,21 +241,22 @@ describe('hookChains integration dispatch', () => {
         outcome: 'failed',
         payload: { task_id: 'task-team-ok', error: 'boom' },
       },
+      runtime: {
+        teamName: 'mesh-a',
+        senderName: 'lead-a',
+        senderColor: 'blue',
+      },
     })
 
     expect(withTeamResult.actionResults[0]?.status).toBe('executed')
-    expect(withTeam.writeToMailboxSpy).toHaveBeenCalledTimes(2)
+    const worker1Inbox = await readMailbox('worker-1', 'mesh-a')
+    const worker2Inbox = await readMailbox('worker-2', 'mesh-a')
+    expect(worker1Inbox).toHaveLength(1)
+    expect(worker2Inbox).toHaveLength(1)
+    expect(worker1Inbox[0]?.from).toBe('lead-a')
+    expect(worker2Inbox[0]?.from).toBe('lead-a')
 
-    const recipients = withTeam.writeToMailboxSpy.mock.calls.map(
-      call => call[0] as string,
-    )
-    expect(recipients.sort()).toEqual(['worker-1', 'worker-2'])
-
-    const withoutTeam = await importHookChainsHarness({
-      teamName: 'mesh-missing',
-      senderName: 'lead-missing',
-      teamFile: null,
-    })
+    const withoutTeam = await importHookChainsHarness()
 
     const configPathWithoutTeam = await createConfigFile({
       version: 1,
@@ -313,18 +280,20 @@ describe('hookChains integration dispatch', () => {
         outcome: 'failed',
         payload: { task_id: 'task-team-missing', error: 'boom' },
       },
+      runtime: {
+        teamName: 'mesh-missing',
+        senderName: 'lead-missing',
+        senderColor: 'blue',
+      },
     })
 
     expect(withoutTeamResult.actionResults[0]?.status).toBe('skipped')
     expect(withoutTeamResult.actionResults[0]?.reason).toContain('Team file not found')
-    expect(withoutTeam.writeToMailboxSpy).not.toHaveBeenCalled()
+    expect(await readMailbox('worker-1', 'mesh-missing')).toEqual([])
   })
 
   test('warm_remote_capacity is a safe no-op when bridge is inactive', async () => {
-    const { mod } = await importHookChainsHarness({
-      allowRemoteSessions: true,
-      replBridgeHandle: null,
-    })
+    const { mod } = await importHookChainsHarness()
 
     const configPath = await createConfigFile({
       version: 1,

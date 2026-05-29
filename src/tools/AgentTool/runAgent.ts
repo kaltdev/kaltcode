@@ -62,7 +62,6 @@ import { createUserMessage } from "../../utils/messages.js";
 import { getAgentModel } from "../../utils/model/agent.js";
 import { resolveAgentProvider } from "../../services/api/agentRouting.js";
 import { getInitialSettings } from "../../utils/settings/settings.js";
-import type { ModelAlias } from "../../utils/model/aliases.js";
 import {
     clearAgentTranscriptSubdir,
     recordSidechainTranscript,
@@ -286,7 +285,7 @@ export async function* runAgent({
         abortController?: AbortController;
         agentId?: AgentId;
     };
-    model?: ModelAlias;
+    model?: string;
     maxTurns?: number;
     /** Preserve toolUseResult on messages for subagents with viewable transcripts */
     preserveToolUseResults?: boolean;
@@ -432,10 +431,7 @@ export async function* runAgent({
             agentPermissionMode &&
             state.toolPermissionContext.mode !== "bypassPermissions" &&
             state.toolPermissionContext.mode !== "acceptEdits" &&
-            !(
-                true &&
-                state.toolPermissionContext.mode === "auto"
-            )
+            !(true && state.toolPermissionContext.mode === "auto")
         ) {
             toolPermissionContext = {
                 ...toolPermissionContext,

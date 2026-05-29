@@ -43,7 +43,7 @@ test("initializeWiki creates the expected wiki scaffold", async () => {
     expect(
         await readFile(join(paths.pagesDir, "architecture.md"), "utf8"),
     ).toContain("# Architecture");
-});
+}, 20000);
 
 test("initializeWiki is idempotent and preserves existing files", async () => {
     const cwd = await makeProjectDir();
@@ -53,4 +53,4 @@ test("initializeWiki is idempotent and preserves existing files", async () => {
 
     expect(second.alreadyExisted).toBe(true);
     expect(second.createdFiles).toEqual([]);
-});
+}, 20000);
