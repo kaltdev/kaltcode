@@ -245,42 +245,45 @@ function resolveProfileFilePath(options?: ProfileFileLocation): string {
 }
 
 function resolveProfileFileReadPaths(options?: ProfileFileLocation): string[] {
-    const primary = resolveProfileFilePath(options);
-    if (options?.filePath || options?.cwd) {
-        return [primary];
+    if (options?.filePath) {
+        return [options.filePath];
     }
 
-    if (existsSync(primary)) {
-        return [primary];
-    }
-
+    const defaultPrimary = getDefaultProfileFilePath();
     const defaultDeprecated = join(
         getClaudeConfigHomeDir(),
         DEPRECATED_PROFILE_FILE_NAME,
     );
-    const legacy = resolveLegacyProfileFilePath();
-    const deprecatedLegacy = resolveDeprecatedProfileFilePath();
+
+    if (existsSync(defaultPrimary) || existsSync(defaultDeprecated)) {
+        return Array.from(new Set([defaultPrimary, defaultDeprecated]));
+    }
+
+    const legacy = resolveLegacyProfileFilePath(options?.cwd);
+    const deprecatedLegacy = resolveDeprecatedProfileFilePath(options?.cwd);
+
     return Array.from(
-        new Set([primary, defaultDeprecated, legacy, deprecatedLegacy]),
+        new Set([defaultPrimary, defaultDeprecated, legacy, deprecatedLegacy]),
     );
 }
 
 function resolveProfileFileCleanupPaths(
     options?: ProfileFileLocation,
 ): string[] {
-    const primary = resolveProfileFilePath(options);
-    if (options?.filePath || options?.cwd) {
-        return [primary];
+    if (options?.filePath) {
+        return [options.filePath];
     }
 
+    const defaultPrimary = getDefaultProfileFilePath();
     const defaultDeprecated = join(
         getClaudeConfigHomeDir(),
         DEPRECATED_PROFILE_FILE_NAME,
     );
-    const legacy = resolveLegacyProfileFilePath();
-    const deprecatedLegacy = resolveDeprecatedProfileFilePath();
+    const legacy = resolveLegacyProfileFilePath(options?.cwd);
+    const deprecatedLegacy = resolveDeprecatedProfileFilePath(options?.cwd);
+
     return Array.from(
-        new Set([primary, defaultDeprecated, legacy, deprecatedLegacy]),
+        new Set([defaultPrimary, defaultDeprecated, legacy, deprecatedLegacy]),
     );
 }
 
