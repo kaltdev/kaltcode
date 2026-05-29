@@ -123,6 +123,30 @@ test("openai missing key error includes recovery guidance and config locations",
     expect(message!).toContain("Saved startup settings can come from");
 });
 
+test("openai validation allows remote Ollama default port without OPENAI_API_KEY", async () => {
+    process.env.CLAUDE_CODE_USE_OPENAI = "1";
+    process.env.OPENAI_BASE_URL = "https://models.example.com:11434/v1";
+    delete process.env.OPENAI_API_KEY;
+
+    await expect(getProviderValidationError(process.env)).resolves.toBeNull();
+});
+
+test("openai validation allows Ollama hostname without OPENAI_API_KEY", async () => {
+    process.env.CLAUDE_CODE_USE_OPENAI = "1";
+    process.env.OPENAI_BASE_URL = "https://ollama.corp.example.com/v1";
+    delete process.env.OPENAI_API_KEY;
+
+    await expect(getProviderValidationError(process.env)).resolves.toBeNull();
+});
+
+test("openai validation allows Ollama path without OPENAI_API_KEY", async () => {
+    process.env.CLAUDE_CODE_USE_OPENAI = "1";
+    process.env.OPENAI_BASE_URL = "https://models.example.com/ollama/v1";
+    delete process.env.OPENAI_API_KEY;
+
+    await expect(getProviderValidationError(process.env)).resolves.toBeNull();
+});
+
 test("mistral validation is descriptor-backed and requires MISTRAL_API_KEY", async () => {
     process.env.CLAUDE_CODE_USE_MISTRAL = "1";
     delete process.env.MISTRAL_API_KEY;
