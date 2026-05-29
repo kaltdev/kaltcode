@@ -48,6 +48,7 @@ export default defineGateway({
         id: "kaltcode-opengateway",
         description:
             "Kaltcode Opengateway — free hosted Xiaomi MiMo + GMI Cloud partner models (API key required, mint at https://kalt.my.id/opengateway/keys)",
+        apiKeyEnvVars: ["OPENGATEWAY_API_KEY"],
         label: "Kaltcode Opengateway",
         name: "Kaltcode Opengateway",
         vendorId: "xiaomi-mimo",
