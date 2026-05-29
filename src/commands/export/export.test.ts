@@ -6,13 +6,10 @@ import React from "react";
 
 import type { ExportFormat } from "../../utils/exportFormats.js";
 
-let importCounter = 0;
+import * as exportCommand from "./export.js";
 
-async function importExportCommand(): Promise<typeof import("./export.js")> {
-    importCounter += 1;
-    return import(`./export.js?export-test-${importCounter}`) as Promise<
-        typeof import("./export.js")
-    >;
+async function importExportCommand(): Promise<typeof exportCommand> {
+    return exportCommand;
 }
 
 function defaultMessages(): unknown[] {

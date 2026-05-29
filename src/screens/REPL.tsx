@@ -1,6 +1,6 @@
 import { c as _c } from "react-compiler-runtime";
 // biome-ignore-all assist/source/organizeImports: internal-only import markers must not be reordered
-import { feature } from 'bun:bundle';
+import { feature } from "bun:bundle";
 import { spawnSync } from "child_process";
 import {
     snapshotOutputTokensForTurn,
@@ -76,6 +76,8 @@ import {
     getTurnClassifierDurationMs,
     getTurnClassifierCount,
     resetTurnClassifierDuration,
+    setMainLoopModelOverride,
+    setMainThreadAgentType,
 } from "../bootstrap/state.js";
 import { asSessionId, asAgentId } from "../types/ids.js";
 import { logForDebugging } from "../utils/debug.js";
@@ -192,7 +194,7 @@ import { logError } from "../utils/log.js";
 // Dead code elimination: conditional imports
 /* eslint-disable custom-rules/no-process-env-top-level, @typescript-eslint/no-require-imports */
 const useVoiceIntegration: typeof import("../hooks/useVoiceIntegration.js").useVoiceIntegration =
-    feature('VOICE_MODE')
+    feature("VOICE_MODE")
         ? require("../hooks/useVoiceIntegration.js").useVoiceIntegration
         : () => ({
               stripTrailing: () => 0,
@@ -200,7 +202,7 @@ const useVoiceIntegration: typeof import("../hooks/useVoiceIntegration.js").useV
               resetAnchor: () => {},
           });
 const VoiceKeybindingHandler: typeof import("../hooks/useVoiceIntegration.js").VoiceKeybindingHandler =
-    feature('VOICE_MODE')
+    feature("VOICE_MODE")
         ? require("../hooks/useVoiceIntegration.js").VoiceKeybindingHandler
         : () => null;
 // Frustration detection is internal-only (dogfooding). Conditional require so external
@@ -229,7 +231,7 @@ const getCoordinatorUserContext: (
     scratchpadDir?: string,
 ) => {
     [k: string]: string;
-} = feature('COORDINATOR_MODE')
+} = feature("COORDINATOR_MODE")
     ? require("../coordinator/coordinatorMode.js").getCoordinatorUserContext
     : () => ({});
 /* eslint-enable custom-rules/no-process-env-top-level, @typescript-eslint/no-require-imports */
@@ -317,6 +319,7 @@ import type {
     PartialCompactDirection,
 } from "../types/message.js";
 import { query } from "../query.js";
+import type { AutoCompactTrackingState } from "../services/compact/autoCompact.js";
 import { mergeClients, useMergedClients } from "../hooks/useMergedClients.js";
 import { getQuerySourceForREPL } from "../utils/promptCategory.js";
 import { useMergedTools } from "../hooks/useMergedTools.js";
@@ -374,6 +377,7 @@ import {
     isLoggableMessage,
     saveWorktreeState,
     getAgentTranscript,
+    saveAgentSetting,
 } from "../utils/sessionStorage.js";
 import { deserializeMessages } from "../utils/conversationRecovery.js";
 import {
@@ -412,6 +416,7 @@ import {
     restoreWorktreeForResume,
     exitRestoredWorktree,
 } from "../utils/sessionRestore.js";
+import { notifySessionMetadataChanged } from "../utils/sessionState.js";
 import {
     isBgSession,
     updateSessionName,
@@ -423,17 +428,19 @@ import {
 } from "../tasks/InProcessTeammateTask/types.js";
 import { restoreRemoteAgentTasks } from "../tasks/RemoteAgentTask/RemoteAgentTask.js";
 import { useInboxPoller } from "../hooks/useInboxPoller.js";
+import { getActiveSessionAgentModelSelection } from "./replActiveAgentModel.js";
+import type { ModelSetting } from "../utils/model/model.js";
 // Dead code elimination: conditional import for loop mode
 /* eslint-disable @typescript-eslint/no-require-imports */
 const proactiveModule =
-    feature('PROACTIVE') || feature('KAIROS')
+    feature("PROACTIVE") || feature("KAIROS")
         ? require("../proactive/index.js")
         : null;
 const PROACTIVE_NO_OP_SUBSCRIBE = (_cb: () => void) => () => {};
 const PROACTIVE_FALSE = () => false;
 const SUGGEST_BG_PR_NOOP = (_p: string, _n: string): boolean => false;
 const useProactive =
-    feature('PROACTIVE') || feature('KAIROS')
+    feature("PROACTIVE") || feature("KAIROS")
         ? require("../proactive/useProactive.js").useProactive
         : null;
 const useScheduledTasks =
@@ -514,6 +521,7 @@ import {
     recordShownTip,
 } from "src/services/tips/tipScheduler.js";
 import type { Theme } from "src/utils/theme.js";
+import { resolveCriticalInputDialog } from "./replFocusedInputDialog.js";
 import { isPromptTypingSuppressionActive } from "./replInputSuppression.js";
 import { shouldRunStartupChecks } from "./replStartupGates.js";
 import {
@@ -534,8 +542,8 @@ import { AUTO_MODE_DESCRIPTION } from "src/components/AutoModeOptInDialog.js";
 import { useLspInitializationNotification } from "src/hooks/notifs/useLspInitializationNotification.js";
 import { useLspPluginRecommendation } from "src/hooks/useLspPluginRecommendation.js";
 import { LspRecommendationMenu } from "src/components/LspRecommendation/LspRecommendationMenu.js";
-import { useKaltCodeHintRecommendation } from "src/hooks/useKaltCodeHintRecommendation.js";
-import { PluginHintMenu } from "src/components/KaltCodeHint/PluginHintMenu.js";
+import { useClaudeCodeHintRecommendation } from "src/hooks/useClaudeCodeHintRecommendation.js";
+import { PluginHintMenu } from "src/components/ClaudeCodeHint/PluginHintMenu.js";
 import {
     DesktopUpsellStartup,
     shouldShowDesktopUpsellStartup,
@@ -563,7 +571,7 @@ import {
 import type { HookProgress } from "../types/hooks.js";
 import { TungstenLiveMonitor } from "../tools/TungstenTool/TungstenLiveMonitor.js";
 /* eslint-disable @typescript-eslint/no-require-imports */
-const WebBrowserPanelModule = feature('WEB_BROWSER_TOOL')
+const WebBrowserPanelModule = feature("WEB_BROWSER_TOOL")
     ? (require("../tools/WebBrowserTool/WebBrowserPanel.js") as typeof import("../tools/WebBrowserTool/WebBrowserPanel.js"))
     : null;
 /* eslint-enable @typescript-eslint/no-require-imports */
@@ -920,7 +928,6 @@ function _temp(f) {
 }
 export type Props = {
     commands: Command[];
-    pendingCommands?: Promise<Command[]>;
     debug: boolean;
     initialTools: Tool[];
     // Initial messages to populate the REPL with
@@ -954,6 +961,10 @@ export type Props = {
     disabled?: boolean;
     // Optional agent definition to use for the main thread
     mainThreadAgentDefinition?: AgentDefinition;
+    // The effective non-agent model to restore when switching to an agent that inherits
+    baseMainLoopModel?: ModelSetting;
+    // True when startup had an explicit model override that agent switching must preserve
+    hasExplicitModelOverride?: boolean;
     // When true, disables all slash commands
     disableSlashCommands?: boolean;
     // Task list id: when set, enables tasks mode that watches a task list and auto-processes tasks.
@@ -970,7 +981,6 @@ export type Props = {
 export type Screen = "prompt" | "transcript";
 export function REPL({
     commands: initialCommands,
-    pendingCommands,
     debug,
     initialTools,
     initialMessages,
@@ -989,6 +999,8 @@ export function REPL({
     onTurnComplete,
     disabled = false,
     mainThreadAgentDefinition: initialMainThreadAgentDefinition,
+    baseMainLoopModel = null,
+    hasExplicitModelOverride = false,
     disableSlashCommands = false,
     taskListId,
     remoteSessionConfig,
@@ -1012,7 +1024,7 @@ export function REPL({
         () => isEnvTruthy(process.env.CLAUDE_CODE_DISABLE_VIRTUAL_SCROLL),
         [],
     );
-    const disableMessageActions = feature('MESSAGE_ACTIONS')
+    const disableMessageActions = feature("MESSAGE_ACTIONS")
         ? // biome-ignore lint/correctness/useHookAtTopLevel: feature() is a compile-time constant
           useMemo(
               () =>
@@ -1049,6 +1061,57 @@ export function REPL({
     const ultraplanLaunchPending = useAppState((s) => s.ultraplanLaunchPending);
     const viewingAgentTaskId = useAppState((s) => s.viewingAgentTaskId);
     const setAppState = useSetAppState();
+    const autoCompactTrackingBySessionRef = useRef(
+        new Map<ReturnType<typeof getSessionId>, AutoCompactTrackingState>(),
+    );
+    const getAutoCompactTrackingForSession = useCallback(
+        (sessionId: ReturnType<typeof getSessionId>) =>
+            autoCompactTrackingBySessionRef.current.get(sessionId),
+        [],
+    );
+    const setAutoCompactTrackingForSession = useCallback(
+        (
+            sessionId: ReturnType<typeof getSessionId>,
+            tracking: AutoCompactTrackingState | undefined,
+        ) => {
+            if (tracking) {
+                autoCompactTrackingBySessionRef.current.set(
+                    sessionId,
+                    tracking,
+                );
+            } else {
+                autoCompactTrackingBySessionRef.current.delete(sessionId);
+            }
+        },
+        [],
+    );
+    const setAutoCompactTrackingForSessionIfUnchanged = useCallback(
+        (
+            sessionId: ReturnType<typeof getSessionId>,
+            expected: AutoCompactTrackingState | undefined,
+            tracking: AutoCompactTrackingState | undefined,
+        ) => {
+            if (
+                autoCompactTrackingBySessionRef.current.get(sessionId) !==
+                expected
+            ) {
+                return false;
+            }
+            if (tracking) {
+                autoCompactTrackingBySessionRef.current.set(
+                    sessionId,
+                    tracking,
+                );
+            } else {
+                autoCompactTrackingBySessionRef.current.delete(sessionId);
+            }
+            return true;
+        },
+        [],
+    );
+    const resetAutoCompactTracking = useCallback(() => {
+        autoCompactTrackingBySessionRef.current.clear();
+    }, []);
 
     // Bootstrap: retained local_agent that hasn't loaded disk yet → read
     // sidechain JSONL and UUID-merge with whatever stream has appended so far.
@@ -1091,6 +1154,59 @@ export function REPL({
     const store = useAppStateStore();
     const terminal = useTerminalNotification();
     const mainLoopModel = useMainLoopModel();
+    const appMainLoopModel = useAppState((s) => s.mainLoopModel);
+    const appMainLoopModelForSession = useAppState(
+        (s) => s.mainLoopModelForSession,
+    );
+    const initialAgentModelSelection =
+        !hasExplicitModelOverride &&
+        initialMainThreadAgentDefinition?.model &&
+        initialMainThreadAgentDefinition.model !== "inherit"
+            ? getActiveSessionAgentModelSelection({
+                  agent: initialMainThreadAgentDefinition,
+                  baseMainLoopModel,
+                  hasExplicitModelOverride,
+                  hasAgentManagedModel: false,
+              })
+            : undefined;
+    const explicitModelOverrideRef = useRef(hasExplicitModelOverride);
+    const baseMainLoopModelRef = useRef<ModelSetting | undefined>(
+        baseMainLoopModel,
+    );
+    const agentManagedModelRef = useRef<ModelSetting | undefined>(
+        initialAgentModelSelection?.shouldUpdateModel
+            ? initialAgentModelSelection.mainLoopModelForSession
+            : undefined,
+    );
+    const previousMainLoopModelForSessionRef = useRef(
+        appMainLoopModelForSession,
+    );
+    const didTrackInitialModelStateRef = useRef(false);
+    useEffect(() => {
+        const previousMainLoopModelForSession =
+            previousMainLoopModelForSessionRef.current;
+        previousMainLoopModelForSessionRef.current = appMainLoopModelForSession;
+
+        if (!didTrackInitialModelStateRef.current) {
+            didTrackInitialModelStateRef.current = true;
+            return;
+        }
+
+        const currentEffectiveModelSetting =
+            appMainLoopModelForSession ?? appMainLoopModel;
+        const clearedAgentManagedSessionModel =
+            previousMainLoopModelForSession !== null &&
+            appMainLoopModelForSession === null;
+        if (
+            !clearedAgentManagedSessionModel &&
+            currentEffectiveModelSetting === agentManagedModelRef.current
+        )
+            return;
+
+        explicitModelOverrideRef.current = true;
+        baseMainLoopModelRef.current = currentEffectiveModelSetting;
+        agentManagedModelRef.current = undefined;
+    }, [appMainLoopModel, appMainLoopModelForSession]);
 
     // Note: standaloneAgentContext is initialized in main.tsx (via initialState) or
     // ResumeConversation.tsx (via setAppState before rendering REPL) to avoid
@@ -1098,21 +1214,6 @@ export function REPL({
 
     // Local state for commands (hot-reloadable when skill files change)
     const [localCommands, setLocalCommands] = useState(initialCommands);
-
-    useEffect(() => {
-        if (!pendingCommands) return;
-        let cancelled = false;
-        pendingCommands
-            .then((commands) => {
-                if (!cancelled) {
-                    setLocalCommands(commands);
-                }
-            })
-            .catch(logError);
-        return () => {
-            cancelled = true;
-        };
-    }, [pendingCommands]);
 
     // Watch for skill file changes and reload all commands
     useSkillsChange(
@@ -1229,7 +1330,7 @@ export function REPL({
     const {
         recommendation: hintRecommendation,
         handleResponse: handleHintResponse,
-    } = useKaltCodeHintRecommendation();
+    } = useClaudeCodeHintRecommendation();
 
     // Memoize the combined initial tools array to prevent reference changes
     const combinedInitialTools = useMemo(() => {
@@ -1704,7 +1805,7 @@ export function REPL({
     // Push status to the PID file for `claude ps`. Fire-and-forget; ps falls
     // back to transcript-tail derivation when this is missing/stale.
     useEffect(() => {
-        if (feature('BG_SESSIONS')) {
+        if (feature("BG_SESSIONS")) {
             void updateSessionActivity({
                 status: sessionStatus,
                 waitingFor,
@@ -1832,7 +1933,7 @@ export function REPL({
         jumpToNew,
         shiftDivider,
     } = useUnseenDivider(messages.length);
-    if (feature('AWAY_SUMMARY')) {
+    if (feature("AWAY_SUMMARY")) {
         // biome-ignore lint/correctness/useHookAtTopLevel: feature() is a compile-time constant
         useAwaySummary(messages, setMessages, isLoading);
     }
@@ -1869,7 +1970,7 @@ export function REPL({
     // KAIROS build + config.viewerOnly. feature() is build-time constant so
     // the branch is dead-code-eliminated in non-KAIROS builds (same pattern
     // as useUnseenDivider above).
-    const { maybeLoadOlder } = feature('KAIROS')
+    const { maybeLoadOlder } = feature("KAIROS")
         ? // biome-ignore lint/correctness/useHookAtTopLevel: feature() is a compile-time constant
           useAssistantHistory({
               config: remoteSessionConfig,
@@ -1886,7 +1987,7 @@ export function REPL({
                 onRepin();
             } else {
                 onScrollAway(handle);
-                if (feature('KAIROS')) maybeLoadOlder(handle);
+                if (feature("KAIROS")) maybeLoadOlder(handle);
                 // Dismiss the companion bubble on scroll — it's absolute-positioned
                 // at bottom-right and covers transcript content. Scrolling = user is
                 // trying to read something under it.
@@ -2308,7 +2409,7 @@ export function REPL({
     // Only shown 3 times total across sessions.
     const safeYoloMessageShownRef = useRef(false);
     useEffect(() => {
-        if (feature('TRANSCRIPT_CLASSIFIER')) {
+        if (feature("TRANSCRIPT_CLASSIFIER")) {
             if (toolPermissionContext.mode !== "auto") {
                 safeYoloMessageShownRef.current = false;
                 return;
@@ -2499,12 +2600,13 @@ export function REPL({
         ) => {
             const resumeStart = performance.now();
             try {
+                resetAutoCompactTracking();
                 // Deserialize messages to properly clean up the conversation
                 // This filters unresolved tool uses and adds a synthetic assistant message if needed
                 const messages = deserializeMessages(log.messages);
 
                 // Match coordinator/normal mode to the resumed session
-                if (feature('COORDINATOR_MODE')) {
+                if (feature("COORDINATOR_MODE")) {
                     /* eslint-disable @typescript-eslint/no-require-imports */
                     const coordinatorModule =
                         require("../coordinator/coordinatorMode.js") as typeof import("../coordinator/coordinatorMode.js");
@@ -2686,7 +2788,7 @@ export function REPL({
                 }
 
                 // Persist the current mode so future resumes know what mode this session was in
-                if (feature('COORDINATOR_MODE')) {
+                if (feature("COORDINATOR_MODE")) {
                     /* eslint-disable @typescript-eslint/no-require-imports */
                     const { saveMode } = require("../utils/sessionStorage.js");
                     const { isCoordinatorMode } =
@@ -2754,7 +2856,7 @@ export function REPL({
                 throw error;
             }
         },
-        [resetLoadingState, setAppState],
+        [resetLoadingState, resetAutoCompactTracking, setAppState],
     );
 
     // Lazy init: useRef(createX()) would call createX on every render and
@@ -2861,33 +2963,32 @@ export function REPL({
         // High priority dialogs (always show regardless of typing)
         if (isMessageSelectorVisible) return "message-selector";
 
-        // Suppress interrupt dialogs while user is actively typing
-        if (promptTypingSuppressionActive) return undefined;
-        if (sandboxPermissionRequestQueue[0]) return "sandbox-permission";
-
-        // Permission/interactive dialogs (show unless blocked by toolJSX)
         const allowDialogsWithAnimation =
             !toolJSX || toolJSX.shouldContinueAnimation;
-        if (allowDialogsWithAnimation && toolUseConfirmQueue[0])
-            return "tool-permission";
-        if (allowDialogsWithAnimation && promptQueue[0]) return "prompt";
-        // Worker sandbox permission prompts (network access) from swarm workers
-        if (allowDialogsWithAnimation && workerSandboxPermissions.queue[0])
-            return "worker-sandbox-permission";
-        if (allowDialogsWithAnimation && elicitation.queue[0])
-            return "elicitation";
-        if (allowDialogsWithAnimation && showingCostDialog) return "cost";
+        const criticalDialog = resolveCriticalInputDialog({
+            sandboxPermissionPending: !!sandboxPermissionRequestQueue[0],
+            toolUseConfirmPending: !!toolUseConfirmQueue[0],
+            promptPending: !!promptQueue[0],
+            workerSandboxPermissionPending: !!workerSandboxPermissions.queue[0],
+            elicitationPending: !!elicitation.queue[0],
+            showingCostDialog,
+            allowDialogsWithAnimation,
+        });
+        if (criticalDialog) return criticalDialog;
+
+        // Suppress lower-priority interrupt dialogs while user is actively typing
+        if (promptTypingSuppressionActive) return undefined;
         if (allowDialogsWithAnimation && idleReturnPending)
             return "idle-return";
         if (
-            feature('ULTRAPLAN') &&
+            feature("ULTRAPLAN") &&
             allowDialogsWithAnimation &&
             !isLoading &&
             ultraplanPendingChoice
         )
             return "ultraplan-choice";
         if (
-            feature('ULTRAPLAN') &&
+            feature("ULTRAPLAN") &&
             allowDialogsWithAnimation &&
             !isLoading &&
             ultraplanLaunchPending
@@ -2950,16 +3051,6 @@ export function REPL({
     }
     const focusedInputDialog = getFocusedInputDialog();
 
-    // True when permission prompts exist but are hidden because the user is typing
-    const hasSuppressedDialogs =
-        promptTypingSuppressionActive &&
-        (sandboxPermissionRequestQueue[0] ||
-            toolUseConfirmQueue[0] ||
-            promptQueue[0] ||
-            workerSandboxPermissions.queue[0] ||
-            elicitation.queue[0] ||
-            showingCostDialog);
-
     // Keep ref in sync so timer callbacks can read the current value
     focusedInputDialogRef.current = focusedInputDialog;
 
@@ -3007,7 +3098,7 @@ export function REPL({
 
         // Pause proactive mode so the user gets control back.
         // It will resume when they submit their next input (see onSubmit).
-        if (feature('PROACTIVE') || feature('KAIROS')) {
+        if (feature("PROACTIVE") || feature("KAIROS")) {
             proactiveModule?.pauseProactive();
         }
         queryGuard.forceEnd();
@@ -3029,7 +3120,7 @@ export function REPL({
 
         // Clear any active token budget so the backstop doesn't fire on
         // a stale budget if the query generator hasn't exited yet.
-        if (feature('TOKEN_BUDGET')) {
+        if (feature("TOKEN_BUDGET")) {
             snapshotOutputTokensForTurn(null);
         }
         if (focusedInputDialog === "tool-permission") {
@@ -3181,7 +3272,7 @@ export function REPL({
                 // When the REPL bridge is connected, also forward the sandbox
                 // permission request as a can_use_tool control_request so the
                 // remote user (e.g. on claude.ai) can approve it too.
-                if (feature('BRIDGE_MODE')) {
+                if (feature("BRIDGE_MODE")) {
                     const bridgeCallbacks =
                         store.getState().replBridgePermissionCallbacks;
                     if (bridgeCallbacks) {
@@ -3529,7 +3620,40 @@ export function REPL({
                 },
                 resume,
                 setConversationId,
-                requestPrompt: feature('HOOK_PROMPTS')
+                setActiveSessionAgent: (agent) => {
+                    const modelSelection = getActiveSessionAgentModelSelection({
+                        agent,
+                        baseMainLoopModel: baseMainLoopModelRef.current,
+                        hasExplicitModelOverride:
+                            explicitModelOverrideRef.current,
+                        hasAgentManagedModel:
+                            agentManagedModelRef.current !== undefined,
+                    });
+                    setMainThreadAgentDefinition(agent);
+                    setMainThreadAgentType(agent.agentType);
+                    saveAgentSetting(agent.agentType);
+                    if (modelSelection.shouldUpdateModel) {
+                        agentManagedModelRef.current =
+                            modelSelection.mainLoopModelForSession;
+                        setMainLoopModelOverride(
+                            modelSelection.mainLoopModelForSession,
+                        );
+                        notifySessionMetadataChanged({
+                            model: modelSelection.mainLoopModelForSession,
+                        });
+                    }
+                    setAppState((prev) => ({
+                        ...prev,
+                        agent: agent.agentType,
+                        ...(modelSelection.shouldUpdateModel
+                            ? {
+                                  mainLoopModelForSession:
+                                      modelSelection.mainLoopModelForSession,
+                              }
+                            : {}),
+                    }));
+                },
+                requestPrompt: feature("HOOK_PROMPTS")
                     ? requestPrompt
                     : undefined,
                 contentReplacementState: contentReplacementStateRef.current,
@@ -3564,6 +3688,7 @@ export function REPL({
 
     // Session backgrounding (Ctrl+B to background/foreground)
     const handleBackgroundQuery = useCallback(() => {
+        const backgroundSessionId = getSessionId();
         // Stop the foreground query so the background one takes over
         abortController?.abort("background");
         // Aborting subagents may produce task-completed notifications.
@@ -3638,6 +3763,14 @@ export function REPL({
                     canUseTool,
                     toolUseContext,
                     querySource: getQuerySourceForREPL(),
+                    autoCompactTracking:
+                        getAutoCompactTrackingForSession(backgroundSessionId),
+                    onAutoCompactTrackingChange: (tracking) => {
+                        setAutoCompactTrackingForSession(
+                            backgroundSessionId,
+                            tracking,
+                        );
+                    },
                 },
                 description: terminalTitle,
                 setAppState,
@@ -3654,6 +3787,8 @@ export function REPL({
         appendSystemPrompt,
         canUseTool,
         setAppState,
+        getAutoCompactTrackingForSession,
+        setAutoCompactTrackingForSession,
     ]);
     const { handleBackgroundSession } = useSessionBackgrounding({
         setMessages,
@@ -3689,7 +3824,7 @@ export function REPL({
                         // stale memoized rows remount with post-compact content.
                         setConversationId(randomUUID());
                         // Compaction succeeded — clear the context-blocked flag so ticks resume
-                        if (feature('PROACTIVE') || feature('KAIROS')) {
+                        if (feature("PROACTIVE") || feature("KAIROS")) {
                             proactiveModule?.setContextBlocked(false);
                         }
                     } else if (
@@ -3729,7 +3864,7 @@ export function REPL({
                     // Block ticks on API errors to prevent tick → error → tick
                     // runaway loops (e.g., auth failure, rate limit, blocking limit).
                     // Cleared on compact boundary (above) or successful response (below).
-                    if (feature('PROACTIVE') || feature('KAIROS')) {
+                    if (feature("PROACTIVE") || feature("KAIROS")) {
                         if (
                             newMessage.type === "assistant" &&
                             "isApiErrorMessage" in newMessage &&
@@ -3892,10 +4027,11 @@ export function REPL({
                 // handleMessageFromStream. Clear context-blocked if a compact boundary
                 // is present so proactive ticks resume after compaction.
                 if (newMessages.some(isCompactBoundaryMessage)) {
+                    setAutoCompactTrackingForSession(getSessionId(), undefined);
                     // Bump conversationId so Messages.tsx row keys change and
                     // stale memoized rows remount with post-compact content.
                     setConversationId(randomUUID());
-                    if (feature('PROACTIVE') || feature('KAIROS')) {
+                    if (feature("PROACTIVE") || feature("KAIROS")) {
                         proactiveModule?.setContextBlocked(false);
                     }
                 }
@@ -3909,6 +4045,9 @@ export function REPL({
                 abortController,
                 mainLoopModelParam,
             );
+            const querySessionId = getSessionId();
+            const queryAutoCompactTracking =
+                getAutoCompactTrackingForSession(querySessionId);
             // getToolUseContext reads tools/mcpClients fresh from store.getState()
             // (via computeTools/mergeClients). Use those rather than the closure-
             // captured `tools`/`mcpClients` — useManageMCPConnections may have
@@ -3936,7 +4075,7 @@ export function REPL({
                         setAppState,
                     ),
                     // Gated on TRANSCRIPT_CLASSIFIER so GrowthBook kill switch runs wherever auto mode is built in
-                    feature('TRANSCRIPT_CLASSIFIER')
+                    feature("TRANSCRIPT_CLASSIFIER")
                         ? checkAndDisableAutoModeIfNeeded(
                               toolPermissionContext,
                               setAppState,
@@ -3960,7 +4099,7 @@ export function REPL({
                     freshMcpClients,
                     isScratchpadEnabled() ? getScratchpadDir() : undefined,
                 ),
-                ...((feature('PROACTIVE') || feature('KAIROS')) &&
+                ...((feature("PROACTIVE") || feature("KAIROS")) &&
                 proactiveModule?.isProactiveActive() &&
                 !terminalFocusRef.current
                     ? {
@@ -3982,6 +4121,7 @@ export function REPL({
             resetTurnHookDuration();
             resetTurnToolDuration();
             resetTurnClassifierDuration();
+            let expectedAutoCompactTracking = queryAutoCompactTracking;
             for await (const event of query({
                 messages: messagesIncludingNewMessages,
                 systemPrompt,
@@ -3990,6 +4130,18 @@ export function REPL({
                 canUseTool,
                 toolUseContext,
                 querySource: getQuerySourceForREPL(),
+                autoCompactTracking: queryAutoCompactTracking,
+                onAutoCompactTrackingChange: (tracking) => {
+                    if (
+                        setAutoCompactTrackingForSessionIfUnchanged(
+                            querySessionId,
+                            expectedAutoCompactTracking,
+                            tracking,
+                        )
+                    ) {
+                        expectedAutoCompactTracking = tracking;
+                    }
+                },
             })) {
                 onQueryEvent(event);
             }
@@ -4075,6 +4227,9 @@ export function REPL({
             onQueryEvent,
             sessionTitle,
             titleDisabled,
+            getAutoCompactTrackingForSession,
+            setAutoCompactTrackingForSession,
+            setAutoCompactTrackingForSessionIfUnchanged,
         ],
     );
     const onQuery = useCallback(
@@ -4141,7 +4296,7 @@ export function REPL({
                 resetCurrentTurn();
                 setMessages((oldMessages) => [...oldMessages, ...newMessages]);
                 responseLengthRef.current = 0;
-                if (feature('TOKEN_BUDGET')) {
+                if (feature("TOKEN_BUDGET")) {
                     const parsedBudget = input ? parseTokenBudget(input) : null;
                     snapshotOutputTokensForTurn(
                         parsedBudget ?? getCurrentTurnTokenBudget(),
@@ -4234,7 +4389,7 @@ export function REPL({
                               nudges: number;
                           }
                         | undefined;
-                    if (feature('TOKEN_BUDGET')) {
+                    if (feature("TOKEN_BUDGET")) {
                         if (
                             getCurrentTurnTokenBudget() !== null &&
                             getCurrentTurnTokenBudget()! > 0 &&
@@ -4399,6 +4554,7 @@ export function REPL({
         ) {
             // Clear context if requested (plan mode exit)
             if (initialMsg.clearContext) {
+                resetAutoCompactTracking();
                 // Preserve the plan slug before clearing context, so the new session
                 // can access the same plan file after regenerateSessionId()
                 const oldPlanSlug = initialMsg.message.planContent
@@ -4445,7 +4601,7 @@ export function REPL({
                 // For auto, override the mode (buildPermissionUpdates maps
                 // it to 'default' via toExternalPermissionMode) and strip dangerous rules
                 if (
-                    feature('TRANSCRIPT_CLASSIFIER') &&
+                    feature("TRANSCRIPT_CLASSIFIER") &&
                     initialMsg.mode === "auto"
                 ) {
                     updatedToolPermissionContext =
@@ -4540,6 +4696,7 @@ export function REPL({
         onQuery,
         mainLoopModel,
         tools,
+        resetAutoCompactTracking,
     ]);
     const onSubmit = useCallback(
         async (
@@ -4559,7 +4716,7 @@ export function REPL({
             repinScroll();
 
             // Resume loop mode if paused
-            if (feature('PROACTIVE') || feature('KAIROS')) {
+            if (feature("PROACTIVE") || feature("KAIROS")) {
                 proactiveModule?.resumeProactive();
             }
 
@@ -4878,7 +5035,7 @@ export function REPL({
 
                 // Increment prompt count for attribution tracking and save snapshot
                 // The snapshot persists promptCount so it survives compaction
-                if (feature('COMMIT_ATTRIBUTION')) {
+                if (feature("COMMIT_ATTRIBUTION")) {
                     setAppState((prev) => ({
                         ...prev,
                         attribution: incrementPromptCount(
@@ -5211,7 +5368,7 @@ export function REPL({
         // In bg sessions, always detach instead of kill — even when a worktree is
         // active. Without this guard, the worktree branch below short-circuits into
         // ExitFlow (which calls gracefulShutdown) before exit.tsx is ever loaded.
-        if (feature('BG_SESSIONS') && isBgSession()) {
+        if (feature("BG_SESSIONS") && isBgSession()) {
             spawnSync("tmux", ["detach-client"], {
                 stdio: "ignore",
             });
@@ -5263,12 +5420,13 @@ export function REPL({
                 rewindToMessageIndex: messageIndex,
             });
             setMessages(prev.slice(0, messageIndex));
+            resetAutoCompactTracking();
             // Careful, this has to happen after setMessages
             setConversationId(randomUUID());
             // Reset cached microcompact state so stale pinned cache edits
             // don't reference tool_use_ids from truncated messages
             resetMicrocompactState();
-            if (feature('CONTEXT_COLLAPSE')) {
+            if (feature("CONTEXT_COLLAPSE")) {
                 // Rewind truncates the REPL array. Commits whose archived span
                 // was past the rewind point can't be projected anymore
                 // (projectView silently skips them) but the staged queue and ID
@@ -5304,7 +5462,7 @@ export function REPL({
                 },
             }));
         },
-        [setMessages, setAppState],
+        [setMessages, resetAutoCompactTracking, setAppState],
     );
 
     // Synchronous rewind + input population. Used directly by auto-restore on
@@ -5475,7 +5633,7 @@ export function REPL({
     // empty to non-empty, not on every length change -- otherwise a render loop
     // (concurrent onQuery thrashing, etc.) spams saveGlobalConfig, which hits
     // ELOCKED under concurrent sessions and falls back to unlocked writes.
-    // That write storm is the primary trigger for ~/.kalt-code.json corruption
+    // That write storm is the primary trigger for ~/.kaltcode.json corruption
     // (GH #3117).
     const hasCountedQueueUseRef = useRef(false);
     useEffect(() => {
@@ -5740,7 +5898,7 @@ export function REPL({
     );
 
     // Voice input integration (VOICE_MODE builds only)
-    const voice = feature('VOICE_MODE')
+    const voice = feature("VOICE_MODE")
         ? // biome-ignore lint/correctness/useHookAtTopLevel: feature() is a compile-time constant
           useVoiceIntegration({
               setInputValueRaw,
@@ -6237,7 +6395,7 @@ export function REPL({
                     noPrefix={showStatusInTerminalTab}
                 />
                 <GlobalKeybindingHandlers {...globalKeybindingProps} />
-                {feature('VOICE_MODE') ? (
+                {feature("VOICE_MODE") ? (
                     <VoiceKeybindingHandler
                         voiceHandleKeyEvent={voice.handleKeyEvent}
                         stripTrailing={voice.stripTrailing}
@@ -6485,7 +6643,7 @@ export function REPL({
                 noPrefix={showStatusInTerminalTab}
             />
             <GlobalKeybindingHandlers {...globalKeybindingProps} />
-            {feature('VOICE_MODE') ? (
+            {feature("VOICE_MODE") ? (
                 <VoiceKeybindingHandler
                     voiceHandleKeyEvent={voice.handleKeyEvent}
                     stripTrailing={voice.stripTrailing}
@@ -6519,7 +6677,7 @@ export function REPL({
                         : composedOnScroll
                 }
             />
-            {feature('MESSAGE_ACTIONS') &&
+            {feature("MESSAGE_ACTIONS") &&
             isFullscreenEnvEnabled() &&
             !disableMessageActions ? (
                 <MessageActionsKeybindings
@@ -6631,7 +6789,7 @@ export function REPL({
                                     </Box>
                                 )}
                             {"external" === "ant" && <TungstenLiveMonitor />}
-                            {feature('WEB_BROWSER_TOOL')
+                            {feature("WEB_BROWSER_TOOL")
                                 ? WebBrowserPanelModule && (
                                       <WebBrowserPanelModule.WebBrowserPanel />
                                   )
@@ -7061,6 +7219,7 @@ export function REPL({
                                                     );
                                                 }
                                                 if (action === "clear") {
+                                                    resetAutoCompactTracking();
                                                     const {
                                                         clearConversation,
                                                     } =
@@ -7222,7 +7381,7 @@ export function REPL({
                                     />
                                 )}
 
-                                {feature('ULTRAPLAN')
+                                {feature("ULTRAPLAN")
                                     ? focusedInputDialog ===
                                           "ultraplan-choice" &&
                                       ultraplanPendingChoice && (
@@ -7248,7 +7407,7 @@ export function REPL({
                                       )
                                     : null}
 
-                                {feature('ULTRAPLAN')
+                                {feature("ULTRAPLAN")
                                     ? focusedInputDialog ===
                                           "ultraplan-launch" &&
                                       ultraplanLaunchPending && (
@@ -7466,9 +7625,6 @@ export function REPL({
                                             <PromptInput
                                                 debug={debug}
                                                 ideSelection={ideSelection}
-                                                hasSuppressedDialogs={
-                                                    !!hasSuppressedDialogs
-                                                }
                                                 isLocalJSXCommandActive={
                                                     isShowingLocalJSXCommand
                                                 }
@@ -7510,7 +7666,9 @@ export function REPL({
                                                 }
                                                 onMessageActionsEnter={
                                                     // Works during isLoading — edit cancels first; uuid selection survives appends.
-                                                    feature('MESSAGE_ACTIONS') &&
+                                                    feature(
+                                                        "MESSAGE_ACTIONS",
+                                                    ) &&
                                                     isFullscreenEnvEnabled() &&
                                                     !disableMessageActions
                                                         ? enterMessageActions
@@ -7540,7 +7698,7 @@ export function REPL({
                                                 helpOpen={isHelpOpen}
                                                 setHelpOpen={setIsHelpOpen}
                                                 insertTextRef={
-                                                    feature('VOICE_MODE')
+                                                    feature("VOICE_MODE")
                                                         ? insertTextRef
                                                         : undefined
                                                 }
@@ -7718,10 +7876,14 @@ export function REPL({
                                                 setMessages(postCompact);
                                             }
                                             // Partial compact bypasses handleMessageFromStream — clear
-                                            // the context-blocked flag so proactive ticks resume.
+                                            // the auto-compact breaker and context-blocked flag.
+                                            setAutoCompactTrackingForSession(
+                                                getSessionId(),
+                                                undefined,
+                                            );
                                             if (
-                                                feature('PROACTIVE') ||
-                                                feature('KAIROS')
+                                                feature("PROACTIVE") ||
+                                                feature("KAIROS")
                                             ) {
                                                 proactiveModule?.setContextBlocked(
                                                     false,

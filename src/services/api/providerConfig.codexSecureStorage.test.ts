@@ -8,6 +8,22 @@ import {
   releaseSharedMutationLock,
 } from '../../test/sharedMutationLock.js'
 
+let mockIsCodexRefreshFailureCoolingDown = () => false
+let mockReadCodexCredentials = (): any => undefined
+let mockHomedir = () => realOs.homedir()
+
+mock.module('../../utils/codexCredentials.js', () => ({
+  isCodexRefreshFailureCoolingDown: () => mockIsCodexRefreshFailureCoolingDown(),
+  readCodexCredentials: () => mockReadCodexCredentials(),
+}))
+
+mock.module('node:os', () => ({
+  ...realOs,
+  homedir: () => mockHomedir(),
+}))
+
+import { resolveCodexApiCredentials } from './providerConfig.js'
+
 beforeEach(async () => {
   await acquireSharedMutationLock("providerConfig.codexSecureStorage.test.ts");
 });
@@ -21,27 +37,21 @@ function makeJwt(payload: Record<string, unknown>): string {
 
 describe('resolveCodexApiCredentials with secure storage', () => {
   afterEach(() => {
-  try {
-      mock.restore()
-  } finally {
-    releaseSharedMutationLock();
-  }
-})
+    try {
+      mockIsCodexRefreshFailureCoolingDown = () => false
+      mockReadCodexCredentials = () => undefined
+      mockHomedir = () => realOs.homedir()
+    } finally {
+      releaseSharedMutationLock();
+    }
+  })
 
-  test('loads Codex credentials from Kalt Code secure storage', async () => {
-    mock.module('../../utils/codexCredentials.js', () => ({
-      isCodexRefreshFailureCoolingDown: () => false,
-      readCodexCredentials: () => ({
-        apiKey: 'codex-api-key-token',
-        accessToken: 'header.payload.signature',
-        accountId: 'acct_secure',
-      }),
-    }))
-
-    // @ts-expect-error cache-busting query string for Bun module mocks
-    const { resolveCodexApiCredentials } = await import(
-      './providerConfig.js?codex-secure-storage'
-    )
+  test('loads Codex credentials from Kalt Code secure storage', () => {
+    mockReadCodexCredentials = () => ({
+      apiKey: 'codex-api-key-token',
+      accessToken: 'header.payload.signature',
+      accountId: 'acct_secure',
+    })
 
     const credentials = resolveCodexApiCredentials({} as NodeJS.ProcessEnv)
     expect(credentials.apiKey).toBe('codex-api-key-token')
@@ -49,19 +59,11 @@ describe('resolveCodexApiCredentials with secure storage', () => {
     expect(credentials.source).toBe('secure-storage')
   })
 
-  test('prefers explicit env credentials over secure storage', async () => {
-    mock.module('../../utils/codexCredentials.js', () => ({
-      isCodexRefreshFailureCoolingDown: () => false,
-      readCodexCredentials: () => ({
-        accessToken: 'stored-token',
-        accountId: 'acct_stored',
-      }),
-    }))
-
-    // @ts-expect-error cache-busting query string for Bun module mocks
-    const { resolveCodexApiCredentials } = await import(
-      './providerConfig.js?codex-env-precedence'
-    )
+  test('prefers explicit env credentials over secure storage', () => {
+    mockReadCodexCredentials = () => ({
+      accessToken: 'stored-token',
+      accountId: 'acct_stored',
+    })
 
     const credentials = resolveCodexApiCredentials({
       CODEX_API_KEY: 'env-token',
@@ -73,16 +75,8 @@ describe('resolveCodexApiCredentials with secure storage', () => {
     expect(credentials.source).toBe('env')
   })
 
-  test('parses nested chatgpt_account_id from a CODEX_API_KEY JWT', async () => {
-    mock.module('../../utils/codexCredentials.js', () => ({
-      isCodexRefreshFailureCoolingDown: () => false,
-      readCodexCredentials: () => undefined,
-    }))
-
-    // @ts-expect-error cache-busting query string for Bun module mocks
-    const { resolveCodexApiCredentials } = await import(
-      './providerConfig.js?codex-env-nested-account'
-    )
+  test('parses nested chatgpt_account_id from a CODEX_API_KEY JWT', () => {
+    mockReadCodexCredentials = () => undefined
 
     const credentials = resolveCodexApiCredentials({
       CODEX_API_KEY: makeJwt({
@@ -96,11 +90,8 @@ describe('resolveCodexApiCredentials with secure storage', () => {
     expect(credentials.source).toBe('env')
   })
 
-  test('parses nested chatgpt_account_id from auth.json tokens', async () => {
-    mock.module('../../utils/codexCredentials.js', () => ({
-      isCodexRefreshFailureCoolingDown: () => false,
-      readCodexCredentials: () => undefined,
-    }))
+  test('parses nested chatgpt_account_id from auth.json tokens', () => {
+    mockReadCodexCredentials = () => undefined
 
     const tempDir = mkdtempSync(join(tmpdir(), 'kaltcode-codex-auth-'))
     const authPath = join(tempDir, 'auth.json')
@@ -118,11 +109,6 @@ describe('resolveCodexApiCredentials with secure storage', () => {
     )
 
     try {
-      // @ts-expect-error cache-busting query string for Bun module mocks
-      const { resolveCodexApiCredentials } = await import(
-        './providerConfig.js?codex-auth-json-nested-account'
-      )
-
       const credentials = resolveCodexApiCredentials({
         CODEX_AUTH_JSON_PATH: authPath,
       } as NodeJS.ProcessEnv)
@@ -134,20 +120,12 @@ describe('resolveCodexApiCredentials with secure storage', () => {
     }
   })
 
-  test('does not read default auth.json when secure storage already has Codex credentials', async () => {
-    mock.module('../../utils/codexCredentials.js', () => ({
-      isCodexRefreshFailureCoolingDown: () => false,
-      readCodexCredentials: () => ({
-        apiKey: 'codex-api-key-token',
-        accessToken: 'header.payload.signature',
-        accountId: 'acct_secure',
-      }),
-    }))
-
-    // @ts-expect-error cache-busting query string for Bun module mocks
-    const { resolveCodexApiCredentials } = await import(
-      './providerConfig.js?codex-secure-storage-no-auth-io'
-    )
+  test('does not read default auth.json when secure storage already has Codex credentials', () => {
+    mockReadCodexCredentials = () => ({
+      apiKey: 'codex-api-key-token',
+      accessToken: 'header.payload.signature',
+      accountId: 'acct_secure',
+    })
 
     const credentials = resolveCodexApiCredentials({} as NodeJS.ProcessEnv)
     expect(credentials.apiKey).toBe('codex-api-key-token')
@@ -155,7 +133,7 @@ describe('resolveCodexApiCredentials with secure storage', () => {
     expect(credentials.source).toBe('secure-storage')
   })
 
-  test('falls back to the default auth.json when stored Codex refresh is cooling down', async () => {
+  test('falls back to the default auth.json when stored Codex refresh is cooling down', () => {
     const tempHomeDir = mkdtempSync(join(tmpdir(), 'kaltcode-codex-home-'))
     const authJson = JSON.stringify({
       openai_api_key: makeJwt({
@@ -167,25 +145,14 @@ describe('resolveCodexApiCredentials with secure storage', () => {
     mkdirSync(join(tempHomeDir, '.codex'), { recursive: true })
     writeFileSync(join(tempHomeDir, '.codex', 'auth.json'), authJson, 'utf8')
 
-    mock.module('node:os', () => ({
-      ...realOs,
-      homedir: () => tempHomeDir,
-    }))
-
-    mock.module('../../utils/codexCredentials.js', () => ({
-      isCodexRefreshFailureCoolingDown: () => true,
-      readCodexCredentials: () => ({
-        accessToken: 'stored-token',
-        refreshToken: 'refresh-stored',
-        accountId: 'acct_stored',
-        lastRefreshFailureAt: Date.now(),
-      }),
-    }))
-
-    // @ts-expect-error cache-busting query string for Bun module mocks
-    const { resolveCodexApiCredentials } = await import(
-      './providerConfig.js?codex-refresh-cooldown-fallback'
-    )
+    mockHomedir = () => tempHomeDir
+    mockIsCodexRefreshFailureCoolingDown = () => true
+    mockReadCodexCredentials = () => ({
+      accessToken: 'stored-token',
+      refreshToken: 'refresh-stored',
+      accountId: 'acct_stored',
+      lastRefreshFailureAt: Date.now(),
+    })
 
     try {
       const credentials = resolveCodexApiCredentials({} as NodeJS.ProcessEnv)
@@ -197,7 +164,7 @@ describe('resolveCodexApiCredentials with secure storage', () => {
     }
   })
 
-  test('preserves the stored account id when auth.json fallback lacks one', async () => {
+  test('preserves the stored account id when auth.json fallback lacks one', () => {
     const tempHomeDir = mkdtempSync(join(tmpdir(), 'kaltcode-codex-home-'))
     const authJson = JSON.stringify({
       openai_api_key: 'auth-json-access-token',
@@ -205,25 +172,14 @@ describe('resolveCodexApiCredentials with secure storage', () => {
     mkdirSync(join(tempHomeDir, '.codex'), { recursive: true })
     writeFileSync(join(tempHomeDir, '.codex', 'auth.json'), authJson, 'utf8')
 
-    mock.module('node:os', () => ({
-      ...realOs,
-      homedir: () => tempHomeDir,
-    }))
-
-    mock.module('../../utils/codexCredentials.js', () => ({
-      isCodexRefreshFailureCoolingDown: () => true,
-      readCodexCredentials: () => ({
-        accessToken: 'stored-token',
-        refreshToken: 'refresh-stored',
-        accountId: 'acct_stored',
-        lastRefreshFailureAt: Date.now(),
-      }),
-    }))
-
-    // @ts-expect-error cache-busting query string for Bun module mocks
-    const { resolveCodexApiCredentials } = await import(
-      './providerConfig.js?codex-refresh-cooldown-account-id-fallback'
-    )
+    mockHomedir = () => tempHomeDir
+    mockIsCodexRefreshFailureCoolingDown = () => true
+    mockReadCodexCredentials = () => ({
+      accessToken: 'stored-token',
+      refreshToken: 'refresh-stored',
+      accountId: 'acct_stored',
+      lastRefreshFailureAt: Date.now(),
+    })
 
     try {
       const credentials = resolveCodexApiCredentials({} as NodeJS.ProcessEnv)

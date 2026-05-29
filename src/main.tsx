@@ -3176,6 +3176,9 @@ async function run(): Promise<CommanderCommand> {
                 fallbackModel === "default"
                     ? getDefaultMainLoopModel()
                     : fallbackModel;
+            const hasExplicitModelOverride = userSpecifiedModel !== undefined;
+            const baseMainLoopModel =
+                userSpecifiedModel ?? getUserSpecifiedModelSetting() ?? null;
 
             // Reuse preSetupCwd unless setup() chdir'd (worktreeEnabled). Saves a
             // getCwd() syscall in the common path.
@@ -4634,6 +4637,8 @@ async function run(): Promise<CommanderCommand> {
                 mcpClients,
                 autoConnectIdeFlag: ide,
                 mainThreadAgentDefinition,
+                baseMainLoopModel,
+                hasExplicitModelOverride,
                 disableSlashCommands,
                 dynamicMcpConfig,
                 strictMcpConfig,
