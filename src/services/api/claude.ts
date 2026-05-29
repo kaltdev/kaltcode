@@ -168,7 +168,7 @@ import { logForDebugging } from "src/utils/debug.js";
 import { logForDiagnosticsNoPII } from "src/utils/diagLogs.js";
 import { type EffortValue, modelSupportsEffort } from "src/utils/effort.js";
 import {
-    isFastModeAvailable,P
+    isFastModeAvailable,
     isFastModeCooldown,
     isFastModeEnabled,
     isFastModeSupportedByModel,
@@ -180,7 +180,7 @@ import { calculateUSDCost } from "src/utils/modelCost.js";
 import { endQueryProfile, queryCheckpoint } from "src/utils/queryProfiler.js";
 import {
     modelSupportsAdaptiveThinking,
-    shouldUseThinkingForModel
+    shouldUseThinkingForModel,
     type ThinkingConfig,
 } from "src/utils/thinking.js";
 import {
@@ -682,9 +682,7 @@ export function assistantMessageToMessageParam(
                     ...(i === message.message.content.length - 1 &&
                     _.type !== "thinking" &&
                     _.type !== "redacted_thinking" &&
-                    (false
-                        ? !isConnectorTextBlock(_)
-                        : true)
+                    (false ? !isConnectorTextBlock(_) : true)
                         ? enablePromptCaching
                             ? {
                                   cache_control: getCacheControl({
@@ -1642,7 +1640,10 @@ async function* queryModel(
             options.maxOutputTokensOverride ||
             getMaxOutputTokensForModel(options.model);
 
-        const hasThinking = shouldUseThinkingForModel(retryContext.model, thinkingConfig)
+        const hasThinking = shouldUseThinkingForModel(
+            retryContext.model,
+            thinkingConfig,
+        );
         let thinking: BetaMessageStreamParams["thinking"] | undefined =
             undefined;
 
@@ -2155,10 +2156,7 @@ async function* queryModel(
                             });
                             throw new RangeError("Content block not found");
                         }
-                        if (
-                            false &&
-                            delta.type === "connector_text_delta"
-                        ) {
+                        if (false && delta.type === "connector_text_delta") {
                             if (contentBlock.type !== "connector_text") {
                                 logEvent("tengu_streaming_error", {
                                     error_type:
