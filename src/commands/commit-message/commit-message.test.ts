@@ -1,58 +1,91 @@
-import { describe, expect, it } from 'bun:test'
+import { afterEach, describe, expect, it } from "bun:test";
+import { mkdtempSync, rmSync } from "fs";
+import { tmpdir } from "os";
+import { join } from "path";
 import {
-  formatCoAuthorTrailer,
-  parseCoAuthor,
-  stripMatchingQuotes,
-  USAGE,
-} from './commit-message.js'
+    getClaudeConfigHomeDir,
+    setClaudeConfigHomeDirForTesting,
+} from "../../utils/envUtils.js";
+import { resetSettingsCache } from "../../utils/settings/settingsCache.js";
+import {
+    call,
+    formatCoAuthorTrailer,
+    parseCoAuthor,
+    stripMatchingQuotes,
+    USAGE,
+} from "./commit-message.js";
+let tempSettingsDir: string | null = null;
 
-describe('commit-message command helpers', () => {
-  it('parses quoted co-author names with a plain email', () => {
-    expect(parseCoAuthor('"GPT 5.5" noreply@kalt-code.dev')).toEqual({
-      name: 'GPT 5.5',
-      email: 'noreply@kalt-code.dev',
-    })
-  })
+afterEach(() => {
+    setClaudeConfigHomeDirForTesting(undefined);
+    getClaudeConfigHomeDir.cache?.clear?.();
+    resetSettingsCache();
+    if (tempSettingsDir) {
+        rmSync(tempSettingsDir, { recursive: true, force: true });
+        tempSettingsDir = null;
+    }
+});
 
-  it('parses co-author trailers with angle-bracket emails', () => {
-    expect(parseCoAuthor('Kalt Code (gpt-5.5) <noreply@kalt-code.dev>')).toEqual(
-      {
-        name: 'Kalt Code (gpt-5.5)',
-        email: 'noreply@kalt-code.dev',
-      },
-    )
-  })
+describe("commit-message command helpers", () => {
+    it("parses quoted co-author names with a plain email", () => {
+        expect(parseCoAuthor('"GPT 5.5" noreply@kalt-code.dev')).toEqual({
+            name: "GPT 5.5",
+            email: "noreply@kalt-code.dev",
+        });
+    });
 
-  it('rejects co-author trailers with empty sanitized names', () => {
-    expect(parseCoAuthor('"  " noreply@kalt-code.dev')).toBeNull()
-    expect(parseCoAuthor('"  " <noreply@kalt-code.dev>')).toBeNull()
-  })
+    it("parses co-author trailers with angle-bracket emails", () => {
+        expect(
+            parseCoAuthor("Kalt Code (gpt-5.5) <noreply@kalt-code.dev>"),
+        ).toEqual({
+            name: "Kalt Code (gpt-5.5)",
+            email: "noreply@kalt-code.dev",
+        });
+    });
 
-  it('strips one pair of matching quotes from custom attribution text', () => {
-    expect(stripMatchingQuotes('"Generated with Kalt Code"')).toBe(
-      'Generated with Kalt Code',
-    )
-    expect(stripMatchingQuotes("'Generated with Kalt Code'")).toBe(
-      'Generated with Kalt Code',
-    )
-    expect(stripMatchingQuotes('"Generated with Kalt Code')).toBe(
-      '"Generated with Kalt Code',
-    )
-  })
+    it("rejects co-author trailers with empty sanitized names", () => {
+        expect(parseCoAuthor('"  " noreply@kalt-code.dev')).toBeNull();
+        expect(parseCoAuthor('"  " <noreply@kalt-code.dev>')).toBeNull();
+    });
 
-  it('formats a sanitized co-author trailer', () => {
-    expect(
-      formatCoAuthorTrailer('Kalt Code <gpt>\n', '<noreply@kalt-code.dev>'),
-    ).toBe('Co-Authored-By: Kalt Code gpt <noreply@kalt-code.dev>')
-  })
+    it("strips one pair of matching quotes from custom attribution text", () => {
+        expect(stripMatchingQuotes('"Generated with Kalt Code"')).toBe(
+            "Generated with Kalt Code",
+        );
+        expect(stripMatchingQuotes("'Generated with Kalt Code'")).toBe(
+            "Generated with Kalt Code",
+        );
+        expect(stripMatchingQuotes('"Generated with Kalt Code')).toBe(
+            '"Generated with Kalt Code',
+        );
+    });
 
-  it('makes set scope explicit with example text', () => {
-    expect(USAGE).toContain(
-      'Controls only the attribution text appended after /commit messages.',
-    )
-    expect(USAGE).toContain(
-      '/commit-message set "Generated with Kalt Code using GPT-5.5"',
-    )
-    expect(USAGE).not.toContain('/commit-message set-attribution')
-  })
-})
+    it("formats a sanitized co-author trailer", () => {
+        expect(
+            formatCoAuthorTrailer(
+                "Kalt Code <gpt>\n",
+                "<noreply@kalt-code.dev>",
+            ),
+        ).toBe("Co-Authored-By: Kalt Code gpt <noreply@kalt-code.dev>");
+    });
+
+    it("makes set scope explicit with example text", () => {
+        expect(USAGE).toContain(
+            "Controls only the attribution text appended after /commit messages.",
+        );
+        expect(USAGE).toContain(
+            '/commit-message set "Generated with Kalt Code using GPT-5.5"',
+        );
+        expect(USAGE).not.toContain("/commit-message set-attribution");
+    });
+    it("describes default reset as privacy-preserving", async () => {
+        tempSettingsDir = mkdtempSync(join(tmpdir(), "openclaude-settings-"));
+        setClaudeConfigHomeDirForTesting(tempSettingsDir);
+        getClaudeConfigHomeDir.cache?.clear?.();
+
+        await expect(call("default", {} as never)).resolves.toEqual({
+            type: "text",
+            value: "Commit attribution reset to the privacy-preserving default.",
+        });
+    });
+});
