@@ -462,8 +462,8 @@ describe("Context overflow 500 fix", () => {
         const content = await file("query.ts").text();
 
         expect(content).toContain("Safety net: when auto-compact");
-        expect(content).toContain("circuit breaker has tripped");
-        expect(content).toContain("automatic compaction has failed");
+        expect(content).toContain("circuit breaker is cooling down");
+        expect(content).toContain("automatic compaction is cooling down");
     });
 });
 

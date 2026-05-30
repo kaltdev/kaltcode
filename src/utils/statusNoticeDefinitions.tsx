@@ -51,6 +51,25 @@ export type StatusNoticeDefinition = {
     render: (context: StatusNoticeContext) => React.ReactNode;
 };
 
+function WarningNoticeRow({
+    children,
+    marginTop,
+}: {
+    children: React.ReactNode;
+    marginTop?: number;
+}): React.ReactNode {
+    return (
+        <Box flexDirection="row" marginTop={marginTop}>
+            <Box marginRight={1}>
+                <Text color="warning">{figures.warning}</Text>
+            </Box>
+            <Box flexDirection="column" flexShrink={1}>
+                {children}
+            </Box>
+        </Box>
+    );
+}
+
 // Individual notice definitions
 const largeMemoryFilesNotice: StatusNoticeDefinition = {
     id: "large-memory-files",
@@ -65,8 +84,7 @@ const largeMemoryFilesNotice: StatusNoticeDefinition = {
                         ? relative(getCwd(), file.path)
                         : file.path;
                     return (
-                        <Box key={file.path} flexDirection="row">
-                            <Text color="warning">{figures.warning}</Text>
+                        <WarningNoticeRow key={file.path}>
                             <Text color="warning">
                                 Large <Text bold>{displayPath}</Text> will
                                 impact performance (
@@ -74,7 +92,7 @@ const largeMemoryFilesNotice: StatusNoticeDefinition = {
                                 {formatNumber(MAX_MEMORY_CHARACTER_COUNT)})
                                 <Text dimColor> · /memory to edit</Text>
                             </Text>
-                        </Box>
+                        </WarningNoticeRow>
                     );
                 })}
             </>
@@ -95,14 +113,13 @@ const claudeAiSubscriberExternalTokenNotice: StatusNoticeDefinition = {
     render: () => {
         const authTokenInfo = getAuthTokenSource();
         return (
-            <Box flexDirection="row" marginTop={1}>
-                <Text color="warning">{figures.warning}</Text>
+            <WarningNoticeRow marginTop={1}>
                 <Text color="warning">
                     Auth conflict: Using {authTokenInfo.source} instead of
                     Claude account subscription token. Either unset{" "}
                     {authTokenInfo.source}, or run `claude /logout`.
                 </Text>
-            </Box>
+            </WarningNoticeRow>
         );
     },
 };
@@ -124,14 +141,13 @@ const apiKeyConflictNotice: StatusNoticeDefinition = {
             skipRetrievingKeyFromApiKeyHelper: true,
         });
         return (
-            <Box flexDirection="row" marginTop={1}>
-                <Text color="warning">{figures.warning}</Text>
+            <WarningNoticeRow marginTop={1}>
                 <Text color="warning">
                     Auth conflict: Using {apiKeySource} instead of Anthropic
                     Console key. Either unset {apiKeySource}, or run `kalt-code
                     /logout`.
                 </Text>
-            </Box>
+            </WarningNoticeRow>
         );
     },
 };
@@ -159,14 +175,13 @@ const bothAuthMethodsNotice: StatusNoticeDefinition = {
         const authTokenInfo = getAuthTokenSource();
         return (
             <Box flexDirection="column" marginTop={1}>
-                <Box flexDirection="row">
-                    <Text color="warning">{figures.warning}</Text>
+                <WarningNoticeRow>
                     <Text color="warning">
                         Auth conflict: Both a token ({authTokenInfo.source}) and
                         an API key ({apiKeySource}) are set. This may lead to
                         unexpected behavior.
                     </Text>
-                </Box>
+                </WarningNoticeRow>
                 <Box flexDirection="column" marginLeft={3}>
                     <Text color="warning">
                         · Trying to use{" "}
@@ -205,8 +220,7 @@ const largeAgentDescriptionsNotice: StatusNoticeDefinition = {
             context.agentDefinitions,
         );
         return (
-            <Box flexDirection="row">
-                <Text color="warning">{figures.warning}</Text>
+            <WarningNoticeRow>
                 <Text color="warning">
                     Large cumulative agent descriptions will impact performance
                     (~
@@ -214,7 +228,7 @@ const largeAgentDescriptionsNotice: StatusNoticeDefinition = {
                     {formatNumber(AGENT_DESCRIPTIONS_THRESHOLD)})
                     <Text dimColor> · /agents to manage</Text>
                 </Text>
-            </Box>
+            </WarningNoticeRow>
         );
     },
 };
@@ -255,6 +269,7 @@ const jetbrainsPluginNotice: StatusNoticeDefinition = {
         );
     },
 };
+
 // Permissive permission modes (acceptEdits, bypassPermissions, auto) suppress
 // the per-tool consent prompt that normally gives the user a moment to inspect
 // what the model is about to do. On first-party Claude, the AI safety
@@ -284,18 +299,17 @@ const thirdPartyPermissiveModeNotice: StatusNoticeDefinition = {
     render: (ctx) => {
         const mode = ctx.permissionMode;
         return (
-            <Box flexDirection="row">
-                <Text color="warning">{figures.warning}</Text>
+            <WarningNoticeRow>
                 <Text color="warning">
                     <Text bold>{mode}</Text> mode is active on a third-party
-                    provider — tool calls run without the AI safety classifier.
-                    <Text dimColor>
-                        {" "}
-                        Inspect tool calls manually, especially when working
-                        with untrusted code.
-                    </Text>
+                    provider.
                 </Text>
-            </Box>
+                <Text dimColor>
+                    Tool calls run without the AI safety classifier. Inspect
+                    tool calls manually, especially when working with untrusted
+                    code.
+                </Text>
+            </WarningNoticeRow>
         );
     },
 };
@@ -316,18 +330,16 @@ const dangerouslySkipPermissionsNotice: StatusNoticeDefinition = {
         hasDangerouslySkipPermissionsArg() ||
         ctx.permissionMode === "bypassPermissions",
     render: () => (
-        <Box flexDirection="row">
-            <Text color="warning">{figures.warning}</Text>
+        <WarningNoticeRow>
             <Text color="warning">
-                <Text bold>--dangerously-skip-permissions</Text> bypasses every
-                tool consent check.
-                <Text dimColor>
-                    {" "}
-                    Only use inside a sandbox with no internet access. Restart
-                    without the flag to re-enable prompts.
-                </Text>
+                <Text bold>--dangerously-skip-permissions</Text> is active.
             </Text>
-        </Box>
+            <Text dimColor>
+                Every tool consent check is bypassed. Only use inside a sandbox
+                with no internet access. Restart without the flag to re-enable
+                prompts.
+            </Text>
+        </WarningNoticeRow>
     ),
 };
 
