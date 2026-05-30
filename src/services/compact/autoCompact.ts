@@ -63,6 +63,29 @@ export type AutoCompactTrackingState = {
   // Used as a circuit breaker to stop retrying when the context is
   // irrecoverably over the limit (e.g., prompt_too_long).
   consecutiveFailures?: number
+  // Epoch ms of the most recent autocompact failure. Anchors the cooldown
+  // window so the breaker can re-derive the retry time even when an older
+  // tracking object is missing nextRetryAtMs.
+  lastFailureAtMs?: number
+  // Epoch ms after which a single half-open retry is allowed. While the
+  // breaker is tripped and now < nextRetryAtMs, autocompact is suppressed.
+  nextRetryAtMs?: number
+}
+
+// Result of an autocompact attempt. Circuit-breaker metadata lets the caller
+// (query loop) persist cooldown state and surface a clear "paused" message.
+export type AutoCompactResult = {
+  wasCompacted: boolean
+  compactionResult?: CompactionResult
+  // Consecutive failure count to thread back into AutoCompactTrackingState.
+  consecutiveFailures?: number
+  lastFailureAtMs?: number
+  nextRetryAtMs?: number
+  // True when the breaker is currently suppressing compaction (cooling down
+  // or just re-tripped) AND the live context still needs compaction.
+  circuitBreakerActive?: boolean
+  // True only when THIS attempt pushed the breaker into the tripped state.
+  circuitBreakerTripped?: boolean
 }
 
 export const AUTOCOMPACT_BUFFER_TOKENS = 13_000
@@ -73,7 +96,48 @@ export const MANUAL_COMPACT_BUFFER_TOKENS = 3_000
 // Stop trying autocompact after this many consecutive failures.
 // BQ 2026-03-10: 1,279 sessions had 50+ consecutive failures (up to 3,272)
 // in a single session, wasting ~250K API calls/day globally.
-const MAX_CONSECUTIVE_AUTOCOMPACT_FAILURES = 3
+export const MAX_CONSECUTIVE_AUTOCOMPACT_FAILURES = 3
+
+// Once the breaker trips, suppress retries for this long before allowing a
+// single half-open retry. Converts the old permanent suppression into a
+// self-healing cooldown: a session whose context briefly spiked (then dropped)
+// can recover instead of being stuck for its whole lifetime.
+const AUTOCOMPACT_COOLDOWN_MS = 5 * 60_000
+
+// Cooldown duration with optional env override (ms). Used both to schedule the
+// next retry on failure and to derive the retry time when a tracking object is
+// missing/has an invalid nextRetryAtMs.
+export function getAutoCompactCooldownMs(): number {
+  const override = process.env.KALT_CODE_AUTOCOMPACT_COOLDOWN_MS
+  if (override) {
+    const parsed = parseInt(override, 10)
+    if (!isNaN(parsed) && parsed >= 0) {
+      return parsed
+    }
+  }
+  return AUTOCOMPACT_COOLDOWN_MS
+}
+
+// Resolve when the breaker may next retry. Prefer the explicit nextRetryAtMs;
+// fall back to lastFailureAtMs + cooldown when it's missing or invalid
+// (undefined, non-finite, or non-positive). Returns undefined when neither
+// timestamp is available (legacy tracking) — callers treat that as "retry now".
+export function resolveCircuitBreakerRetryAtMs(
+  tracking?: Pick<
+    AutoCompactTrackingState,
+    'nextRetryAtMs' | 'lastFailureAtMs'
+  >,
+): number | undefined {
+  const next = tracking?.nextRetryAtMs
+  if (next !== undefined && Number.isFinite(next) && next > 0) {
+    return next
+  }
+  const last = tracking?.lastFailureAtMs
+  if (last !== undefined && Number.isFinite(last) && last > 0) {
+    return last + getAutoCompactCooldownMs()
+  }
+  return undefined
+}
 
 export function getAutoCompactThreshold(model: string): number {
   const effectiveContextWindow = getEffectiveContextWindowSize(model)
@@ -256,22 +320,8 @@ export async function autoCompactIfNeeded(
   querySource?: QuerySource,
   tracking?: AutoCompactTrackingState,
   snipTokensFreed?: number,
-): Promise<{
-  wasCompacted: boolean
-  compactionResult?: CompactionResult
-  consecutiveFailures?: number
-}> {
+): Promise<AutoCompactResult> {
   if (isEnvTruthy(process.env.DISABLE_COMPACT)) {
-    return { wasCompacted: false }
-  }
-
-  // Circuit breaker: stop retrying after N consecutive failures.
-  // Without this, sessions where context is irrecoverably over the limit
-  // hammer the API with doomed compaction attempts on every turn.
-  if (
-    tracking?.consecutiveFailures !== undefined &&
-    tracking.consecutiveFailures >= MAX_CONSECUTIVE_AUTOCOMPACT_FAILURES
-  ) {
     return { wasCompacted: false }
   }
 
@@ -284,7 +334,35 @@ export async function autoCompactIfNeeded(
   )
 
   if (!shouldCompact) {
+    // Context is under the threshold — nothing to do, and the breaker is
+    // irrelevant (don't report it active, so the caller doesn't block).
     return { wasCompacted: false }
+  }
+
+  // Circuit breaker (cooldown-based). After N consecutive failures the breaker
+  // trips and suppresses retries for a cooldown window. Once the window
+  // elapses, exactly one half-open retry is allowed: success resets the
+  // breaker, failure re-trips it for another cooldown. This replaces the old
+  // permanent suppression while preserving the protection against hammering
+  // the API with doomed compaction attempts every turn.
+  const failures = tracking?.consecutiveFailures ?? 0
+  if (failures >= MAX_CONSECUTIVE_AUTOCOMPACT_FAILURES) {
+    const retryAtMs = resolveCircuitBreakerRetryAtMs(tracking)
+    if (retryAtMs !== undefined && Date.now() < retryAtMs) {
+      // Still cooling down. shouldCompact is true, so the live context really
+      // is over the threshold — report an active breaker so the caller can
+      // surface a clear "paused" message instead of a doomed API call.
+      return {
+        wasCompacted: false,
+        consecutiveFailures: failures,
+        lastFailureAtMs: tracking?.lastFailureAtMs,
+        nextRetryAtMs: retryAtMs,
+        circuitBreakerActive: true,
+        circuitBreakerTripped: false,
+      }
+    }
+    // Cooldown elapsed (or no timestamp to anchor it) → fall through for a
+    // single half-open retry attempt below.
   }
 
   const contextWindow = getContextWindowForModel(model, getSdkBetas())
@@ -350,6 +428,8 @@ export async function autoCompactIfNeeded(
     return {
       wasCompacted: true,
       compactionResult: sessionMemoryResult,
+      // Reset the breaker on success.
+      consecutiveFailures: 0,
     }
   }
 
@@ -376,20 +456,35 @@ export async function autoCompactIfNeeded(
       consecutiveFailures: 0,
     }
   } catch (error) {
-    if (!hasExactErrorMessage(error, ERROR_MESSAGE_USER_ABORT)) {
-      logError(error)
+    // User-aborted compactions are a deliberate cancel, not an automatic
+    // failure — never count them toward the circuit breaker (and don't log).
+    if (hasExactErrorMessage(error, ERROR_MESSAGE_USER_ABORT)) {
+      return { wasCompacted: false }
     }
-    // Increment consecutive failure count for circuit breaker.
-    // The caller threads this through autoCompactTracking so the
-    // next query loop iteration can skip futile retry attempts.
-    const prevFailures = tracking?.consecutiveFailures ?? 0
-    const nextFailures = prevFailures + 1
-    if (nextFailures >= MAX_CONSECUTIVE_AUTOCOMPACT_FAILURES) {
+    logError(error)
+
+    // Increment consecutive failure count for circuit breaker. The caller
+    // threads this (plus the cooldown timestamps) through autoCompactTracking
+    // so the next query loop iteration can suppress futile retries.
+    const nextFailures = failures + 1
+    const tripped = nextFailures >= MAX_CONSECUTIVE_AUTOCOMPACT_FAILURES
+    const lastFailureAtMs = Date.now()
+    const nextRetryAtMs = tripped
+      ? lastFailureAtMs + getAutoCompactCooldownMs()
+      : undefined
+    if (tripped) {
       logForDebugging(
-        `autocompact: circuit breaker tripped after ${nextFailures} consecutive failures — skipping future attempts this session`,
+        `autocompact: circuit breaker tripped after ${nextFailures} consecutive failures — cooling down ${getAutoCompactCooldownMs()}ms before the next retry`,
         { level: 'warn' },
       )
     }
-    return { wasCompacted: false, consecutiveFailures: nextFailures }
+    return {
+      wasCompacted: false,
+      consecutiveFailures: nextFailures,
+      lastFailureAtMs,
+      nextRetryAtMs,
+      circuitBreakerActive: tripped,
+      circuitBreakerTripped: tripped,
+    }
   }
 }

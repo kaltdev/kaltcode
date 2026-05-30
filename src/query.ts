@@ -8,6 +8,7 @@ import { FallbackTriggeredError } from "./services/api/withRetry.js";
 import {
     calculateTokenWarningState,
     isAutoCompactEnabled,
+    resolveCircuitBreakerRetryAtMs,
     type AutoCompactTrackingState,
 } from "./services/compact/autoCompact.js";
 import { buildPostCompactMessages } from "./services/compact/compact.js";
@@ -200,6 +201,16 @@ export type QueryParams = {
     // budget for the whole agentic turn; `remaining` is computed per iteration
     // from cumulative API usage. See configureTaskBudgetParams in claude.ts.
     taskBudget?: { total: number };
+    // Persisted auto-compact circuit-breaker state from a prior query() call.
+    // The caller (REPL session map / QueryEngine) owns this across turns so the
+    // cooldown survives separate query() invocations.
+    autoCompactTracking?: AutoCompactTrackingState;
+    // Called whenever the circuit-breaker tracking changes (compaction success
+    // reset, breaker trip/cooldown update, post-compact turn counter) so the
+    // caller can persist it for the next query() call.
+    onAutoCompactTrackingChange?: (
+        tracking: AutoCompactTrackingState | undefined,
+    ) => void;
     deps?: QueryDeps;
 };
 
@@ -284,7 +295,7 @@ async function* queryLoop(
         messages: params.messages,
         toolUseContext: params.toolUseContext,
         maxOutputTokensOverride: params.maxOutputTokensOverride,
-        autoCompactTracking: undefined,
+        autoCompactTracking: params.autoCompactTracking,
         stopHookActive: undefined,
         maxOutputTokensRecoveryCount: 0,
         hasAttemptedReactiveCompact: false,
@@ -510,21 +521,26 @@ async function* queryLoop(
         );
 
         queryCheckpoint("query_autocompact_start");
-        const { compactionResult, consecutiveFailures } =
-            await deps.autocompact(
-                messagesForQuery,
+        const {
+            compactionResult,
+            consecutiveFailures,
+            lastFailureAtMs,
+            nextRetryAtMs,
+            circuitBreakerActive,
+        } = await deps.autocompact(
+            messagesForQuery,
+            toolUseContext,
+            {
+                systemPrompt,
+                userContext,
+                systemContext,
                 toolUseContext,
-                {
-                    systemPrompt,
-                    userContext,
-                    systemContext,
-                    toolUseContext,
-                    forkContextMessages: messagesForQuery,
-                },
-                querySource,
-                tracking,
-                snipTokensFreed,
-            );
+                forkContextMessages: messagesForQuery,
+            },
+            querySource,
+            tracking,
+            snipTokensFreed,
+        );
         queryCheckpoint("query_autocompact_end");
 
         if (compactionResult) {
@@ -579,12 +595,14 @@ async function* queryLoop(
             // compact. recompactionInfo (autoCompact.ts:190) already captured the
             // old values for turnsSincePreviousCompact/previousCompactTurnId before
             // the call, so this reset doesn't lose those.
+            // consecutiveFailures:0 (and no cooldown fields) clears the breaker.
             tracking = {
                 compacted: true,
                 turnId: deps.uuid(),
                 turnCounter: 0,
                 consecutiveFailures: 0,
             };
+            params.onAutoCompactTrackingChange?.(tracking);
 
             const postCompactMessages =
                 buildPostCompactMessages(compactionResult);
@@ -596,8 +614,9 @@ async function* queryLoop(
             // Continue on with the current query call using the post compact messages
             messagesForQuery = postCompactMessages;
         } else if (consecutiveFailures !== undefined) {
-            // Autocompact failed — propagate failure count so the circuit breaker
-            // can stop retrying on the next iteration.
+            // Autocompact failed (or is cooling down) — propagate the failure
+            // count and cooldown timestamps so the circuit breaker can suppress
+            // retries on the next iteration and surface a clear paused message.
             tracking = {
                 ...(tracking ?? {
                     compacted: false,
@@ -605,7 +624,10 @@ async function* queryLoop(
                     turnCounter: 0,
                 }),
                 consecutiveFailures,
+                lastFailureAtMs,
+                nextRetryAtMs,
             };
+            params.onAutoCompactTrackingChange?.(tracking);
         }
 
         //TODO: no need to set toolUseContext.messages during set-up since it is updated here
@@ -712,34 +734,26 @@ async function* queryLoop(
             }
         }
 
-        // Safety net: when auto-compact's circuit breaker has tripped (3+
-        // consecutive failures), the normal blocking check above is gated on
-        // reactiveCompact. If reactiveCompact is also enabled but ALSO fails
-        // (or is disabled), the oversized context goes straight to the API and
-        // gets a 500. This check catches that gap — if compaction is exhausted
-        // and context is still over the autocompact threshold, block immediately
-        // with a clear message instead of burning an API call that will 500.
-        if (
-            tracking?.consecutiveFailures !== undefined &&
-            tracking.consecutiveFailures >= 3 &&
-            isAutoCompactEnabled()
-        ) {
-            const model = toolUseContext.options.mainLoopModel;
-            const tokenUsage =
-                tokenCountWithEstimation(messagesForQuery) - snipTokensFreed;
-            const { isAboveAutoCompactThreshold } = calculateTokenWarningState(
-                tokenUsage,
-                model,
-            );
-            if (isAboveAutoCompactThreshold) {
-                yield createAssistantAPIErrorMessage({
-                    content:
-                        "The conversation has exceeded the context limit and automatic compaction has failed. " +
-                        "Press esc twice to go up a few messages and try again, or start a new session with /new.",
-                    error: "invalid_request",
-                });
-                return { reason: "blocking_limit" };
-            }
+        // Safety net: when auto-compact's circuit breaker is cooling down after
+        // repeated failures, the oversized context would otherwise go straight
+        // to the API and get a 500. autoCompactIfNeeded only reports
+        // circuitBreakerActive when the live context is still above the
+        // autocompact threshold (shouldCompact), so block immediately with a
+        // clear "cooling down" message instead of burning a doomed API call.
+        if (circuitBreakerActive && isAutoCompactEnabled()) {
+            const retryAtMs = resolveCircuitBreakerRetryAtMs(tracking);
+            const retryHint =
+                retryAtMs !== undefined
+                    ? ` Retry after ${new Date(retryAtMs).toLocaleTimeString()}.`
+                    : "";
+            yield createAssistantAPIErrorMessage({
+                content:
+                    "The conversation has exceeded the context limit and automatic compaction is cooling down after repeated failures." +
+                    retryHint +
+                    " Press esc twice to go up a few messages and try again, or start a new session with /new.",
+                error: "invalid_request",
+            });
+            return { reason: "blocking_limit" };
         }
 
         let attemptWithFallback = true;
@@ -1787,7 +1801,11 @@ async function* queryLoop(
         }
 
         if (tracking?.compacted) {
-            tracking.turnCounter++;
+            // Publish a fresh object rather than mutating in place — the caller
+            // holds the same reference and tests assert the previous object is
+            // left untouched.
+            tracking = { ...tracking, turnCounter: tracking.turnCounter + 1 };
+            params.onAutoCompactTrackingChange?.(tracking);
             logEvent("tengu_post_autocompact_turn", {
                 turnId: tracking.turnId as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
                 turnCounter: tracking.turnCounter,
