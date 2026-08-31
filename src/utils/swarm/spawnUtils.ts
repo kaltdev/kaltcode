@@ -122,7 +122,7 @@ const TEAMMATE_ENV_VARS = [
   // Custom API endpoint
   'ANTHROPIC_BASE_URL',
   // Config directory override (preferred name + legacy alias)
-  'OPENCLAUDE_CONFIG_DIR',
+  'KALTCODE_CONFIG_DIR',
   'CLAUDE_CONFIG_DIR',
   // CCR marker — teammates need this for CCR-aware code paths. Auth finds
   // its own way via /home/claude/.claude/remote/.oauth_token regardless;

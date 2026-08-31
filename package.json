@@ -1,10 +1,10 @@
 {
-  "name": "@gitlawb/openclaude",
+  "name": "@kaltdev/kaltcode",
   "version": "0.29.1",
-  "description": "OpenClaude opens coding-agent workflows to any LLM — OpenAI, Gemini, DeepSeek, Ollama, and 200+ models",
+  "description": "Kalt Code opens coding-agent workflows to any LLM — OpenAI, Gemini, DeepSeek, Ollama, and 200+ models",
   "type": "module",
   "bin": {
-    "openclaude": "./bin/openclaude"
+    "kaltcode": "./bin/kaltcode"
   },
   "exports": {
     "./package.json": "./package.json",
@@ -20,17 +20,17 @@
     "dist/sdk.mjs",
     "src/entrypoints/sdk.d.ts",
     "src/entrypoints/sdk/coreTypes.generated.ts",
-    "scripts/windows/openclaude-aliases.ps1",
+    "scripts/windows/kaltcode-aliases.ps1",
     "vendor/node-domexception-shim/",
     "docs/windows-aliases-and-launchers.md",
     "README.md"
   ],
   "scripts": {
     "build": "bun run scripts/build.ts",
-    "benchmark:startup": "node scripts/benchmark-openclaude-startup.mjs",
+    "benchmark:startup": "node scripts/benchmark-kaltcode-startup.mjs",
     "integrations:generate": "bun run scripts/generate-integrations-artifacts.ts",
     "integrations:check": "bun run scripts/generate-integrations-artifacts.ts --check",
-    "dev": "bun run build && node bin/openclaude",
+    "dev": "bun run build && node bin/kaltcode",
     "dev:profile": "bun run scripts/provider-launch.ts",
     "dev:profile:fast": "bun run scripts/provider-launch.ts auto --fast --bare",
     "dev:codex": "bun run scripts/provider-launch.ts codex",
@@ -49,7 +49,7 @@
     "dev:code": "bun run profile:code && bun run dev:profile",
     "dev:grpc": "bun run scripts/start-grpc.ts",
     "dev:grpc:cli": "bun run scripts/grpc-cli.ts",
-    "start": "node bin/openclaude",
+    "start": "node bin/kaltcode",
     "web:dev": "bun run --cwd web dev",
     "web:build": "bun run --cwd web build",
     "web:preview": "bun run --cwd web preview",
@@ -186,7 +186,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Gitlawb/openclaude.git"
+    "url": "https://github.com/kaltdev/kaltcode.git"
   },
   "keywords": [
     "claude-code",

@@ -304,7 +304,7 @@ export async function executeOpenAIRequest(
   const openAIApiKeyIsCopiedProviderKey = Boolean(
     openAIApiKeyRawUsable &&
     [
-      requestProcessEnv.OPENGATEWAY_API_KEY,
+      requestProcessEnv.KALTCODE_GATEWAY_API_KEY,
       requestProcessEnv.NVIDIA_API_KEY,
       requestProcessEnv.BNKR_API_KEY,
       requestProcessEnv.XAI_API_KEY,

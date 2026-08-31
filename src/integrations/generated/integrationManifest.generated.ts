@@ -9,25 +9,25 @@ import type { ProviderPresetManifestEntry } from '../descriptors.js'
 
 export const PROVIDER_PRESET_MANIFEST = [
   {
-    "preset": "gitlawb-opengateway",
+    "preset": "kaltcode-gateway",
     "routeKind": "gateway",
-    "routeId": "gitlawb-opengateway",
+    "routeId": "kaltcode-gateway",
     "vendorId": "openai",
-    "gatewayId": "gitlawb-opengateway",
-    "description": "Gitlawb Opengateway - (API key required, signup at https://gitlawb.com/opengateway/keys)",
-    "label": "Gitlawb Opengateway",
-    "name": "Gitlawb Opengateway",
+    "gatewayId": "kaltcode-gateway",
+    "description": "KaltCode Gateway - (API key required, signup at https://kaltcode.my.id/keys)",
+    "label": "KaltCode Gateway",
+    "name": "KaltCode Gateway",
     "apiKeyEnvVars": [
-      "OPENGATEWAY_API_KEY"
+      "KALTCODE_GATEWAY_API_KEY"
     ],
     "baseUrlEnvVars": [
-      "OPENGATEWAY_BASE_URL",
+      "KALTCODE_GATEWAY_BASE_URL",
       "OPENAI_BASE_URL"
     ],
     "modelEnvVars": [
       "OPENAI_MODEL"
     ],
-    "fallbackBaseUrl": "https://opengateway.gitlawb.com/v1",
+    "fallbackBaseUrl": "https://kaltcode.my.id/v1",
     "fallbackModel": "mimo-v2.5-pro",
     "badge": {
       "text": "Recommended",
@@ -570,7 +570,7 @@ export const PROVIDER_PRESET_MANIFEST = [
 ] as const satisfies readonly ProviderPresetManifestEntry[]
 export type ProviderPreset = (typeof PROVIDER_PRESET_MANIFEST)[number]['preset']
 export const ORDERED_PROVIDER_PRESETS = [
-  "gitlawb-opengateway",
+  "kaltcode-gateway",
   "aimlapi",
   "anthropic",
   "dashscope-cn",

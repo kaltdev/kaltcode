@@ -116,7 +116,7 @@ export function getProjectPathForScope(scope: PluginScope): string | undefined {
 }
 
 /**
- * Is this plugin enabled (value === true) in .openclaude/settings.json?
+ * Is this plugin enabled (value === true) in .kaltcode/settings.json?
  *
  * Distinct from V2 installed_plugins.json scope: that file tracks where a
  * plugin was *installed from*, but the same plugin can also be enabled at
@@ -482,12 +482,12 @@ export async function uninstallPluginOp(
     // Try to find where the plugin is actually installed to provide a helpful error
     const { scope: actualScope } = getPluginInstallationFromV2(pluginId)
     if (actualScope !== scope && installations && installations.length > 0) {
-      // Project scope is special: .openclaude/settings.json is shared with the team.
+      // Project scope is special: .kaltcode/settings.json is shared with the team.
       // Point users at the local-override escape hatch instead of --scope project.
       if (actualScope === 'project') {
         return {
           success: false,
-          message: `Plugin "${plugin}" is enabled at project scope (.openclaude/settings.json, shared with your team). To disable just for you: claude plugin disable ${plugin} --scope local`,
+          message: `Plugin "${plugin}" is enabled at project scope (.kaltcode/settings.json, shared with your team). To disable just for you: claude plugin disable ${plugin} --scope local`,
         }
       }
       return {
@@ -668,7 +668,7 @@ export async function setPluginEnabledOp(
   // different scope, guide the user to the right --scope — UNLESS they're
   // writing to a higher-precedence scope to override a lower one
   // (e.g. `disable --scope local` to override a project-enabled plugin
-  // without touching the shared .openclaude/settings.json).
+  // without touching the shared .kaltcode/settings.json).
   const SCOPE_PRECEDENCE: Record<InstallableScope, number> = {
     user: 0,
     project: 1,
@@ -988,7 +988,7 @@ async function performPluginUpdate({
 
     // Try to load manifest from plugin directory (for version info)
     let pluginManifest: PluginManifest | undefined
-    const manifestPath = join(sourcePath, '.claude-plugin', 'plugin.json')
+    const manifestPath = join(sourcePath, '.kaltcode-plugin', 'plugin.json')
     try {
       pluginManifest = await loadPluginManifest(
         manifestPath,

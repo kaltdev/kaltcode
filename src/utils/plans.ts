@@ -42,7 +42,7 @@ export const AGENT_PLANS_SUBDIR = 'agents'
 
 export function getDefaultPlansDirectory({
   configDirEnv = resolveConfigDirEnv({
-    openClaudeConfigDir: process.env.OPENCLAUDE_CONFIG_DIR,
+    kaltCodeConfigDir: process.env.KALTCODE_CONFIG_DIR,
     legacyConfigDir: process.env.CLAUDE_CONFIG_DIR,
   }),
   homeDir = homedir(),
@@ -53,7 +53,7 @@ export function getDefaultPlansDirectory({
   if (configDirEnv) {
     return join(configDirEnv.normalize('NFC'), 'plans')
   }
-  return join(homeDir, '.openclaude', 'plans').normalize('NFC')
+  return join(homeDir, '.kaltcode', 'plans').normalize('NFC')
 }
 
 /**

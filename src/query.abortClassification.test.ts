@@ -181,8 +181,8 @@ function interruptionMessages(yielded: any[]) {
 describe('query abort classification', () => {
   test.serial('links abort classification to the winning root abort', async () => {
     await acquireSharedMutationLock('query abort classification trace')
-    const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     try {
       await drainWithReturn(makeParams('query-timeout'))
@@ -200,8 +200,8 @@ describe('query abort classification', () => {
     } finally {
       await __waitForInterruptionTraceFlushForTests()
       __resetInterruptionTraceForTests()
-      if (originalTrace === undefined) delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-      else process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+      if (originalTrace === undefined) delete process.env.KALTCODE_INTERRUPT_TRACE
+      else process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
       releaseSharedMutationLock()
     }
   })

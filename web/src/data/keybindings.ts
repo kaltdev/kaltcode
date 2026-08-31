@@ -1,5 +1,5 @@
 // Seeded from src/keybindings/defaultBindings.ts. User overrides live in
-// ~/.openclaude/keybindings.json (open it with /keybindings).
+// ~/.kaltcode/keybindings.json (open it with /keybindings).
 
 export interface Keybinding {
   keys: string

@@ -78,7 +78,7 @@ const TRAILING_GLOBAL_MULTI_VALUE_FLAGS = new Set([
   '--tools',
 ])
 
-const SKILLS_HELP = `Usage: openclaude skills <command> [options]
+const SKILLS_HELP = `Usage: kaltcode skills <command> [options]
 
 Commands:
   list [--json]                    List installed skills

@@ -7,7 +7,7 @@
  *   3. Reuse a retained existing-account key, or mint one (sign-in) / exchange one (sign-up)
  *   4. Create a partner-checkout session and open the hosted payment page
  *   5. Poll the session until it is paid, then exchange the paid session for the key
- *   6. Write the key into OpenClaude's provider profile and retire the record
+ *   6. Write the key into Kalt Code's provider profile and retire the record
  *
  * Checkout crosses the browser/terminal boundary, so the payment session and
  * payment identity are retained (see topupState.ts) to make retries, cancellation
@@ -724,7 +724,7 @@ async function mintExistingAccountKeyWithLease(
   const owner = randomUUID()
 
   const doMint = async (): Promise<{ apiKey: string; apiKeyId: string }> => {
-    const created = await client.createKey(sessionToken, 'OpenClaude CLI', signal)
+    const created = await client.createKey(sessionToken, 'Kalt Code CLI', signal)
     return { apiKey: created.key.trim(), apiKeyId: created.id.trim() }
   }
 

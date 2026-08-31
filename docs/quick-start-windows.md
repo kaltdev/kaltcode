@@ -1,4 +1,4 @@
-# OpenClaude Quick Start for Windows
+# Kalt Code Quick Start for Windows
 
 This guide uses Windows PowerShell.
 
@@ -15,10 +15,10 @@ node --version
 npm --version
 ```
 
-## 2. Install OpenClaude
+## 2. Install Kalt Code
 
 ```powershell
-npm install -g @gitlawb/openclaude@latest
+npm install -g @kaltdev/kaltcode@latest
 ```
 
 ## 3. Pick One Provider
@@ -32,7 +32,7 @@ $env:CLAUDE_CODE_USE_OPENAI="1"
 $env:OPENAI_API_KEY="sk-your-key-here"
 $env:OPENAI_MODEL="gpt-4o"
 
-openclaude
+kaltcode
 ```
 
 ### Option B: DeepSeek
@@ -43,7 +43,7 @@ $env:OPENAI_API_KEY="sk-your-key-here"
 $env:OPENAI_BASE_URL="https://api.deepseek.com/v1"
 $env:OPENAI_MODEL="deepseek-v4-flash"
 
-openclaude
+kaltcode
 ```
 
 Use `deepseek-v4-pro` when you want the stronger model. `deepseek-chat` and `deepseek-reasoner` still work as DeepSeek's legacy API aliases.
@@ -63,14 +63,14 @@ $env:CLAUDE_CODE_USE_OPENAI="1"
 $env:OPENAI_BASE_URL="http://localhost:11434/v1"
 $env:OPENAI_MODEL="llama3.1:8b"
 
-openclaude
+kaltcode
 ```
 
 No API key is needed for Ollama local models.
 
-OpenClaude asks Ollama for a 32768-token context window on each chat request.
-If you need a different size, set `OPENCLAUDE_OLLAMA_NUM_CTX` before launching
-OpenClaude, or start Ollama with a global context setting:
+Kalt Code asks Ollama for a 32768-token context window on each chat request.
+If you need a different size, set `KALTCODE_OLLAMA_NUM_CTX` before launching
+Kalt Code, or start Ollama with a global context setting:
 
 ```powershell
 # Quit any existing Ollama app/server first, then run:
@@ -102,7 +102,7 @@ $env:OPENAI_BASE_URL="http://localhost:1234/v1"
 $env:OPENAI_MODEL="your-model-name"
 # $env:OPENAI_API_KEY="lmstudio"  # optional: some users need a dummy key
 
-openclaude
+kaltcode
 ```
 
 Replace `your-model-name` with the model name shown in LM Studio.
@@ -111,24 +111,24 @@ No API key is needed for LM Studio local models (but uncomment the `OPENAI_API_K
 
 ### Option E: Using a .env file (Optional)
 
-If you prefer to keep your keys in a `.env` file instead of exporting them individually, note that OpenClaude does not load `.env` files automatically. You must explicitly pass it:
+If you prefer to keep your keys in a `.env` file instead of exporting them individually, note that Kalt Code does not load `.env` files automatically. You must explicitly pass it:
 
 ```powershell
-openclaude --provider-env-file .env
+kaltcode --provider-env-file .env
 ```
 
 Keep `.env` out of git because it contains secrets.
 The explicit loader accepts provider/setup variables. Set runtime/debug variables in PowerShell or your launcher instead.
 
-## 4. If `openclaude` Is Not Found
+## 4. If `kaltcode` Is Not Found
 
 Close PowerShell, open a new one, and try again:
 
 ```powershell
-openclaude
+kaltcode
 ```
 
-If PowerShell still says `openclaude` is not recognized, npm's global bin
+If PowerShell still says `kaltcode` is not recognized, npm's global bin
 folder may be missing from your user `Path`. Add it, then open a new
 PowerShell window:
 
@@ -160,7 +160,7 @@ Check the basics:
 - make sure Ollama is running
 - make sure the model was pulled successfully
 - if same-session chat history appears missing, verify the active `CONTEXT`
-  value with `ollama ps`; OpenClaude requests 32K by default
+  value with `ollama ps`; Kalt Code requests 32K by default
 
 ### For LM Studio
 
@@ -170,16 +170,16 @@ Check the basics:
 - make sure a model is loaded in LM Studio
 - make sure the model name matches what you set in `OPENAI_MODEL`
 
-## 6. Updating OpenClaude
+## 6. Updating Kalt Code
 
 ```powershell
-npm install -g @gitlawb/openclaude@latest
+npm install -g @kaltdev/kaltcode@latest
 ```
 
-## 7. Uninstalling OpenClaude
+## 7. Uninstalling Kalt Code
 
 ```powershell
-npm uninstall -g @gitlawb/openclaude
+npm uninstall -g @kaltdev/kaltcode
 ```
 
 

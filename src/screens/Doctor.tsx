@@ -166,7 +166,7 @@ export function Doctor(t0: Props) {
     );
     (async () => {
       const userAgentsDir = join(getClaudeConfigHomeDir(), "agents");
-      const projectAgentsDir = join(getOriginalCwd(), ".openclaude", "agents");
+      const projectAgentsDir = join(getOriginalCwd(), ".kaltcode", "agents");
       const {
         activeAgents,
         allAgents,
@@ -211,7 +211,7 @@ export function Doctor(t0: Props) {
   let t7;
   if ($[11] !== onDone) {
     t7 = () => {
-      onDone("OpenClaude diagnostics dismissed", {
+      onDone("Kalt Code diagnostics dismissed", {
         display: "system"
       });
     };

@@ -831,7 +831,7 @@ const MITIGATION_EXEMPT_MODELS = new Set([
 ])
 
 function shouldIncludeFileReadMitigation(): boolean {
-  if (isEnvTruthy(process.env.OPENCLAUDE_DISABLE_TOOL_REMINDERS)) {
+  if (isEnvTruthy(process.env.KALTCODE_DISABLE_TOOL_REMINDERS)) {
     return false
   }
   const shortName = getCanonicalName(getMainLoopModel())

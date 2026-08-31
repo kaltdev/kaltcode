@@ -123,7 +123,7 @@ async function waitForCondition(
 }
 
 // Provider list is sorted from generated preset metadata by description, with
-// Gitlawb Opengateway pinned first, aimlapi.com second, Anthropic third, Codex OAuth injected
+// KaltCode Gateway pinned first, aimlapi.com second, Anthropic third, Codex OAuth injected
 // after DeepSeek, and Custom always pinned last. Keep the target-by-label
 // indirection here so
 // these tests survive future list edits without hardcoding raw key counts.
@@ -131,7 +131,7 @@ async function waitForCondition(
 // Order matches ProviderManager.renderPresetSelection() when
 // canUseCodexOAuth === true (default in mocked tests).
 const PRESET_ORDER = [
-  'Gitlawb Opengateway',
+  'KaltCode Gateway',
   'aimlapi.com',
   'Anthropic',
   'Alibaba Coding Plan (China)',
@@ -837,7 +837,7 @@ test('the mocked saveAimlapiTopupStateAsync/recordAimlapiCheckoutSessionAsync pr
     amountUsdMinor: 2500,
     autoTopUp: false,
     partnerId: 'part_test',
-    partnerName: 'OpenClaude',
+    partnerName: 'Kalt Code',
     appBaseUrl: 'https://app.example.test',
     inferenceBaseUrl: 'https://api.example.test/v1',
     payBaseUrl: 'https://pay.example.test',
@@ -5052,7 +5052,7 @@ test('ProviderManager first-run Codex OAuth switches the current session after l
     expect.objectContaining({
       action: 'saved',
       message:
-        'Codex OAuth configured. OpenClaude switched to it for this session.',
+        'Codex OAuth configured. Kalt Code switched to it for this session.',
     }),
   )
 
@@ -5279,7 +5279,7 @@ test('ProviderManager first-run Codex OAuth surfaces credential storage warnings
     expect.objectContaining({
       action: 'saved',
       message:
-        'Codex OAuth configured. OpenClaude switched to it for this session with warnings: Warning: Storing credentials in plaintext.',
+        'Codex OAuth configured. Kalt Code switched to it for this session with warnings: Warning: Storing credentials in plaintext.',
     }),
   )
 

@@ -1,18 +1,19 @@
 /**
- * Client for the Gitlawb Ads service (ads.gitlawb.com).
+ * Client for the KaltCode Ads service.
  *
- * openclaude shows opt-in "sponsored tips" during inference waits; a viewer who
- * dwells on one earns opengateway credits. This module is the thin HTTP client:
- * fetch the next tip, then confirm it after the dwell so the viewer is credited.
- * The viewer is identified by an earn code (issued in the opengateway Earn tab,
- * stored in openclaude config), sent as the `x-earn-code` header.
+ * Kalt Code shows opt-in "sponsored tips" during inference waits; a viewer who
+ * dwells on one earns kaltcode-gateway credits. This module is the thin HTTP
+ * client: fetch the next tip, then confirm it after the dwell so the viewer is
+ * credited. The viewer is identified by an earn code (issued in the
+ * kaltcode-gateway Earn tab, stored in Kalt Code config), sent as the
+ * `x-earn-code` header.
  *
  * Earning is bounded and server-authoritative — the gateway/ads service signs
  * the impression token and measures dwell itself; this client just relays it.
  */
 import { fetchWithProxyRetry } from './api/fetchWithProxyRetry.js'
 
-const DEFAULT_ADS_BASE_URL = 'https://ads.gitlawb.com'
+const DEFAULT_ADS_BASE_URL = 'https://kaltcode.my.id/ads'
 
 export function adsBaseUrl(): string {
   return (process.env.ADS_BASE_URL ?? DEFAULT_ADS_BASE_URL).replace(/\/$/, '')
@@ -36,7 +37,7 @@ export type ConfirmResult = {
 
 const COMMON_HEADERS = (earnCode: string): Record<string, string> => ({
   'content-type': 'application/json',
-  'user-agent': 'gitlawb-openclaude-ads',
+  'user-agent': 'kaltcode-ads',
   'x-earn-code': earnCode,
 })
 
@@ -90,7 +91,7 @@ export function sanitizeForAds(text: string): string {
  */
 export async function fetchNextTip(
   earnCode: string,
-  surface = 'openclaude',
+  surface = 'kaltcode',
   userMessage?: string,
 ): Promise<SponsoredTip | null> {
   const { signal, cancel } = withAbortTimeout(ADS_REQUEST_TIMEOUT_MS)

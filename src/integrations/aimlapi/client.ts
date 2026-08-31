@@ -535,7 +535,7 @@ export class AimlapiClient {
     // Both mandatory attribution headers (integration source + partner id) ride
     // on every request to an AI/ML API host — auth, checkout, and the balance
     // probe. The auth/app/pay/inference base URLs are all env-overridable, so a
-    // request pointed at a user-controlled proxy must NOT carry OpenClaude's
+    // request pointed at a user-controlled proxy must NOT carry Kalt Code's
     // partner/source identity — mirroring the inference/catalog stripping
     // contract in resolveAimlapiAttributionHeaders.
     const headers: Record<string, string> = {

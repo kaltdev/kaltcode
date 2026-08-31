@@ -2,7 +2,7 @@ import { defineVendor } from '../define.js'
 import type { ModelCatalogEntry } from '../descriptors.js'
 
 // Keep chat/coding Grok IDs from https://api.x.ai/v1/models. Imagine, voice,
-// STT/TTS, and embedding entries are not usable on the OpenClaude chat path.
+// STT/TTS, and embedding entries are not usable on the Kalt Code chat path.
 const XAI_NON_CHAT_PATTERN =
   /(imagine|voice|tts|stt|whisper|embed|speech-to-speech|speech-to-text|text-to-speech|multi-agent)/i
 
@@ -149,7 +149,7 @@ export default defineVendor({
       XAI_CREDENTIAL_SOURCE: ['oauth'],
     },
     missingCredentialMessage:
-      'XAI_API_KEY is required, or sign in with `openclaude auth xai login` (browser OAuth) or `openclaude auth xai device` (remote hosts).',
+      'XAI_API_KEY is required, or sign in with `kaltcode auth xai login` (browser OAuth) or `kaltcode auth xai device` (remote hosts).',
   },
   catalog: {
     source: 'hybrid',

@@ -24,6 +24,8 @@ describe('wordmark', () => {
   test('WORDMARK_WIDTH matches the rendered row', () => {
     const row = `${WORDMARK_ACCENT_LEFT} ${WORDMARK_OPEN} ${WORDMARK_CLAUDE} ${WORDMARK_ACCENT_RIGHT}`
     expect(row.length).toBe(WORDMARK_WIDTH)
+    expect(row).toContain('K A L T')
+    expect(row).toContain('C O D E')
   })
 
   test('gradient accents are mirror images of each other', () => {

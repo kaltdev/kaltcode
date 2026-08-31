@@ -1,8 +1,8 @@
 import { appendFileSync } from 'node:fs'
 import { createRequire, syncBuiltinESMExports } from 'node:module'
 
-const markerPath = process.env.OPENCLAUDE_TEST_COMPILE_CACHE_MARKER
-const behavior = process.env.OPENCLAUDE_TEST_COMPILE_CACHE_BEHAVIOR
+const markerPath = process.env.KALTCODE_TEST_COMPILE_CACHE_MARKER
+const behavior = process.env.KALTCODE_TEST_COMPILE_CACHE_BEHAVIOR
 const builtinModule = createRequire(import.meta.url)('node:module')
 
 if (behavior === 'absent') {
@@ -12,7 +12,7 @@ if (behavior === 'absent') {
     if (markerPath) {
       appendFileSync(markerPath, `${JSON.stringify({
         pid: process.pid,
-        heapRelaunched: process.env.OPENCLAUDE_HEAP_RELAUNCHED === '1',
+        heapRelaunched: process.env.KALTCODE_HEAP_RELAUNCHED === '1',
       })}\n`)
     }
     if (behavior === 'throw') throw new Error('injected compile-cache failure')

@@ -46,8 +46,8 @@ export type Props = {
   /**
    * When true, skip writing effortLevel to userSettings on selection.
    * Used by the assistant installer wizard where the model choice is
-   * project-scoped (written to the assistant's .openclaude/settings.json via
-   * install.ts) and should not leak to the user's global ~/.openclaude/settings.json.
+   * project-scoped (written to the assistant's .kaltcode/settings.json via
+   * install.ts) and should not leak to the user's global ~/.kaltcode/settings.json.
    */
   skipSettingsWrite?: boolean;
   optionsOverride?: ModelOption[];
@@ -359,7 +359,7 @@ export function ModelPicker(t0) {
   } else {
     t15 = $[41];
   }
-  const t16 = headerText ?? "Switch between Claude models. Applies to this session and future OpenClaude sessions. For other/previous model names, specify with --model.";
+  const t16 = headerText ?? "Switch between Claude models. Applies to this session and future Kalt Code sessions. For other/previous model names, specify with --model.";
   let t17;
   if ($[42] !== t16) {
     t17 = <Text dimColor={true}>{t16}</Text>;

@@ -63,7 +63,7 @@ function readableDespiteNoPermissions(path: string): boolean {
 }
 
 function useTemporaryConfig(): string {
-  const directory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-topup-'))
+  const directory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-topup-'))
   directories.push(directory)
   setClaudeConfigHomeDirForTesting(directory)
   return directory
@@ -74,7 +74,7 @@ const intent: AimlapiTopupIntent = {
   amountUsdMinor: 2500,
   autoTopUp: false,
   partnerId: 'part_test',
-  partnerName: 'OpenClaude',
+  partnerName: 'Kalt Code',
   appBaseUrl: 'https://app.example.test',
   inferenceBaseUrl: 'https://api.example.test/v1',
   payBaseUrl: 'https://pay.example.test',

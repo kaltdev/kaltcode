@@ -7,7 +7,7 @@ import { Box, Text } from '../../ink.js';
 import { estimateSkillFrontmatterTokens, getSkillsPath } from '../../skills/loadSkillsDir.js';
 import { getDisplayPath } from '../../utils/file.js';
 import { formatTokens } from '../../utils/format.js';
-import { getUserSkillExampleDisplayPath } from '../../utils/openclaudeDisplayPaths.js';
+import { getUserSkillExampleDisplayPath } from '../../utils/kaltcodeDisplayPaths.js';
 import { getSettingSourceName, type SettingSource } from '../../utils/settings/constants.js';
 import { plural } from '../../utils/stringUtils.js';
 import { ConfigurableShortcutHint } from '../ConfigurableShortcutHint.js';
@@ -51,7 +51,7 @@ function getSkillListLabel(skill: SkillCommand): string {
   return leafName === skill.name ? skill.name : `${skill.name} - ${leafName}`;
 }
 export function getEmptySkillsMenuMessage(): string {
-  return `Create skills in .openclaude/skills/<name>/SKILL.md or ${getUserSkillExampleDisplayPath()}`;
+  return `Create skills in .kaltcode/skills/<name>/SKILL.md or ${getUserSkillExampleDisplayPath()}`;
 }
 export function SkillsMenu(t0) {
   const $ = _c(35);

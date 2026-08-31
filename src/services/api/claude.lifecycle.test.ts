@@ -93,9 +93,9 @@ const envKeys = [
   'OPENAI_API_KEY',
   'OPENAI_BASE_URL',
   'OPENAI_MODEL',
-  'OPENCLAUDE_CONFIG_DIR',
-  'OPENCLAUDE_INTERRUPT_TRACE',
-  'OPENCLAUDE_MAX_RETRIES',
+  'KALTCODE_CONFIG_DIR',
+  'KALTCODE_INTERRUPT_TRACE',
+  'KALTCODE_MAX_RETRIES',
   'VCR_RECORD',
 ] as const
 const originalEnv = { ...process.env }
@@ -479,7 +479,7 @@ function setClientTestEnv(): void {
     delete process.env[key]
   }
   process.env.ANTHROPIC_API_KEY = 'sk-test-lifecycle'
-  process.env.OPENCLAUDE_CONFIG_DIR = fixturesRoot
+  process.env.KALTCODE_CONFIG_DIR = fixturesRoot
   process.env.CLAUDE_CODE_TEST_FIXTURES_ROOT = fixturesRoot
   process.env.CLAUDE_FEATURE_FLAGS_FILE = join(
     fixturesRoot,
@@ -566,7 +566,7 @@ describeLifecycle('Claude API lifecycle tracking', () => {
     [
       'Unix-socket OAuth proxy',
       'ANTHROPIC_UNIX_SOCKET',
-      '/tmp/openclaude-auth-test.sock',
+      '/tmp/kaltcode-auth-test.sock',
       'auth-token',
     ],
   ] as const) {
@@ -575,7 +575,7 @@ describeLifecycle('Claude API lifecycle tracking', () => {
       process.env[envKey] = envValue
       process.env.CLAUDE_CODE_OAUTH_TOKEN = 'oauth-test-token'
       process.env.CLAUDE_CODE_ATTRIBUTION_HEADER = '0'
-      process.env.OPENCLAUDE_MAX_RETRIES = '0'
+      process.env.KALTCODE_MAX_RETRIES = '0'
       if (ambientAuth === 'api-key-helper') setIgnoredApiKeyHelper()
       if (ambientAuth === 'auth-token') {
         process.env.ANTHROPIC_AUTH_TOKEN = 'ignored-test-auth-token'
@@ -599,7 +599,7 @@ describeLifecycle('Claude API lifecycle tracking', () => {
     setClientTestEnv()
     process.env.CLAUDE_CODE_ALWAYS_ENABLE_EFFORT = '1'
     process.env.ANTHROPIC_SMALL_FAST_MODEL = 'claude-haiku-4-5-20251001'
-    process.env.OPENCLAUDE_MAX_RETRIES = '0'
+    process.env.KALTCODE_MAX_RETRIES = '0'
     const queryLifecycle = new QueryLifecycleOperationTracker()
     let requestBody: Record<string, unknown> | undefined
     let requestHeaders: Headers | undefined
@@ -647,9 +647,9 @@ describeLifecycle('Claude API lifecycle tracking', () => {
         },
       }),
     )
-    process.env.ANTHROPIC_UNIX_SOCKET = '/tmp/openclaude-auth-test.sock'
+    process.env.ANTHROPIC_UNIX_SOCKET = '/tmp/kaltcode-auth-test.sock'
     process.env.CLAUDE_CODE_ATTRIBUTION_HEADER = '0'
-    process.env.OPENCLAUDE_MAX_RETRIES = '0'
+    process.env.KALTCODE_MAX_RETRIES = '0'
     getClaudeAIOAuthTokens.cache?.clear?.()
 
     const request = await capturePrimaryRequest()
@@ -672,7 +672,7 @@ describeLifecycle('Claude API lifecycle tracking', () => {
     process.env.CLAUDE_CODE_REMOTE = '1'
     process.env.CLAUDE_CODE_OAUTH_TOKEN = 'oauth-test-token'
     process.env.CLAUDE_CODE_ATTRIBUTION_HEADER = '0'
-    process.env.OPENCLAUDE_MAX_RETRIES = '0'
+    process.env.KALTCODE_MAX_RETRIES = '0'
     getClaudeAIOAuthTokens.cache?.clear?.()
 
     const request = await capturePrimaryRequest()
@@ -688,7 +688,7 @@ describeLifecycle('Claude API lifecycle tracking', () => {
   test('strips Anthropic billing attribution from a custom native endpoint', async () => {
     setClientTestEnv()
     process.env.ANTHROPIC_BASE_URL = 'https://custom-anthropic.example/v1'
-    process.env.OPENCLAUDE_MAX_RETRIES = '0'
+    process.env.KALTCODE_MAX_RETRIES = '0'
 
     const texts = systemBlockTexts(await capturePrimarySystemBlocks())
 
@@ -703,7 +703,7 @@ describeLifecycle('Claude API lifecycle tracking', () => {
     delete process.env.ANTHROPIC_API_KEY
     process.env.CLAUDE_CODE_OAUTH_TOKEN = 'oauth-test-token'
     process.env.CLAUDE_CODE_ATTRIBUTION_HEADER = '0'
-    process.env.OPENCLAUDE_MAX_RETRIES = '0'
+    process.env.KALTCODE_MAX_RETRIES = '0'
     getClaudeAIOAuthTokens.cache?.clear?.()
 
     const texts = systemBlockTexts(await capturePrimarySystemBlocks())
@@ -717,7 +717,7 @@ describeLifecycle('Claude API lifecycle tracking', () => {
   test('preserves the disable setting for an official API key', async () => {
     setClientTestEnv()
     process.env.CLAUDE_CODE_ATTRIBUTION_HEADER = '0'
-    process.env.OPENCLAUDE_MAX_RETRIES = '0'
+    process.env.KALTCODE_MAX_RETRIES = '0'
 
     const texts = systemBlockTexts(await capturePrimarySystemBlocks())
 
@@ -732,7 +732,7 @@ describeLifecycle('Claude API lifecycle tracking', () => {
     process.env.CLAUDE_CODE_OAUTH_TOKEN = 'oauth-test-token'
     process.env.ANTHROPIC_BASE_URL =
       'https://api.anthropic.com.attacker.example/secret/path'
-    process.env.OPENCLAUDE_MAX_RETRIES = '0'
+    process.env.KALTCODE_MAX_RETRIES = '0'
 
     const texts = systemBlockTexts(await capturePrimarySystemBlocks())
 
@@ -748,7 +748,7 @@ describeLifecycle('Claude API lifecycle tracking', () => {
     process.env.CLAUDE_CODE_ATTRIBUTION_HEADER = '0'
     process.env.ANTHROPIC_BASE_URL = 'http://127.0.0.1:47821'
     process.env.ANTHROPIC_FIRST_PARTY_PROXY_HOSTS = '127.0.0.1:47821'
-    process.env.OPENCLAUDE_MAX_RETRIES = '0'
+    process.env.KALTCODE_MAX_RETRIES = '0'
     getClaudeAIOAuthTokens.cache?.clear?.()
 
     const texts = systemBlockTexts(await capturePrimarySystemBlocks())
@@ -761,7 +761,7 @@ describeLifecycle('Claude API lifecycle tracking', () => {
   test('uses the normalized MiniMax native route before building attribution', async () => {
     setClientTestEnv()
     process.env.MINIMAX_API_KEY = 'minimax-test-key'
-    process.env.OPENCLAUDE_MAX_RETRIES = '0'
+    process.env.KALTCODE_MAX_RETRIES = '0'
 
     const texts = systemBlockTexts(
       await capturePrimarySystemBlocks({ model: 'MiniMax-M2.7' }),
@@ -779,7 +779,7 @@ describeLifecycle('Claude API lifecycle tracking', () => {
     setClientTestEnv()
     process.env.CLAUDE_CODE_USE_GITHUB = '1'
     process.env.GITHUB_TOKEN = 'github-test-token'
-    process.env.OPENCLAUDE_MAX_RETRIES = '0'
+    process.env.KALTCODE_MAX_RETRIES = '0'
 
     const texts = systemBlockTexts(
       await capturePrimarySystemBlocks({ model: 'claude-sonnet-4-6' }),
@@ -792,7 +792,7 @@ describeLifecycle('Claude API lifecycle tracking', () => {
 
   test('keeps the generated block first and drops later stale copies', async () => {
     setClientTestEnv()
-    process.env.OPENCLAUDE_MAX_RETRIES = '0'
+    process.env.KALTCODE_MAX_RETRIES = '0'
 
     const texts = systemBlockTexts(
       await capturePrimarySystemBlocks({
@@ -809,7 +809,7 @@ describeLifecycle('Claude API lifecycle tracking', () => {
     )
     expect(attribution).toHaveLength(1)
     expect(attribution[0]).not.toBe('x-anthropic-billing-header: stale')
-    expect(texts[1]).toStartWith('You are OpenClaude')
+    expect(texts[1]).toStartWith('You are Kalt Code')
     expect(texts[2]).toBe('stable system prompt\n\nsecond stable prompt')
   })
 
@@ -818,7 +818,7 @@ describeLifecycle('Claude API lifecycle tracking', () => {
     process.env.CLAUDE_CODE_USE_OPENAI = '1'
     process.env.OPENAI_BASE_URL = 'https://gateway.example/v1'
     process.env.OPENAI_API_KEY = 'test-key'
-    process.env.OPENCLAUDE_MAX_RETRIES = '0'
+    process.env.KALTCODE_MAX_RETRIES = '0'
     const queryLifecycle = new QueryLifecycleOperationTracker()
     let requestBody: Record<string, unknown> | undefined
 
@@ -857,7 +857,7 @@ describeLifecycle('Claude API lifecycle tracking', () => {
 
   test('checks provider-request ownership immediately before dispatch', async () => {
     setClientTestEnv()
-    process.env.OPENCLAUDE_MAX_RETRIES = '0'
+    process.env.KALTCODE_MAX_RETRIES = '0'
     const queryLifecycle = new QueryLifecycleOperationTracker()
     const events: string[] = []
     let permissionContextReads = 0
@@ -900,7 +900,7 @@ describeLifecycle('Claude API lifecycle tracking', () => {
 
   test('ends a failed streaming dispatch before retry backoff is reported', async () => {
     setClientTestEnv()
-    process.env.OPENCLAUDE_MAX_RETRIES = '1'
+    process.env.KALTCODE_MAX_RETRIES = '1'
     const queryLifecycle = new QueryLifecycleOperationTracker()
     const dispatchSnapshots: ReturnType<
       QueryLifecycleOperationTracker['snapshot']
@@ -946,8 +946,8 @@ describeLifecycle('Claude API lifecycle tracking', () => {
 
   test('preserves provider override and query source during 404 non-streaming fallback', async () => {
     setClientTestEnv()
-    process.env.OPENCLAUDE_MAX_RETRIES = '0'
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_MAX_RETRIES = '0'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     const queryLifecycle = new QueryLifecycleOperationTracker()
     const providerBaseURL = 'https://provider.example/v1'
@@ -1053,7 +1053,7 @@ describeLifecycle('Claude API lifecycle tracking', () => {
 
   test('parent abort during OpenAI-compatible stream does not start non-streaming fallback', async () => {
     setClientTestEnv()
-    process.env.OPENCLAUDE_MAX_RETRIES = '0'
+    process.env.KALTCODE_MAX_RETRIES = '0'
     process.env.CLAUDE_STREAM_IDLE_TIMEOUT_MS = '1000'
     const queryLifecycle = new QueryLifecycleOperationTracker()
     const parent = new AbortController()
@@ -1145,9 +1145,9 @@ describeLifecycle('Claude API lifecycle tracking', () => {
 
   test('stream idle timeout respects disabled non-streaming fallback guard', async () => {
     setClientTestEnv()
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
-    process.env.OPENCLAUDE_MAX_RETRIES = '0'
+    process.env.KALTCODE_MAX_RETRIES = '0'
     process.env.CLAUDE_STREAM_IDLE_TIMEOUT_MS = String(TEST_STREAM_IDLE_TIMEOUT_MS)
     process.env.CLAUDE_CODE_DISABLE_NONSTREAMING_FALLBACK = '1'
     process.env.CLAUDE_DISABLE_STREAM_WATCHDOG = '1'
@@ -1302,7 +1302,7 @@ describeLifecycle('Claude API lifecycle tracking', () => {
 
   test('clears non-streaming fallback lifecycle entries after request errors', async () => {
     setClientTestEnv()
-    process.env.OPENCLAUDE_MAX_RETRIES = '0'
+    process.env.KALTCODE_MAX_RETRIES = '0'
     const queryLifecycle = new QueryLifecycleOperationTracker()
     const requestSnapshots: ReturnType<
       QueryLifecycleOperationTracker['snapshot']

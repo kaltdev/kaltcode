@@ -115,7 +115,7 @@ export function getBinaryName(platform: string): string {
 
 export function getExecutableName(platform: string): string {
   const baseName =
-    MACRO.PACKAGE_URL === '@anthropic-ai/claude-code' ? 'claude' : 'openclaude'
+    MACRO.PACKAGE_URL === '@anthropic-ai/claude-code' ? 'claude' : 'kaltcode'
   return platform.startsWith('win32') ? `${baseName}.exe` : baseName
 }
 
@@ -1624,7 +1624,7 @@ async function manualRemoveNpmPackage(
     }
 
     const binName =
-      packageName === '@anthropic-ai/claude-code' ? 'claude' : 'openclaude'
+      packageName === '@anthropic-ai/claude-code' ? 'claude' : 'kaltcode'
 
     if (getPlatform().startsWith('win32')) {
       // Windows - only remove executables, not the package directory

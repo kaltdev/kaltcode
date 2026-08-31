@@ -24,7 +24,7 @@ const OTHER_PROCESS_MARKER = 'b'.repeat(64)
 // constructs its expected token independently, so token-format drift still
 // fails the marked-match tests below.
 const backgroundProcessMarkerToken = (marker: string) =>
-  `--openclaude-bg-session-marker=${marker}`
+  `--kaltcode-bg-session-marker=${marker}`
 
 const {
   recordBackgroundSessionNaturalTermination,
@@ -76,7 +76,7 @@ describe('background session registry', () => {
   }
 
   beforeEach(async () => {
-    configDir = await mkdtemp(join(tmpdir(), 'openclaude-bg-registry-'))
+    configDir = await mkdtemp(join(tmpdir(), 'kaltcode-bg-registry-'))
     _setBackgroundSessionsRootForTesting(join(configDir, 'bg-sessions'))
   })
 
@@ -85,14 +85,14 @@ describe('background session registry', () => {
     await rm(configDir, { force: true, recursive: true })
   })
 
-  it('creates session metadata and log files under the OpenClaude config dir', async () => {
+  it('creates session metadata and log files under the Kalt Code config dir', async () => {
     const session = await createBackgroundSession({
       id: 'bg-test-1',
       name: 'auth-refactor',
       pid: 12345,
       cwd: '/repo',
       command: [
-        'openclaude',
+        'kaltcode',
         backgroundProcessMarkerToken(TEST_PROCESS_MARKER),
         '--print',
         'refactor auth',
@@ -117,7 +117,7 @@ describe('background session registry', () => {
       startedAt: '2026-06-15T08:00:00.000Z',
       updatedAt: '2026-06-15T08:00:00.000Z',
       command: [
-        'openclaude',
+        'kaltcode',
         backgroundProcessMarkerToken(TEST_PROCESS_MARKER),
         '--print',
         'refactor auth',
@@ -149,7 +149,7 @@ describe('background session registry', () => {
         sessionId: 'conversation-legacy',
         startedAt: '2026-06-15T08:00:00.000Z',
         updatedAt: '2026-06-15T08:00:00.000Z',
-        command: ['openclaude', '--print', 'work'],
+        command: ['kaltcode', '--print', 'work'],
         stdoutLogPath: '/tmp/stdout.log',
         stderrLogPath: '/tmp/stderr.log',
       }),
@@ -166,7 +166,7 @@ describe('background session registry', () => {
         id: 'bg-invalid-marker',
         pid: 123,
         cwd: '/repo',
-        command: ['openclaude', '--print', 'work'],
+        command: ['kaltcode', '--print', 'work'],
         sessionId: 'conversation-invalid-marker',
         processMarker: 'not-valid',
       }),
@@ -204,7 +204,7 @@ describe('background session registry', () => {
             processMarker,
             startedAt: '2026-06-15T08:00:00.000Z',
             updatedAt: '2026-06-15T08:00:00.000Z',
-            command: ['openclaude', '--print', 'work'],
+            command: ['kaltcode', '--print', 'work'],
             stdoutLogPath: '/tmp/stdout.log',
             stderrLogPath: '/tmp/stderr.log',
           }),
@@ -220,7 +220,7 @@ describe('background session registry', () => {
       id: 'bg-abcdef',
       pid: 111,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       sessionId: 'conversation-1',
     })
     await createBackgroundSession({
@@ -228,7 +228,7 @@ describe('background session registry', () => {
       name: 'bg-abc',
       pid: 222,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'named'],
+      command: ['kaltcode', '--print', 'named'],
       sessionId: 'conversation-2',
     })
 
@@ -240,7 +240,7 @@ describe('background session registry', () => {
       id: 'bg-target',
       pid: 111,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'id'],
+      command: ['kaltcode', '--print', 'id'],
       sessionId: 'conversation-id',
     })
     await createBackgroundSession({
@@ -248,7 +248,7 @@ describe('background session registry', () => {
       name: 'bg-target',
       pid: 222,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'named'],
+      command: ['kaltcode', '--print', 'named'],
       sessionId: 'conversation-name',
     })
 
@@ -261,7 +261,7 @@ describe('background session registry', () => {
       name: 'named-session',
       pid: 111,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       sessionId: 'conversation-1',
     })
 
@@ -277,14 +277,14 @@ describe('background session registry', () => {
       id: 'bg-prefix-one',
       pid: 111,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'one'],
+      command: ['kaltcode', '--print', 'one'],
       sessionId: 'conversation-1',
     })
     await createBackgroundSession({
       id: 'bg-prefix-two',
       pid: 222,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'two'],
+      command: ['kaltcode', '--print', 'two'],
       sessionId: 'conversation-2',
     })
 
@@ -305,7 +305,7 @@ describe('background session registry', () => {
       name: 'old-name',
       pid: 111,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'old'],
+      command: ['kaltcode', '--print', 'old'],
       sessionId: 'conversation-old',
     })
     await markBackgroundSessionKilled('bg-old')
@@ -319,7 +319,7 @@ describe('background session registry', () => {
       name: 'old-shared',
       pid: 111,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'old-one'],
+      command: ['kaltcode', '--print', 'old-one'],
       sessionId: 'conversation-old-one',
     })
     await markBackgroundSessionKilled('bg-old-one')
@@ -328,7 +328,7 @@ describe('background session registry', () => {
       name: 'old-shared',
       pid: 222,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'old-two'],
+      command: ['kaltcode', '--print', 'old-two'],
       sessionId: 'conversation-old-two',
     })
     await markBackgroundSessionKilled('bg-old-two')
@@ -347,7 +347,7 @@ describe('background session registry', () => {
       status: 'running',
       startedAt: '2026-06-15T08:00:00.000Z',
       updatedAt: '2026-06-15T08:00:00.000Z',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       stdoutLogPath: '/tmp/stdout.log',
       stderrLogPath: '/tmp/stderr.log',
     }
@@ -375,7 +375,7 @@ describe('background session registry', () => {
       id: 'bg-abcdef',
       pid: 333,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'prefix'],
+      command: ['kaltcode', '--print', 'prefix'],
       sessionId: 'conversation-prefix',
     })
 
@@ -390,7 +390,7 @@ describe('background session registry', () => {
       name: 'shared',
       pid: 111,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'one'],
+      command: ['kaltcode', '--print', 'one'],
       sessionId: 'conversation-1',
     })
 
@@ -400,7 +400,7 @@ describe('background session registry', () => {
         name: 'shared',
         pid: 222,
         cwd: '/repo',
-        command: ['openclaude', '--print', 'two'],
+        command: ['kaltcode', '--print', 'two'],
         sessionId: 'conversation-2',
       }),
     ).rejects.toThrow('already exists')
@@ -413,7 +413,7 @@ describe('background session registry', () => {
         name: 'shared-race',
         pid: 111,
         cwd: '/repo',
-        command: ['openclaude', '--print', 'one'],
+        command: ['kaltcode', '--print', 'one'],
         sessionId: 'conversation-1',
       }),
       createBackgroundSession({
@@ -421,7 +421,7 @@ describe('background session registry', () => {
         name: 'shared-race',
         pid: 222,
         cwd: '/repo',
-        command: ['openclaude', '--print', 'two'],
+        command: ['kaltcode', '--print', 'two'],
         sessionId: 'conversation-2',
       }),
     ])
@@ -456,7 +456,7 @@ describe('background session registry', () => {
         name: 'in-flight',
         pid: 222,
         cwd: '/repo',
-        command: ['openclaude', '--print', 'contender'],
+        command: ['kaltcode', '--print', 'contender'],
         sessionId: 'conversation-contender',
       }),
     ).rejects.toThrow('already exists')
@@ -475,7 +475,7 @@ describe('background session registry', () => {
       name: 'orphaned',
       pid: 222,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'recovered'],
+      command: ['kaltcode', '--print', 'recovered'],
       sessionId: 'conversation-recovered',
     })
 
@@ -500,7 +500,7 @@ describe('background session registry', () => {
         sessionId: 'conversation-terminal',
         startedAt: '2026-06-15T08:00:00.000Z',
         updatedAt: '2026-06-15T08:05:00.000Z',
-        command: ['openclaude', '--print', 'old'],
+        command: ['kaltcode', '--print', 'old'],
         stdoutLogPath: '/tmp/old-out.log',
         stderrLogPath: '/tmp/old-err.log',
       }),
@@ -516,7 +516,7 @@ describe('background session registry', () => {
       name: 'terminal-name',
       pid: 222,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'new'],
+      command: ['kaltcode', '--print', 'new'],
       sessionId: 'conversation-new',
     })
 
@@ -532,7 +532,7 @@ describe('background session registry', () => {
       name: 'reuse-me',
       pid: 111,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'old'],
+      command: ['kaltcode', '--print', 'old'],
       sessionId: 'conversation-old',
     })
     await markBackgroundSessionKilled('bg-old')
@@ -542,7 +542,7 @@ describe('background session registry', () => {
       name: 'reuse-me',
       pid: 222,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'new'],
+      command: ['kaltcode', '--print', 'new'],
       sessionId: 'conversation-new',
     })
 
@@ -555,7 +555,7 @@ describe('background session registry', () => {
       name: 'first',
       pid: 111,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'one'],
+      command: ['kaltcode', '--print', 'one'],
       sessionId: 'conversation-1',
     })
 
@@ -565,7 +565,7 @@ describe('background session registry', () => {
         name: 'second',
         pid: 222,
         cwd: '/repo',
-        command: ['openclaude', '--print', 'two'],
+        command: ['kaltcode', '--print', 'two'],
         sessionId: 'conversation-2',
       }),
     ).rejects.toThrow('already exists')
@@ -578,7 +578,7 @@ describe('background session registry', () => {
         id: 'bg-zero-pid',
         pid: 0,
         cwd: '/repo',
-        command: ['openclaude', '--print', 'zero'],
+        command: ['kaltcode', '--print', 'zero'],
         sessionId: 'conversation-zero',
       }),
     ).rejects.toThrow('Invalid background session pid')
@@ -588,7 +588,7 @@ describe('background session registry', () => {
         id: 'bg-negative-pid',
         pid: -1,
         cwd: '/repo',
-        command: ['openclaude', '--print', 'negative'],
+        command: ['kaltcode', '--print', 'negative'],
         sessionId: 'conversation-negative',
       }),
     ).rejects.toThrow('Invalid background session pid')
@@ -619,7 +619,7 @@ describe('background session registry', () => {
       id: 'bg-precreated',
       pid: 222,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       sessionId: 'conversation-1',
       stdoutLogPath,
       stderrLogPath,
@@ -669,7 +669,7 @@ describe('background session registry', () => {
         sessionId: 'conversation-1',
         startedAt: '2026-06-15T08:00:00.000Z',
         updatedAt: '2026-06-15T08:00:00.000Z',
-        command: ['openclaude', '--print', 'one'],
+        command: ['kaltcode', '--print', 'one'],
         stdoutLogPath: '/tmp/existing-out.log',
         stderrLogPath: '/tmp/existing-err.log',
       }),
@@ -680,7 +680,7 @@ describe('background session registry', () => {
         id: 'bg-precreated-collision',
         pid: 222,
         cwd: '/repo',
-        command: ['openclaude', '--print', 'two'],
+        command: ['kaltcode', '--print', 'two'],
         sessionId: 'conversation-2',
         stdoutLogPath,
         stderrLogPath,
@@ -710,7 +710,7 @@ describe('background session registry', () => {
         sessionId: 'conversation-1',
         startedAt: '2026-06-15T08:00:00.000Z',
         updatedAt: '2026-06-15T08:00:00.000Z',
-        command: ['openclaude', '--print', 'one'],
+        command: ['kaltcode', '--print', 'one'],
         stdoutLogPath: '/tmp/existing-out.log',
         stderrLogPath: '/tmp/existing-err.log',
       }),
@@ -721,7 +721,7 @@ describe('background session registry', () => {
         id: 'bg-log-cleanup',
         pid: 222,
         cwd: '/repo',
-        command: ['openclaude', '--print', 'two'],
+        command: ['kaltcode', '--print', 'two'],
         sessionId: 'conversation-2',
       }),
     ).rejects.toThrow('already exists')
@@ -743,7 +743,7 @@ describe('background session registry', () => {
       id: 'bg-stale',
       pid: 333,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       sessionId: 'conversation-1',
       now: new Date('2026-06-15T08:00:00.000Z'),
     })
@@ -766,7 +766,7 @@ describe('background session registry', () => {
       id: 'bg-old-metadata',
       pid: 332,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       sessionId: 'conversation-old-metadata',
     })
 
@@ -785,7 +785,7 @@ describe('background session registry', () => {
       id: 'bg-fact-pid-mismatch',
       pid: 350,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       sessionId: 'conversation-fact-pid-mismatch',
     })
     await writeTerminalFact('bg-fact-pid-mismatch', 'natural', {
@@ -806,7 +806,7 @@ describe('background session registry', () => {
       id: 'bg-fact-malformed-kill',
       pid: 352,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       sessionId: 'conversation-fact-malformed-kill',
     })
     await writeTerminalFact('bg-fact-malformed-kill', 'killed', {
@@ -827,7 +827,7 @@ describe('background session registry', () => {
       id: 'bg-natural-success',
       pid: 333,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       sessionId: 'conversation-success',
       now: new Date('2026-06-15T08:00:00.000Z'),
     })
@@ -859,7 +859,7 @@ describe('background session registry', () => {
       id: 'bg-natural-failure',
       pid: 334,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       sessionId: 'conversation-failure',
     })
     await writeTerminalFact('bg-natural-failure', 'natural', {
@@ -883,7 +883,7 @@ describe('background session registry', () => {
       id: 'bg-kill-precedence',
       pid: 335,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       sessionId: 'conversation-kill-precedence',
     })
     await writeTerminalFact('bg-kill-precedence', 'natural', {
@@ -914,7 +914,7 @@ describe('background session registry', () => {
       name: 'natural-name',
       pid: 336,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'old'],
+      command: ['kaltcode', '--print', 'old'],
       sessionId: 'conversation-natural-name-old',
     })
     await writeTerminalFact('bg-natural-name-old', 'natural', {
@@ -930,7 +930,7 @@ describe('background session registry', () => {
       name: 'natural-name',
       pid: 337,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'new'],
+      command: ['kaltcode', '--print', 'new'],
       sessionId: 'conversation-natural-name-new',
     })
 
@@ -945,7 +945,7 @@ describe('background session registry', () => {
       id: 'bg-owner-checked',
       pid: 338,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       sessionId: 'conversation-owner-checked',
     })
 
@@ -980,7 +980,7 @@ describe('background session registry', () => {
       id: 'bg-first-fact',
       pid: 340,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       sessionId: 'conversation-first-fact',
     })
     await recordBackgroundSessionNaturalTermination(
@@ -1012,7 +1012,7 @@ describe('background session registry', () => {
       id: 'bg-concurrent-natural',
       pid: 346,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       sessionId: 'conversation-concurrent-natural',
     })
 
@@ -1068,7 +1068,7 @@ describe('background session registry', () => {
       id: 'bg-stale-correction',
       pid: 341,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       sessionId: 'conversation-stale-correction',
     })
     await refreshBackgroundSessionStatuses({ isProcessAlive: () => false })
@@ -1086,7 +1086,7 @@ describe('background session registry', () => {
       id: 'bg-refresh-race',
       pid: 343,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       sessionId: 'conversation-refresh-race',
     })
     let releaseWrite!: () => void
@@ -1128,7 +1128,7 @@ describe('background session registry', () => {
       id: 'bg-observed-signal',
       pid: 344,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       sessionId: 'conversation-observed-signal',
     })
     const failed = await recordBackgroundSessionNaturalTermination(
@@ -1150,7 +1150,7 @@ describe('background session registry', () => {
       id: 'bg-killed-absorbing',
       pid: 342,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       sessionId: 'conversation-killed-absorbing',
     })
     await markBackgroundSessionKilled('bg-killed-absorbing', {
@@ -1179,7 +1179,7 @@ describe('background session registry', () => {
       id: 'bg-sync-killed-absorbing',
       pid: 347,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       sessionId: 'conversation-sync-killed-absorbing',
     })
     await markBackgroundSessionKilled('bg-sync-killed-absorbing', {
@@ -1211,7 +1211,7 @@ describe('background session registry', () => {
       id: 'bg-kill-natural-race',
       pid: 345,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       sessionId: 'conversation-kill-natural-race',
     })
 
@@ -1271,7 +1271,7 @@ describe('background session registry', () => {
         name: 'marked-windows',
         pid: 334,
         cwd: '/repo',
-        command: ['openclaude', '--print', 'contender'],
+        command: ['kaltcode', '--print', 'contender'],
         sessionId: 'conversation-contender',
       }),
     ).rejects.toThrow('already exists')
@@ -1285,7 +1285,7 @@ describe('background session registry', () => {
       cwd: '/repo',
       command: [
         'node',
-        '/repo/openclaude',
+        '/repo/kaltcode',
         markerToken,
         '--session-id',
         'conversation-marked',
@@ -1298,7 +1298,7 @@ describe('background session registry', () => {
     const refreshed = await refreshBackgroundSessionStatuses({
       isProcessAlive: () => true,
       getProcessCommand: () =>
-        `node /repo/openclaude ${backgroundProcessMarkerToken(OTHER_PROCESS_MARKER)} --session-id conversation-marked`,
+        `node /repo/kaltcode ${backgroundProcessMarkerToken(OTHER_PROCESS_MARKER)} --session-id conversation-marked`,
       now: new Date('2026-06-15T08:05:00.000Z'),
     })
 
@@ -1315,7 +1315,7 @@ describe('background session registry', () => {
       id: 'bg-marked-unreadable',
       pid: 333,
       cwd: '/repo',
-      command: ['node', '/repo/openclaude', markerToken, '--print', 'work'],
+      command: ['node', '/repo/kaltcode', markerToken, '--print', 'work'],
       sessionId: 'conversation-marked',
       processMarker: TEST_PROCESS_MARKER,
       now: new Date('2026-06-15T08:00:00.000Z'),
@@ -1339,7 +1339,7 @@ describe('background session registry', () => {
       id: 'bg-running',
       pid: 333,
       cwd: '/repo',
-      command: ['openclaude', '--session-id', 'conversation-1', '--print', 'work'],
+      command: ['kaltcode', '--session-id', 'conversation-1', '--print', 'work'],
       sessionId: 'conversation-1',
       now: new Date('2026-06-15T08:00:00.000Z'),
     })
@@ -1347,7 +1347,7 @@ describe('background session registry', () => {
     const refreshed = await refreshBackgroundSessionStatuses({
       isProcessAlive: () => true,
       getProcessCommand: () =>
-        'node openclaude --session-id conversation-1 --print work',
+        'node kaltcode --session-id conversation-1 --print work',
       now: new Date('2026-06-15T08:05:00.000Z'),
     })
 
@@ -1363,14 +1363,14 @@ describe('background session registry', () => {
       id: 'bg-from-pr',
       pid: 333,
       cwd: '/repo',
-      command: ['openclaude', '--from-pr', '1642', '--print'],
+      command: ['kaltcode', '--from-pr', '1642', '--print'],
       sessionId: '550e8400-e29b-41d4-a716-446655440000',
       now: new Date('2026-06-15T08:00:00.000Z'),
     })
 
     const refreshed = await refreshBackgroundSessionStatuses({
       isProcessAlive: () => true,
-      getProcessCommand: () => 'node openclaude --from-pr 1642 --print',
+      getProcessCommand: () => 'node kaltcode --from-pr 1642 --print',
       now: new Date('2026-06-15T08:05:00.000Z'),
     })
 
@@ -1386,7 +1386,7 @@ describe('background session registry', () => {
       id: 'bg-reused-pid',
       pid: 333,
       cwd: '/repo',
-      command: ['openclaude', '--session-id', 'conversation-1', '--print', 'work'],
+      command: ['kaltcode', '--session-id', 'conversation-1', '--print', 'work'],
       sessionId: 'conversation-1',
       now: new Date('2026-06-15T08:00:00.000Z'),
     })
@@ -1409,7 +1409,7 @@ describe('background session registry', () => {
       id: 'bg-unreadable-pid',
       pid: 333,
       cwd: '/repo',
-      command: ['openclaude', '--session-id', 'conversation-1', '--print', 'work'],
+      command: ['kaltcode', '--session-id', 'conversation-1', '--print', 'work'],
       sessionId: 'conversation-1',
       now: new Date('2026-06-15T08:00:00.000Z'),
     })
@@ -1434,7 +1434,7 @@ describe('background session registry', () => {
       name: 'reusable-after-kill',
       pid: 444,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       sessionId: 'conversation-1',
     })
 
@@ -1451,7 +1451,7 @@ describe('background session registry', () => {
       name: 'reusable-after-kill',
       pid: 445,
       cwd: '/repo',
-      command: ['openclaude', '--print', 'new work'],
+      command: ['kaltcode', '--print', 'new work'],
       sessionId: 'conversation-after-kill',
     })
     expect(replacement.name).toBe('reusable-after-kill')
@@ -1487,7 +1487,7 @@ describe('background session registry', () => {
         sessionId: 'conversation-1',
         startedAt: '2026-06-15T08:00:00.000Z',
         updatedAt: '2026-06-15T08:00:00.000Z',
-        command: ['openclaude', '--print', 'work'],
+        command: ['kaltcode', '--print', 'work'],
         stdoutLogPath: '/tmp/stdout.log',
         stderrLogPath: '/tmp/stderr.log',
       }),
@@ -1510,7 +1510,7 @@ describe('background session registry', () => {
         sessionId: 'conversation-1',
         startedAt: '2026-06-15T08:00:00.000Z',
         updatedAt: '2026-06-15T08:00:00.000Z',
-        command: ['openclaude', '--print', 'work'],
+        command: ['kaltcode', '--print', 'work'],
         stdoutLogPath: '/tmp/stdout.log',
         stderrLogPath: '/tmp/stderr.log',
       }),
@@ -1531,7 +1531,7 @@ describe('isBackgroundSessionProcessAlive process identity', () => {
     // sessionId deliberately absent from the command lines below so the stored
     // launch invocation (command) is what has to match.
     sessionId: 'conversation-identity',
-    command: ['node', 'openclaude', '1642'],
+    command: ['node', 'kaltcode', '1642'],
     stdoutLogPath: '/tmp/stdout.log',
     stderrLogPath: '/tmp/stderr.log',
   }
@@ -1557,7 +1557,7 @@ describe('isBackgroundSessionProcessAlive process identity', () => {
     // the wrong process.
     const alive = isBackgroundSessionProcessAlive(session, {
       isProcessAlive: () => true,
-      getProcessCommand: () => 'node openclaude 16420 --serve',
+      getProcessCommand: () => 'node kaltcode 16420 --serve',
     })
     expect(alive).toBe(false)
   })
@@ -1565,7 +1565,7 @@ describe('isBackgroundSessionProcessAlive process identity', () => {
   it('still recognizes the real process by exact command tokens', () => {
     const alive = isBackgroundSessionProcessAlive(session, {
       isProcessAlive: () => true,
-      getProcessCommand: () => 'node openclaude 1642 --serve',
+      getProcessCommand: () => 'node kaltcode 1642 --serve',
     })
     expect(alive).toBe(true)
   })
@@ -1573,7 +1573,7 @@ describe('isBackgroundSessionProcessAlive process identity', () => {
   it('matches on the session id when it is present on the command line', () => {
     const alive = isBackgroundSessionProcessAlive(session, {
       isProcessAlive: () => true,
-      getProcessCommand: () => 'node openclaude conversation-identity',
+      getProcessCommand: () => 'node kaltcode conversation-identity',
     })
     expect(alive).toBe(true)
   })
@@ -1661,11 +1661,11 @@ describe('isBackgroundSessionProcessAlive process identity', () => {
     const result = verifyBackgroundSessionProcessIdentity(
       {
         ...markedSession,
-        command: ['node', 'openclaude', '--print', 'work'],
+        command: ['node', 'kaltcode', '--print', 'work'],
       },
       {
         isProcessAlive: () => true,
-        getProcessCommand: () => 'node openclaude --print work',
+        getProcessCommand: () => 'node kaltcode --print work',
       },
     )
 
@@ -1680,11 +1680,11 @@ describe('isBackgroundSessionProcessAlive process identity', () => {
     const shortIdSession: BackgroundSession = {
       ...session,
       sessionId: 'sess-1',
-      command: ['node', 'openclaude', 'unused-token'],
+      command: ['node', 'kaltcode', 'unused-token'],
     }
     const alive = isBackgroundSessionProcessAlive(shortIdSession, {
       isProcessAlive: () => true,
-      getProcessCommand: () => 'node openclaude sess-100 --serve',
+      getProcessCommand: () => 'node kaltcode sess-100 --serve',
     })
     expect(alive).toBe(false)
   })
@@ -1693,11 +1693,11 @@ describe('isBackgroundSessionProcessAlive process identity', () => {
     const shortIdSession: BackgroundSession = {
       ...session,
       sessionId: 'sess-1',
-      command: ['node', 'openclaude', 'unused-token'],
+      command: ['node', 'kaltcode', 'unused-token'],
     }
     const alive = isBackgroundSessionProcessAlive(shortIdSession, {
       isProcessAlive: () => true,
-      getProcessCommand: () => 'node openclaude sess-1 --serve',
+      getProcessCommand: () => 'node kaltcode sess-1 --serve',
     })
     expect(alive).toBe(true)
   })
@@ -1709,12 +1709,12 @@ describe('isBackgroundSessionProcessAlive process identity', () => {
     const promptSession: BackgroundSession = {
       ...session,
       sessionId: 'conversation-absent',
-      command: ['node', 'openclaude', '--print', 'refactor auth'],
+      command: ['node', 'kaltcode', '--print', 'refactor auth'],
     }
     const alive = isBackgroundSessionProcessAlive(promptSession, {
       isProcessAlive: () => true,
       getProcessCommand: () =>
-        'node openclaude --print refactor auth --serve',
+        'node kaltcode --print refactor auth --serve',
     })
     expect(alive).toBe(true)
   })
@@ -1752,7 +1752,7 @@ describe('isBackgroundSessionProcessAlive process identity', () => {
     // so it must not satisfy the lookup.
     const alive = isBackgroundSessionProcessAlive(session, {
       isProcessAlive: () => true,
-      getProcessCommand: () => '"node" openclaude "16420" --serve',
+      getProcessCommand: () => '"node" kaltcode "16420" --serve',
     })
     expect(alive).toBe(false)
   })
@@ -1766,7 +1766,7 @@ describe('isBackgroundSessionProcessAlive process identity', () => {
     // wrong process.
     const alive = isBackgroundSessionProcessAlive(session, {
       isProcessAlive: () => true,
-      getProcessCommand: () => 'node attacker openclaude extra 1642 --serve',
+      getProcessCommand: () => 'node attacker kaltcode extra 1642 --serve',
     })
     expect(alive).toBe(false)
   })
@@ -1774,7 +1774,7 @@ describe('isBackgroundSessionProcessAlive process identity', () => {
   it('reports a dead process regardless of command line', () => {
     const alive = isBackgroundSessionProcessAlive(session, {
       isProcessAlive: () => false,
-      getProcessCommand: () => 'node openclaude 1642',
+      getProcessCommand: () => 'node kaltcode 1642',
     })
     expect(alive).toBe(false)
   })
@@ -1787,7 +1787,7 @@ describe('isBackgroundSessionProcessAlive process identity', () => {
       }),
       verifyBackgroundSessionProcessIdentity(session, {
         isProcessAlive: () => true,
-        getProcessCommand: () => 'node openclaude 1642 --serve',
+        getProcessCommand: () => 'node kaltcode 1642 --serve',
       }),
       verifyBackgroundSessionProcessIdentity(session, {
         isProcessAlive: () => true,

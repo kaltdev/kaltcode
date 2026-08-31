@@ -7,8 +7,8 @@ import {
 } from '../../utils/interruptionTrace.js'
 
 process.env.NODE_ENV = 'test'
-process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
-process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = '/virtual/trace.jsonl'
+process.env.KALTCODE_INTERRUPT_TRACE = '1'
+process.env.KALTCODE_INTERRUPT_TRACE_FILE = '/virtual/trace.jsonl'
 
 const originalFs = getFsImplementation()
 const originalExit = process.exit

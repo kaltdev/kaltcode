@@ -83,9 +83,9 @@ describe('fetchNextTip / confirmTip (mocked fetch)', () => {
   test('POSTs sanitized conversation context when a prompt is given', async () => {
     process.env.ADS_BASE_URL = 'https://ads.test'
     stubFetch(200, TIP)
-    const tip = await fetchNextTip('code', 'openclaude', 'deploy with key sk-ABCDEFGH1234567890')
+    const tip = await fetchNextTip('code', 'kaltcode', 'deploy with key sk-ABCDEFGH1234567890')
     expect(captured.method).toBe('POST')
-    expect(captured.url).toContain('/api/ads/next?surface=openclaude')
+    expect(captured.url).toContain('/api/ads/next?surface=kaltcode')
     const sent = (captured.body as { context: { messages: { content: string }[] } }).context
       .messages[0].content
     expect(sent).toContain('deploy with key')
@@ -96,24 +96,24 @@ describe('fetchNextTip / confirmTip (mocked fetch)', () => {
 
   test('GETs with no body when there is no prompt', async () => {
     stubFetch(200, TIP)
-    await fetchNextTip('code', 'openclaude')
+    await fetchNextTip('code', 'kaltcode')
     expect(captured.method).toBe('GET')
     expect(captured.body).toBeUndefined()
   })
 
   test('returns null on a non-OK response', async () => {
     stubFetch(500, { error: 'server_error' })
-    expect(await fetchNextTip('code', 'openclaude', 'a prompt')).toBeNull()
+    expect(await fetchNextTip('code', 'kaltcode', 'a prompt')).toBeNull()
   })
 
   test('returns null when there is no ad to serve', async () => {
     stubFetch(200, { ad: null })
-    expect(await fetchNextTip('code', 'openclaude', 'a prompt')).toBeNull()
+    expect(await fetchNextTip('code', 'kaltcode', 'a prompt')).toBeNull()
   })
 
   test('clamps a malformed dwell_ms to the 5000ms default', async () => {
     stubFetch(200, { ...TIP, dwell_ms: 'not-a-number' })
-    const tip = await fetchNextTip('code', 'openclaude', 'a prompt')
+    const tip = await fetchNextTip('code', 'kaltcode', 'a prompt')
     expect(tip?.dwellMs).toBe(5000)
   })
 

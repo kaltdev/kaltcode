@@ -239,7 +239,7 @@ async function runConcurrentWriters(
 async function withIsolatedUserSettings(
   run: (root: string, settingsPath: string) => void | Promise<void>,
 ): Promise<void> {
-  const root = mkdtempSync(join(tmpdir(), 'openclaude-settings-unit-'))
+  const root = mkdtempSync(join(tmpdir(), 'kaltcode-settings-unit-'))
   const previousOverride = getClaudeConfigHomeDirOverrideForTesting()
   setClaudeConfigHomeDirForTesting(root)
   resetSettingsCache()
@@ -255,7 +255,7 @@ async function withIsolatedUserSettings(
 test(
   'two processes preserve disjoint settings patches during contention',
   async () => {
-    const root = mkdtempSync(join(tmpdir(), 'openclaude-settings-race-'))
+    const root = mkdtempSync(join(tmpdir(), 'kaltcode-settings-race-'))
     const settingsPath = join(root, 'settings.json')
 
     try {
@@ -408,7 +408,7 @@ test('JSON null is reported as an invalid settings document', async () => {
 })
 
 test('does not retry unrelated filesystem errors', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'openclaude-settings-fs-error-'))
+  const root = mkdtempSync(join(tmpdir(), 'kaltcode-settings-fs-error-'))
   const nonDirectory = join(root, 'not-a-directory')
   writeFileSync(nonDirectory, '')
   try {
@@ -498,7 +498,7 @@ test.each([
 ] as const)(
   'fixture rejects %s before acquiring',
   async (_label, buildArgs, expectedError) => {
-    const root = mkdtempSync(join(tmpdir(), 'openclaude-settings-fixture-args-'))
+    const root = mkdtempSync(join(tmpdir(), 'kaltcode-settings-fixture-args-'))
     const entered = join(root, 'entered')
     const completed = join(root, 'completed')
     const child = startWriter(buildArgs(root, entered, completed))
@@ -518,7 +518,7 @@ test.each([
 )
 
 test('keeps an operation error primary when lock release also fails', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'openclaude-settings-release-error-'))
+  const root = mkdtempSync(join(tmpdir(), 'kaltcode-settings-release-error-'))
   const settingsPath = join(root, 'settings.json')
   const originalFs = getFsImplementation()
   let releaseOwnerRead = false
@@ -550,7 +550,7 @@ test('keeps an operation error primary when lock release also fails', async () =
 })
 
 test('propagates a release error after the operation succeeds', async () => {
-  const root = mkdtempSync(join(tmpdir(), 'openclaude-settings-release-error-'))
+  const root = mkdtempSync(join(tmpdir(), 'kaltcode-settings-release-error-'))
   const settingsPath = join(root, 'settings.json')
   try {
     const { withSettingsFileTransactionSync } = await import(
@@ -585,7 +585,7 @@ test('reports transaction failures with operation-neutral context', async () => 
 test(
   'waits for a short holder and succeeds before the contention deadline',
   async () => {
-    const root = mkdtempSync(join(tmpdir(), 'openclaude-settings-wait-'))
+    const root = mkdtempSync(join(tmpdir(), 'kaltcode-settings-wait-'))
     const settingsPath = join(root, 'settings.json')
     const holderEntered = join(root, 'holder-entered')
     const holderCompleted = join(root, 'holder-completed')
@@ -638,7 +638,7 @@ test(
 test(
   'times out a long-held lock clearly and allows a later update',
   async () => {
-    const root = mkdtempSync(join(tmpdir(), 'openclaude-settings-timeout-'))
+    const root = mkdtempSync(join(tmpdir(), 'kaltcode-settings-timeout-'))
     const settingsPath = join(root, 'settings.json')
     const holderEntered = join(root, 'holder-entered')
     const holderCompleted = join(root, 'holder-completed')
@@ -773,7 +773,7 @@ test(
 test(
   'does not expire a live synchronous owner when its lock entry is old',
   async () => {
-    const root = mkdtempSync(join(tmpdir(), 'openclaude-settings-live-owner-'))
+    const root = mkdtempSync(join(tmpdir(), 'kaltcode-settings-live-owner-'))
     const settingsPath = join(root, 'settings.json')
     const holderEntered = join(root, 'holder-entered')
     const holderCompleted = join(root, 'holder-completed')
@@ -833,7 +833,7 @@ test(
 test(
   'a waiting process can exit without blocking a later writer',
   async () => {
-    const root = mkdtempSync(join(tmpdir(), 'openclaude-settings-dead-waiter-'))
+    const root = mkdtempSync(join(tmpdir(), 'kaltcode-settings-dead-waiter-'))
     const settingsPath = join(root, 'settings.json')
     const holderEntered = join(root, 'holder-entered')
     const holderCompleted = join(root, 'holder-completed')
@@ -902,7 +902,7 @@ test(
 test(
   'serializes competing recoveries after the recorded holder process exits',
   async () => {
-    const root = mkdtempSync(join(tmpdir(), 'openclaude-settings-dead-owner-'))
+    const root = mkdtempSync(join(tmpdir(), 'kaltcode-settings-dead-owner-'))
     const settingsPath = join(root, 'settings.json')
     const holderEntered = join(root, 'holder-entered')
     const holderCompleted = join(root, 'holder-completed')
@@ -972,7 +972,7 @@ test(
 test(
   'persists process incarnation identity for real lock owners',
   async () => {
-    const root = mkdtempSync(join(tmpdir(), 'openclaude-settings-owner-id-'))
+    const root = mkdtempSync(join(tmpdir(), 'kaltcode-settings-owner-id-'))
     const settingsPath = join(root, 'settings.json')
     const holderEntered = join(root, 'holder-entered')
     const holderCompleted = join(root, 'holder-completed')
@@ -1076,7 +1076,7 @@ test(
 test(
   'recovers after a process exits before publishing its lock owner',
   async () => {
-    const root = mkdtempSync(join(tmpdir(), 'openclaude-settings-lock-claim-'))
+    const root = mkdtempSync(join(tmpdir(), 'kaltcode-settings-lock-claim-'))
     const settingsPath = join(root, 'settings.json')
     const interruptedEntered = join(root, 'interrupted-entered')
     const interruptedCompleted = join(root, 'interrupted-completed')
@@ -1135,7 +1135,7 @@ test(
 test(
   'symlinked parent and direct-file aliases share a lock and preserve the links',
   async () => {
-    const root = mkdtempSync(join(tmpdir(), 'openclaude-settings-alias-'))
+    const root = mkdtempSync(join(tmpdir(), 'kaltcode-settings-alias-'))
     const realConfig = join(root, 'real-config')
     const parentAlias = join(root, 'parent-alias')
     const directAliasConfig = join(root, 'direct-alias-config')
@@ -1190,7 +1190,7 @@ test(
 )
 
 test('marks the requested logical alias after publishing to its physical target', () => {
-  const root = mkdtempSync(join(tmpdir(), 'openclaude-settings-mark-'))
+  const root = mkdtempSync(join(tmpdir(), 'kaltcode-settings-mark-'))
   const realConfig = join(root, 'real-config')
   const configAlias = join(root, 'config-alias')
   const logicalSettingsPath = join(configAlias, 'settings.json')
@@ -1233,7 +1233,7 @@ test('marks the requested logical alias after publishing to its physical target'
 })
 
 test('repository settings sources arrange their global gitignore rules', () => {
-  const root = mkdtempSync(join(tmpdir(), 'openclaude-settings-gitignore-'))
+  const root = mkdtempSync(join(tmpdir(), 'kaltcode-settings-gitignore-'))
   const project = join(root, 'project')
   const previousOriginalCwd = getOriginalCwd()
   const previousOverride = getClaudeConfigHomeDirOverrideForTesting()
@@ -1258,15 +1258,15 @@ test('repository settings sources arrange their global gitignore rules', () => {
       }),
     ).toEqual({ error: null })
     expect(addRule).toHaveBeenCalledWith(
-      '.openclaude/settings.local.json',
+      '.kaltcode/settings.local.json',
       project,
     )
     expect(addRule).toHaveBeenCalledWith(
-      '.openclaude/settings.local.json.lock*',
+      '.kaltcode/settings.local.json.lock*',
       project,
     )
     expect(addRule).toHaveBeenCalledWith(
-      '.openclaude/settings.json.lock*',
+      '.kaltcode/settings.json.lock*',
       project,
     )
   } finally {

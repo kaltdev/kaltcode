@@ -70,7 +70,7 @@ async function withTempConfigDir<T>(fn: () => Promise<T>): Promise<T> {
   await acquireSharedMutationLock('integrations/runtimeMetadata.test.ts')
   let tempDir: string | null = null
   try {
-    tempDir = mkdtempSync(join(tmpdir(), 'openclaude-runtime-metadata-test-'))
+    tempDir = mkdtempSync(join(tmpdir(), 'kaltcode-runtime-metadata-test-'))
     setClaudeConfigHomeDirForTesting(tempDir)
     process.env.CLAUDE_CONFIG_DIR = tempDir
     return await fn()
@@ -328,7 +328,7 @@ describe('AIMLAPI runtime attribution', () => {
       )
       // The mandatory source header rides on every canonical inference request.
       expect(canonical.openaiShimConfig.headers?.['X-AIMLAPI-Source']).toBe(
-        'agent/openclaude',
+        'agent/kaltcode',
       )
 
       const proxy = resolveOpenAIShimRuntimeContext({
@@ -377,8 +377,8 @@ describe('AIMLAPI runtime attribution', () => {
     expect(canonical?.['X-AIMLAPI-Partner-ID']).toBe(
       'part_62yQoGYDq4Yqnrj2R1iGrDNJ',
     )
-    expect(canonical?.['X-AIMLAPI-Source']).toBe('agent/openclaude')
-    expect(canonical?.['HTTP-Referer']).toBe('OpenClaude')
+    expect(canonical?.['X-AIMLAPI-Source']).toBe('agent/kaltcode')
+    expect(canonical?.['HTTP-Referer']).toBe('Kalt Code')
 
     // A missing base URL falls back to the route default, which is canonical.
     expect(getRouteDiscoveryHeaders('aimlapi')?.['X-AIMLAPI-Partner-ID']).toBe(
@@ -1162,14 +1162,14 @@ describe('resolveOpenAIShimRuntimeContext - segment-boundary heuristic', () => {
     ).toBe(262_144)
   })
 
-  it('preserves OpenGateway maxTokensField wire contract for live-only inferred models', () => {
+  it('preserves KaltCode Gateway maxTokensField wire contract for live-only inferred models', () => {
     for (const model of ['moonshotai/kimi-k3', 'deepseek/deepseek-r1', 'z-ai/glm-5.2']) {
       const result = resolveOpenAIShimRuntimeContext({
-        baseUrl: 'https://opengateway.gitlawb.com/v1',
+        baseUrl: 'https://kaltcode.my.id/v1',
         model,
         processEnv: { CLAUDE_CODE_USE_OPENAI: '1' },
       })
-      expect(result.routeId).toBe('gitlawb-opengateway')
+      expect(result.routeId).toBe('kaltcode-gateway')
       expect(result.openaiShimConfig.maxTokensField).toBe('max_completion_tokens')
       expect(result.openaiShimConfig.preserveReasoningContent).toBe(true)
     }
@@ -1177,19 +1177,19 @@ describe('resolveOpenAIShimRuntimeContext - segment-boundary heuristic', () => {
 
   it('prefers explicit descriptor and catalog openaiShim overrides over inferred settings and merges removeBodyFields', () => {
     // Inferred GLM shim defaults maxTokensField to 'max_tokens' and removeBodyFields to ['store'].
-    // OpenGateway route descriptor explicitly sets maxTokensField to 'max_completion_tokens'
+    // KaltCode Gateway route descriptor explicitly sets maxTokensField to 'max_completion_tokens'
     // and removeBodyFields to ['store', 'stream_options'].
-    const opengatewayGlm = resolveOpenAIShimRuntimeContext({
-      baseUrl: 'https://opengateway.gitlawb.com/v1',
+    const gatewayGlm = resolveOpenAIShimRuntimeContext({
+      baseUrl: 'https://kaltcode.my.id/v1',
       model: 'z-ai/glm-5.2',
       processEnv: { CLAUDE_CODE_USE_OPENAI: '1' },
     })
-    expect(opengatewayGlm.openaiShimConfig.maxTokensField).toBe('max_completion_tokens')
-    expect(opengatewayGlm.openaiShimConfig.removeBodyFields).toEqual([
+    expect(gatewayGlm.openaiShimConfig.maxTokensField).toBe('max_completion_tokens')
+    expect(gatewayGlm.openaiShimConfig.removeBodyFields).toEqual([
       'store',
       'stream_options',
     ])
-    expect(opengatewayGlm.openaiShimConfig.preserveReasoningContent).toBe(true)
+    expect(gatewayGlm.openaiShimConfig.preserveReasoningContent).toBe(true)
 
     // Atlas Cloud grok-build-0.1 catalog entry explicitly sets removeBodyFields: ['reasoning_effort']
     // which merges with any route-level settings.

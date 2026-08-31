@@ -119,7 +119,7 @@ export default class App extends PureComponent<Props, State> {
   // Default to readable-mode stdin (legacy Ink behavior). The data-mode path
   // is kept as an explicit opt-in because some terminals can enter a state
   // where startup input appears frozen when data mode is the default.
-  stdinMode: 'readable' | 'data' = process.env.OPENCLAUDE_USE_DATA_STDIN === '1' || process.env.OPENCLAUDE_USE_READABLE_STDIN === '0' ? 'data' : 'readable';
+  stdinMode: 'readable' | 'data' = process.env.KALTCODE_USE_DATA_STDIN === '1' || process.env.KALTCODE_USE_READABLE_STDIN === '0' ? 'data' : 'readable';
   // Timeout durations for incomplete sequences (ms)
   // NORMAL_TIMEOUT must exceed IME composition gaps: Vietnamese Telex/VNI
   // and CJK IMEs emit multi-byte UTF-8 / CSI-u sequences whose halves can

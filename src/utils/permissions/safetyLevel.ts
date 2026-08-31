@@ -1,7 +1,7 @@
 /**
  * Tunable safety strictness.
  *
- * OpenClaude runs a number of "safety" checks: a model-level refusal directive
+ * Kalt Code runs a number of "safety" checks: a model-level refusal directive
  * (see cyberRiskInstruction.ts), bash command-injection heuristics
  * (bashSecurity.ts), and sensitive-file / auto-edit guards (filesystem.ts).
  * Those checks are intentionally conservative, but several of them surface as
@@ -18,7 +18,7 @@
  *                   prompt is not weakened by this flag (use the prompt text
  *                   for that), but bash/file permission heuristics are eased.
  *
- * Driven by the OPENCLAUDE_SAFETY_LEVEL env var. Unknown values fall back to
+ * Driven by the KALTCODE_SAFETY_LEVEL env var. Unknown values fall back to
  * "balanced".
  */
 
@@ -28,7 +28,7 @@ let cached: SafetyLevel | undefined
 let cachedRaw: string | undefined
 
 export function getSafetyLevel(): SafetyLevel {
-  const raw = (process.env.OPENCLAUDE_SAFETY_LEVEL ?? '')
+  const raw = (process.env.KALTCODE_SAFETY_LEVEL ?? '')
     .trim()
     .toLowerCase()
   if (cached && cachedRaw === raw) {

@@ -117,7 +117,7 @@ async function prepareHydration(): Promise<string> {
 
 beforeEach(async () => {
   await acquireSharedMutationLock('utils/sessionStorage.atomicReplace.test.ts')
-  testRoot = await mkdtemp(join(tmpdir(), 'openclaude-atomic-session-'))
+  testRoot = await mkdtemp(join(tmpdir(), 'kaltcode-atomic-session-'))
   originalCwd = getOriginalCwd()
   originalSessionId = getSessionId()
   originalConfigOverride = getClaudeConfigHomeDirOverrideForTesting()

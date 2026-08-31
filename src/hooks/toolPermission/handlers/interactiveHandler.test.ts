@@ -182,8 +182,8 @@ describe('handleInteractivePermission watchdog suspension', () => {
   })
 
   test('preserves the originating trace when an external abort closes the dialog', async () => {
-    const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     const { ctx, abortController } = setup()
 
@@ -223,9 +223,9 @@ describe('handleInteractivePermission watchdog suspension', () => {
       await __waitForInterruptionTraceFlushForTests()
       __resetInterruptionTraceForTests()
       if (originalTrace === undefined) {
-        delete process.env.OPENCLAUDE_INTERRUPT_TRACE
+        delete process.env.KALTCODE_INTERRUPT_TRACE
       } else {
-        process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+        process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
       }
     }
   })

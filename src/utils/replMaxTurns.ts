@@ -14,7 +14,7 @@ export const REPL_MAX_TURNS_OPTIONS = [50, 100, 200, 500] as const
  * Keep remote-backed sessions explicitly out of scope in this string.
  */
 export const MAX_TURNS_CLI_DESCRIPTION =
-  'Maximum number of agentic turns per prompt. In local interactive mode, set to 0 for unlimited turns (use with caution). This overrides the default 50-turn REPL query cap and is also configurable via OPENCLAUDE_MAX_TURNS or /config. Does not apply to remote-backed sessions (connect/ssh/--remote). In --print mode this early-exits after the specified number of turns.'
+  'Maximum number of agentic turns per prompt. In local interactive mode, set to 0 for unlimited turns (use with caution). This overrides the default 50-turn REPL query cap and is also configurable via KALTCODE_MAX_TURNS or /config. Does not apply to remote-backed sessions (connect/ssh/--remote). In --print mode this early-exits after the specified number of turns.'
 
 export function parseMaxTurnsCli(value: string): number {
   const parsed = value.trim() === '' ? Number.NaN : Number(value)
@@ -36,7 +36,7 @@ export function parseMaxTurnsCommanderArgument(value: string): number {
 }
 
 /**
- * Prefer OPENCLAUDE_MAX_TURNS; honor legacy CLAUDE_CODE_MAX_TURNS only when
+ * Prefer KALTCODE_MAX_TURNS; honor legacy CLAUDE_CODE_MAX_TURNS only when
  * the new variable is unset/empty. Invalid, zero, negative, non-integer, or
  * unsafe values are ignored (treated as absent for the chosen variable).
  */
@@ -81,8 +81,8 @@ function resolveConfiguredReplMaxTurns(): number {
 /**
  * Resolve the per-prompt local interactive REPL turn cap.
  *
- * Precedence: explicit prop (CLI `--max-turns`) → OPENCLAUDE_MAX_TURNS →
- * CLAUDE_CODE_MAX_TURNS (only if OPENCLAUDE_MAX_TURNS unset) →
+ * Precedence: explicit prop (CLI `--max-turns`) → KALTCODE_MAX_TURNS →
+ * CLAUDE_CODE_MAX_TURNS (only if KALTCODE_MAX_TURNS unset) →
  * `/config` `replMaxTurns` → DEFAULT_REPL_MAX_TURNS (50).
  *
  * Applies to local interactive query loops only. Remote-backed sessions
@@ -92,9 +92,9 @@ function resolveConfiguredReplMaxTurns(): number {
  * An explicit CLI value of zero disables the cap. Other invalid explicit
  * values fall through so a bad CLI parse cannot disable the interactive
  * safety cap (unlike headless, where omitted maxTurns means no cap).
- * If OPENCLAUDE_MAX_TURNS is set but invalid, DEFAULT_REPL_MAX_TURNS is
+ * If KALTCODE_MAX_TURNS is set but invalid, DEFAULT_REPL_MAX_TURNS is
  * used and lower layers (legacy env, /config) are not consulted — matching
- * OPENCLAUDE_MAX_RETRIES precedence.
+ * KALTCODE_MAX_RETRIES precedence.
  */
 export function resolveReplMaxTurns(maxTurns?: number): number | undefined {
   if (maxTurns === 0) {
@@ -108,16 +108,16 @@ export function resolveReplMaxTurns(maxTurns?: number): number | undefined {
     return maxTurns
   }
 
-  const openClaudeRaw = process.env.OPENCLAUDE_MAX_TURNS
-  if (openClaudeRaw?.trim()) {
-    const parsed = parsePositiveTurnEnv('OPENCLAUDE_MAX_TURNS')
+  const kaltCodeRaw = process.env.KALTCODE_MAX_TURNS
+  if (kaltCodeRaw?.trim()) {
+    const parsed = parsePositiveTurnEnv('KALTCODE_MAX_TURNS')
     if (parsed !== undefined) {
       return parsed
     }
-    // Match OPENCLAUDE_MAX_RETRIES: set-but-invalid uses the default and does
+    // Match KALTCODE_MAX_RETRIES: set-but-invalid uses the default and does
     // not fall through to legacy env or /config; surface a debug diagnostic.
     logForDebugging(
-      `OPENCLAUDE_MAX_TURNS has an invalid value (using default: ${DEFAULT_REPL_MAX_TURNS})`,
+      `KALTCODE_MAX_TURNS has an invalid value (using default: ${DEFAULT_REPL_MAX_TURNS})`,
     )
     return DEFAULT_REPL_MAX_TURNS
   }

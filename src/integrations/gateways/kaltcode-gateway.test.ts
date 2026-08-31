@@ -1,22 +1,22 @@
 import { describe, expect, test } from 'bun:test'
-import opengateway, { mapOpenGatewayModel } from './gitlawb-opengateway.js'
+import gateway, { mapGatewayModel } from './kaltcode-gateway.js'
 
-describe('gitlawb-opengateway live model mapping', () => {
+describe('kaltcode-gateway live model mapping', () => {
   test('uses hybrid discovery against the public models list', () => {
-    expect(opengateway.catalog?.source).toBe('hybrid')
-    expect(opengateway.catalog?.discovery).toEqual(
+    expect(gateway.catalog?.source).toBe('hybrid')
+    expect(gateway.catalog?.discovery).toEqual(
       expect.objectContaining({
         kind: 'openai-compatible',
         requiresAuth: false,
       }),
     )
-    expect(opengateway.catalog?.discovery?.mapModel).toBe(mapOpenGatewayModel)
-    expect(opengateway.startup?.probeReadiness).toBeUndefined()
+    expect(gateway.catalog?.discovery?.mapModel).toBe(mapGatewayModel)
+    expect(gateway.startup?.probeReadiness).toBeUndefined()
   })
 
   test('maps gateway routes including auto and free models', () => {
     expect(
-      mapOpenGatewayModel({
+      mapGatewayModel({
         id: 'auto',
         name: 'Auto (smart routing)',
         description: 'picks the cheapest capable model',
@@ -28,7 +28,7 @@ describe('gitlawb-opengateway live model mapping', () => {
     })
 
     expect(
-      mapOpenGatewayModel({
+      mapGatewayModel({
         id: 'xiaomi/mimo-v2.5-pro',
         name: 'MiMo V2.5-Pro',
         context_window: 262144,
@@ -41,7 +41,7 @@ describe('gitlawb-opengateway live model mapping', () => {
     })
 
     expect(
-      mapOpenGatewayModel({
+      mapGatewayModel({
         id: 'nvidia/nemotron-3-ultra-550b-a55b:free',
         name: 'Nemotron 3 Ultra free',
         context_window: 128000,
@@ -57,20 +57,20 @@ describe('gitlawb-opengateway live model mapping', () => {
 
   test('drops known non-coding ids', () => {
     expect(
-      mapOpenGatewayModel({
+      mapGatewayModel({
         id: 'whisper-1',
         name: 'Whisper',
       }),
     ).toBeNull()
-    expect(mapOpenGatewayModel({})).toBeNull()
-    expect(mapOpenGatewayModel({ id: '   ' })).toBeNull()
-    expect(mapOpenGatewayModel(null)).toBeNull()
+    expect(mapGatewayModel({})).toBeNull()
+    expect(mapGatewayModel({ id: '   ' })).toBeNull()
+    expect(mapGatewayModel(null)).toBeNull()
   })
 
   test('falls back to display_name and title for labels', () => {
-    expect(mapOpenGatewayModel({ id: 'a/b', display_name: 'B' })?.label).toBe(
+    expect(mapGatewayModel({ id: 'a/b', display_name: 'B' })?.label).toBe(
       'B',
     )
-    expect(mapOpenGatewayModel({ id: 'c/d', title: 'D' })?.label).toBe('D')
+    expect(mapGatewayModel({ id: 'c/d', title: 'D' })?.label).toBe('D')
   })
 })

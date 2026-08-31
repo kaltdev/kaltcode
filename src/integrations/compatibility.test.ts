@@ -48,7 +48,7 @@ const EXPECTED_PRESETS = [
   'bankr',
   'atomic-chat',
   'cloudflare',
-  'gitlawb-opengateway',
+  'kaltcode-gateway',
   'concentrate',
   'nearai',
   'fireworks',

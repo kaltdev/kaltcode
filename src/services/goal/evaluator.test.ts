@@ -40,8 +40,8 @@ function assistant(uuid: string, content: string) {
 describe('goal evaluator', () => {
   test.serial('traces provider failures without serializing the error message', async () => {
     await acquireSharedMutationLock('goal/evaluator trace')
-    const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     try {
       const controller = new AbortController()
@@ -78,8 +78,8 @@ describe('goal evaluator', () => {
     } finally {
       await __waitForInterruptionTraceFlushForTests()
       __resetInterruptionTraceForTests()
-      if (originalTrace === undefined) delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-      else process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+      if (originalTrace === undefined) delete process.env.KALTCODE_INTERRUPT_TRACE
+      else process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
       releaseSharedMutationLock()
     }
   })

@@ -30,7 +30,7 @@ describe('convertToSandboxRuntimeConfig', () => {
     previousOriginalCwd = getOriginalCwd()
     previousCwd = getCwdState()
 
-    tempRoot = await mkdtemp(join(tmpdir(), 'openclaude-sandbox-adapter-'))
+    tempRoot = await mkdtemp(join(tmpdir(), 'kaltcode-sandbox-adapter-'))
     const originalCwd = join(tempRoot, 'original-project')
     activeCwd = join(tempRoot, 'active-project')
 
@@ -56,14 +56,14 @@ describe('convertToSandboxRuntimeConfig', () => {
     }
   })
 
-  test('denies canonical OpenClaude settings files in changed cwd', () => {
+  test('denies canonical Kalt Code settings files in changed cwd', () => {
     const config = convertToSandboxRuntimeConfig({} as SettingsJson)
 
     expect(config.filesystem.denyWrite).toContain(
-      resolve(activeCwd, '.openclaude', 'settings.json'),
+      resolve(activeCwd, '.kaltcode', 'settings.json'),
     )
     expect(config.filesystem.denyWrite).toContain(
-      resolve(activeCwd, '.openclaude', 'settings.local.json'),
+      resolve(activeCwd, '.kaltcode', 'settings.local.json'),
     )
   })
 
@@ -72,7 +72,7 @@ describe('convertToSandboxRuntimeConfig', () => {
 
     for (const cwd of [getOriginalCwd(), activeCwd]) {
       expect(config.filesystem.denyWrite).toContain(
-        resolve(cwd, '.claude'),
+        resolve(cwd, '.kaltcode'),
       )
     }
   })
@@ -88,8 +88,8 @@ describe('convertToSandboxRuntimeConfig', () => {
     const config = convertToSandboxRuntimeConfig({} as SettingsJson)
 
     const representativeLegacyPaths = [
-      resolve(getOriginalCwd(), '.claude', 'CLAUDE.md'),
-      resolve(activeCwd, '.claude', 'credentials.json'),
+      resolve(getOriginalCwd(), '.kaltcode', 'CLAUDE.md'),
+      resolve(activeCwd, '.kaltcode', 'credentials.json'),
       resolve(process.env.CLAUDE_CONFIG_DIR!, 'plugins', 'plugin.json'),
       resolve(process.env.CLAUDE_CONFIG_DIR!, 'scheduled-tasks', 'task.json'),
     ]

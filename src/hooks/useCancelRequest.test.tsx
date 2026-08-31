@@ -166,7 +166,7 @@ async function renderCancelHandler(
   }
 }
 
-const originalInterruptionTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
+const originalInterruptionTrace = process.env.KALTCODE_INTERRUPT_TRACE
 let hasSharedMutationLock = false
 
 beforeEach(async () => {
@@ -180,9 +180,9 @@ afterEach(async () => {
     await __waitForInterruptionTraceFlushForTests()
     __resetInterruptionTraceForTests()
     if (originalInterruptionTrace === undefined) {
-      delete process.env.OPENCLAUDE_INTERRUPT_TRACE
+      delete process.env.KALTCODE_INTERRUPT_TRACE
     } else {
-      process.env.OPENCLAUDE_INTERRUPT_TRACE = originalInterruptionTrace
+      process.env.KALTCODE_INTERRUPT_TRACE = originalInterruptionTrace
     }
   } finally {
     if (hasSharedMutationLock) {
@@ -247,7 +247,7 @@ describe('CancelRequestHandler interruption sources', () => {
   })
 
   test('app:interrupt links background-agent aborts to the Ctrl-C input', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     const agentAbortController = new AbortController()
     const agentTask: LocalAgentTaskState = {
@@ -256,7 +256,7 @@ describe('CancelRequestHandler interruption sources', () => {
       status: 'running',
       description: 'trace test agent',
       startTime: Date.now(),
-      outputFile: join(tmpdir(), 'openclaude-trace-test-agent.output'),
+      outputFile: join(tmpdir(), 'kaltcode-trace-test-agent.output'),
       outputOffset: 0,
       notified: false,
       agentId: 'agent-1',

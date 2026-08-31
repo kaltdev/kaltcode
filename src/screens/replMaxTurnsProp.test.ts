@@ -37,7 +37,7 @@ import {
 } from '../utils/replMaxTurns.js'
 import * as debug from '../utils/debug.js'
 
-const ENV_KEYS = ['OPENCLAUDE_MAX_TURNS', 'CLAUDE_CODE_MAX_TURNS'] as const
+const ENV_KEYS = ['KALTCODE_MAX_TURNS', 'CLAUDE_CODE_MAX_TURNS'] as const
 const savedEnv: Partial<Record<(typeof ENV_KEYS)[number], string | undefined>> =
   {}
 const savedReplMaxTurns = getGlobalConfig().replMaxTurns
@@ -58,7 +58,7 @@ function setReplMaxTurnsConfig(value: number | undefined): void {
 function createMaxTurnsCliProgram(): CommanderCommand {
   const program = new CommanderCommand()
   program
-    .name('openclaude')
+    .name('kaltcode')
     .exitOverride()
     .addOption(
       new Option('--max-turns <turns>', MAX_TURNS_CLI_DESCRIPTION).argParser(
@@ -104,28 +104,28 @@ describe('interactive REPL max-turn cap', () => {
     expect(resolveReplMaxTurns(7)).toBe(7)
   })
 
-  test('honors OPENCLAUDE_MAX_TURNS when no explicit cap is passed', () => {
+  test('honors KALTCODE_MAX_TURNS when no explicit cap is passed', () => {
     clearTurnEnv()
-    process.env.OPENCLAUDE_MAX_TURNS = '200'
+    process.env.KALTCODE_MAX_TURNS = '200'
     expect(resolveReplMaxTurns()).toBe(200)
   })
 
-  test('falls back to CLAUDE_CODE_MAX_TURNS when OPENCLAUDE_MAX_TURNS is unset', () => {
+  test('falls back to CLAUDE_CODE_MAX_TURNS when KALTCODE_MAX_TURNS is unset', () => {
     clearTurnEnv()
     process.env.CLAUDE_CODE_MAX_TURNS = '125'
     expect(resolveReplMaxTurns()).toBe(125)
   })
 
-  test('prefers OPENCLAUDE_MAX_TURNS over CLAUDE_CODE_MAX_TURNS', () => {
+  test('prefers KALTCODE_MAX_TURNS over CLAUDE_CODE_MAX_TURNS', () => {
     clearTurnEnv()
-    process.env.OPENCLAUDE_MAX_TURNS = '90'
+    process.env.KALTCODE_MAX_TURNS = '90'
     process.env.CLAUDE_CODE_MAX_TURNS = '30'
     expect(resolveReplMaxTurns()).toBe(90)
   })
 
-  test('invalid OPENCLAUDE_MAX_TURNS does not fall through to legacy', () => {
+  test('invalid KALTCODE_MAX_TURNS does not fall through to legacy', () => {
     clearTurnEnv()
-    process.env.OPENCLAUDE_MAX_TURNS = 'nope'
+    process.env.KALTCODE_MAX_TURNS = 'nope'
     process.env.CLAUDE_CODE_MAX_TURNS = '125'
     expect(resolveReplMaxTurns()).toBe(DEFAULT_REPL_MAX_TURNS)
   })
@@ -133,14 +133,14 @@ describe('interactive REPL max-turn cap', () => {
   test('does not include an invalid environment value in debug logs', () => {
     clearTurnEnv()
     const invalidValue = 'private-value-that-must-not-be-logged'
-    process.env.OPENCLAUDE_MAX_TURNS = invalidValue
+    process.env.KALTCODE_MAX_TURNS = invalidValue
     const logSpy = spyOn(debug, 'logForDebugging').mockImplementation(() => {})
 
     try {
       expect(resolveReplMaxTurns()).toBe(DEFAULT_REPL_MAX_TURNS)
       expect(logSpy).toHaveBeenCalledTimes(1)
       const logged = logSpy.mock.calls.flat().join(' ')
-      expect(logged).toContain('OPENCLAUDE_MAX_TURNS has an invalid value')
+      expect(logged).toContain('KALTCODE_MAX_TURNS has an invalid value')
       expect(logged).not.toContain(invalidValue)
     } finally {
       logSpy.mockRestore()
@@ -149,7 +149,7 @@ describe('interactive REPL max-turn cap', () => {
 
   test('explicit CLI cap wins over environment overrides', () => {
     clearTurnEnv()
-    process.env.OPENCLAUDE_MAX_TURNS = '200'
+    process.env.KALTCODE_MAX_TURNS = '200'
     expect(resolveReplMaxTurns(80)).toBe(80)
   })
 
@@ -162,7 +162,7 @@ describe('interactive REPL max-turn cap', () => {
   test('env wins over /config replMaxTurns', () => {
     clearTurnEnv()
     setReplMaxTurnsConfig(200)
-    process.env.OPENCLAUDE_MAX_TURNS = '80'
+    process.env.KALTCODE_MAX_TURNS = '80'
     expect(resolveReplMaxTurns()).toBe(80)
   })
 
@@ -175,7 +175,7 @@ describe('interactive REPL max-turn cap', () => {
   test('treats an explicit CLI zero as unlimited and invalid values as the default', () => {
     clearTurnEnv()
     setReplMaxTurnsConfig(undefined)
-    process.env.OPENCLAUDE_MAX_TURNS = 'nope'
+    process.env.KALTCODE_MAX_TURNS = 'nope'
     expect(resolveReplMaxTurns()).toBe(DEFAULT_REPL_MAX_TURNS)
     clearTurnEnv()
     expect(resolveReplMaxTurns(0)).toBeUndefined()
@@ -350,7 +350,7 @@ describe('interactive REPL max-turn cap', () => {
 
   test('does not apply the local interactive cap in remote-backed sessions', () => {
     clearTurnEnv()
-    process.env.OPENCLAUDE_MAX_TURNS = '80'
+    process.env.KALTCODE_MAX_TURNS = '80'
     expect(
       resolveReplMaxTurnsForSession(undefined, {
         isRemoteSession: true,
@@ -448,7 +448,7 @@ describe('interactive REPL max-turn cap', () => {
     clearTurnEnv()
     setReplMaxTurnsConfig(50)
     const program = createMaxTurnsCliProgram()
-    await program.parseAsync(['node', 'openclaude', '--max-turns', '200'], {
+    await program.parseAsync(['node', 'kaltcode', '--max-turns', '200'], {
       from: 'node',
     })
     const parsed = program.getOptionValue('maxTurns') as number
@@ -470,7 +470,7 @@ describe('interactive REPL max-turn cap', () => {
   test('Commander formats invalid --max-turns as an option error', async () => {
     const program = createMaxTurnsCliProgram()
     await expect(
-      program.parseAsync(['node', 'openclaude', '--max-turns', 'nope'], {
+      program.parseAsync(['node', 'kaltcode', '--max-turns', 'nope'], {
         from: 'node',
       }),
     ).rejects.toMatchObject({

@@ -49,17 +49,17 @@ test('resolveEndpoints returns the production endpoints', () => {
 
 test('partner id is fixed and ignores the env override', () => {
   process.env.AIMLAPI_PARTNER_ID = 'part_override'
-  // The partner id is locked to OpenClaude's attribution id; an env override is
+  // The partner id is locked to Kalt Code's attribution id; an env override is
   // intentionally ignored so rebate attribution can never be redirected.
   expect(resolvePartnerId()).toBe('part_62yQoGYDq4Yqnrj2R1iGrDNJ')
   expect(
     withResolvedPartnerHeader({
       'x-aimlapi-partner-id': 'part_catalog',
-      'X-Title': 'OpenClaude',
+      'X-Title': 'Kalt Code',
     }),
   ).toEqual({
     'X-AIMLAPI-Partner-ID': 'part_62yQoGYDq4Yqnrj2R1iGrDNJ',
-    'X-Title': 'OpenClaude',
+    'X-Title': 'Kalt Code',
   })
 })
 
@@ -150,12 +150,12 @@ test('trusted-host gate accepts only https aimlapi.com hosts', () => {
 
 test('inference/catalog attribution sends both mandatory headers, stripped off-canonical', () => {
   const canonical = resolveAimlapiAttributionHeaders({}, 'https://api.aimlapi.com/v1')
-  expect(canonical['X-AIMLAPI-Source']).toBe('agent/openclaude')
+  expect(canonical['X-AIMLAPI-Source']).toBe('agent/kaltcode')
   expect(canonical['X-AIMLAPI-Partner-ID']).toBe('part_62yQoGYDq4Yqnrj2R1iGrDNJ')
 
-  // A user proxy must never receive OpenClaude's partner identity or source.
+  // A user proxy must never receive Kalt Code's partner identity or source.
   const proxied = resolveAimlapiAttributionHeaders(
-    { 'X-AIMLAPI-Source': 'agent/openclaude', 'X-AIMLAPI-Partner-ID': 'part_x' },
+    { 'X-AIMLAPI-Source': 'agent/kaltcode', 'X-AIMLAPI-Partner-ID': 'part_x' },
     'https://proxy.example.test/v1',
   )
   expect(proxied['X-AIMLAPI-Source']).toBeUndefined()

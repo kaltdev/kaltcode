@@ -1,9 +1,9 @@
 /**
  * AI/ML API (aimlapi.com) integration - endpoint configuration.
  *
- * Wires OpenClaude to the AI/ML API "partner checkout" flow so a user can log
+ * Wires Kalt Code to the AI/ML API "partner checkout" flow so a user can log
  * in, top up their balance, and have the issued key written back into
- * OpenClaude's provider profile automatically. Usage attributes to the Gitlawb
+ * Kalt Code's provider profile automatically. Usage attributes to the KaltCode
  * rebate partner (see the partner id below).
  *
  * Override any single URL via the corresponding `AIMLAPI_*_URL` env var.
@@ -33,20 +33,20 @@ const DEFAULT_ENDPOINTS: AimlapiEndpoints = {
 /**
  * Partner id (`^part_[A-Za-z0-9]{1,64}$`) - rebate attribution. Must EXACTLY
  * match an active row in the backend `rebate_partners` table. This is the
- * Gitlawb partner that all OpenClaude AI/ML API usage is credited to; it is the
+ * KaltCode partner that all Kalt Code AI/ML API usage is credited to; it is the
  * same value sent as the `X-AIMLAPI-Partner-ID` inference header (see
  * `integrations/gateways/aimlapi.ts`).
  */
 export const DEFAULT_PARTNER_ID = 'part_62yQoGYDq4Yqnrj2R1iGrDNJ'
-export const DEFAULT_PARTNER_NAME = 'Gitlawb'
+export const DEFAULT_PARTNER_NAME = 'KaltCode'
 export const PARTNER_HEADER_NAME = 'X-AIMLAPI-Partner-ID'
 export const SOURCE_HEADER_NAME = 'X-AIMLAPI-Source'
 /**
  * Attribution `source` sent on EVERY aimlapi request (inference, catalog, auth,
- * checkout) alongside the partner id — identifies OpenClaude as the integration
+ * checkout) alongside the partner id — identifies Kalt Code as the integration
  * client, matching the `agent/<client>` convention (e.g. `agent/zero`).
  */
-export const AIMLAPI_SOURCE = 'agent/openclaude'
+export const AIMLAPI_SOURCE = 'agent/kaltcode'
 
 /** Default model id written into the profile - override with `--model`. */
 export const DEFAULT_MODEL = 'gpt-4o'
@@ -72,9 +72,9 @@ export function resolveEndpoints(): AimlapiEndpoints {
 }
 
 /**
- * The partner id is locked to OpenClaude's own attribution id. It is
+ * The partner id is locked to Kalt Code's own attribution id. It is
  * deliberately NOT user-overridable (no CLI flag, no env var): letting a caller
- * change it would redirect rebate/revenue-share attribution away from OpenClaude.
+ * change it would redirect rebate/revenue-share attribution away from Kalt Code.
  */
 export function resolvePartnerId(): string {
   return DEFAULT_PARTNER_ID
@@ -140,7 +140,7 @@ export function isCanonicalAimlapiInferenceBaseUrl(value: string): boolean {
  * (production or staging under `aimlapi.com`, over HTTPS). The auth/app/pay/
  * inference base URLs are all env-overridable, so the mandatory attribution
  * headers are gated on this: a request pointed at a user proxy must not carry
- * OpenClaude's partner/source identity, mirroring the inference/catalog
+ * Kalt Code's partner/source identity, mirroring the inference/catalog
  * stripping contract in `resolveAimlapiAttributionHeaders`.
  */
 export function isTrustedAimlapiRequestUrl(url: string): boolean {
@@ -172,7 +172,7 @@ const CATALOG_ATTRIBUTION_HEADER_NAMES = new Set([
  * Resolve the aimlapi catalog headers for an outbound request. On the canonical
  * inference endpoint the partner id is resolved and attribution is sent; on any
  * other base URL (a user-controlled proxy) every attribution header is stripped,
- * so a third-party host never receives OpenClaude's partner identity.
+ * so a third-party host never receives Kalt Code's partner identity.
  *
  * Both the inference (openai shim) and the model-discovery request paths route
  * through here, so the two cannot drift apart. A missing base URL means the
@@ -220,7 +220,7 @@ export function buildPartnerCheckoutReturnUrls(
 }
 
 /**
- * Browser landing URL after checkout. OpenClaude learns success by polling, so
+ * Browser landing URL after checkout. Kalt Code learns success by polling, so
  * this must be an ordinary HTTP(S) page rather than an unregistered custom
  * scheme. Precedence: the `AIMLAPI_RETURN_URL` override, then the resolved
  * frontend base URL, then the packaged default.

@@ -127,7 +127,7 @@ test('isValidAimlapiSignInCode accepts only a 6-digit numeric code', () => {
 })
 
 test('a malformed --code is rejected locally before it ever reaches verifySignInCode', async () => {
-  const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-cli-'))
+  const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-cli-'))
   temporaryDirectories.push(configDirectory)
   setClaudeConfigHomeDirForTesting(configDirectory)
   process.env.AIMLAPI_AUTH_URL = 'https://auth.example.test'
@@ -157,7 +157,7 @@ test('a malformed --code is rejected locally before it ever reaches verifySignIn
 })
 
 test('CLI retries reuse the persisted checkout session and payment id', async () => {
-  const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-cli-'))
+  const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-cli-'))
   temporaryDirectories.push(configDirectory)
   setClaudeConfigHomeDirForTesting(configDirectory)
   process.env.AIMLAPI_AUTH_URL = 'https://auth.example.test'
@@ -224,7 +224,7 @@ test('CLI retries reuse the persisted checkout session and payment id', async ()
 })
 
 test('sign-in adopts a peer-recorded key instead of minting a second one', async () => {
-  const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-cli-'))
+  const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-cli-'))
   temporaryDirectories.push(configDirectory)
   setClaudeConfigHomeDirForTesting(configDirectory)
   process.env.AIMLAPI_AUTH_URL = 'https://auth.example.test'
@@ -275,7 +275,7 @@ test('sign-in adopts a peer-recorded key instead of minting a second one', async
 })
 
 test('two concurrent sign-ins for the same intent never both mint a key', async () => {
-  const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-cli-'))
+  const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-cli-'))
   temporaryDirectories.push(configDirectory)
   setClaudeConfigHomeDirForTesting(configDirectory)
   process.env.AIMLAPI_AUTH_URL = 'https://auth.example.test'
@@ -322,7 +322,7 @@ test('two concurrent sign-ins for the same intent never both mint a key', async 
 }, 10_000)
 
 test('an ambiguous key-mint failure holds the lease instead of releasing it for a retry to double-mint', async () => {
-  const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-cli-'))
+  const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-cli-'))
   temporaryDirectories.push(configDirectory)
   setClaudeConfigHomeDirForTesting(configDirectory)
   process.env.AIMLAPI_AUTH_URL = 'https://auth.example.test'
@@ -361,7 +361,7 @@ test('an ambiguous key-mint failure holds the lease instead of releasing it for 
 })
 
 test('a receipt-write failure right after a successful key mint stops the flow instead of stranding the key', async () => {
-  const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-cli-'))
+  const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-cli-'))
   temporaryDirectories.push(configDirectory)
   setClaudeConfigHomeDirForTesting(configDirectory)
   process.env.AIMLAPI_AUTH_URL = 'https://auth.example.test'
@@ -443,7 +443,7 @@ test('a receipt-write failure right after a successful key mint stops the flow i
 })
 
 test('a stale-lease takeover mints exactly once: the reclaiming run succeeds and the delayed original is rejected, not silently double-recorded', async () => {
-  const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-cli-'))
+  const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-cli-'))
   temporaryDirectories.push(configDirectory)
   setClaudeConfigHomeDirForTesting(configDirectory)
   process.env.AIMLAPI_AUTH_URL = 'https://auth.example.test'
@@ -574,7 +574,7 @@ test('a 2xx createKey response with an unusable body holds the checkout key-mint
   }
 
   for (const [label, makeResponse] of Object.entries(malformedResponses)) {
-    const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-cli-'))
+    const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-cli-'))
     temporaryDirectories.push(configDirectory)
     setClaudeConfigHomeDirForTesting(configDirectory)
     process.env.AIMLAPI_AUTH_URL = 'https://auth.example.test'
@@ -607,7 +607,7 @@ test('a 2xx createKey response with an unusable body holds the checkout key-mint
 })
 
 test('a competing claim cannot orphan a key mint already in flight for a different intent', async () => {
-  const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-cli-'))
+  const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-cli-'))
   temporaryDirectories.push(configDirectory)
   setClaudeConfigHomeDirForTesting(configDirectory)
   process.env.AIMLAPI_AUTH_URL = 'https://auth.example.test'
@@ -671,7 +671,7 @@ test('a competing claim cannot orphan a key mint already in flight for a differe
       amountUsdMinor: 5000,
       autoTopUp: false,
       partnerId: 'part_test',
-      partnerName: 'Gitlawb',
+      partnerName: 'KaltCode',
       appBaseUrl: 'https://app.example.test',
       inferenceBaseUrl: 'https://api.example.test/v1',
       payBaseUrl: 'https://pay.example.test',
@@ -692,7 +692,7 @@ test('a competing claim cannot orphan a key mint already in flight for a differe
 }, 10_000)
 
 test('a successful exchange persists the settled receipt before returning it', async () => {
-  const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-exch-'))
+  const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-exch-'))
   temporaryDirectories.push(configDirectory)
   setClaudeConfigHomeDirForTesting(configDirectory)
   process.env.AIMLAPI_APP_URL = 'https://app.example.test'
@@ -702,7 +702,7 @@ test('a successful exchange persists the settled receipt before returning it', a
     amountUsdMinor: 2500,
     autoTopUp: false,
     partnerId: 'part_62yQoGYDq4Yqnrj2R1iGrDNJ',
-    partnerName: 'OpenClaude',
+    partnerName: 'Kalt Code',
     appBaseUrl: 'https://app.example.test',
     inferenceBaseUrl: 'https://api.aimlapi.com/v1',
     payBaseUrl: 'https://pay.example.test',
@@ -755,7 +755,7 @@ test('provisionAimlapiKey itself fails when the post-exchange settled-receipt co
   // a regression here): provisionAimlapiKey has no outer save of its own, so
   // if IT throws, the failure can only have come from
   // recordAimlapiSettledKeyAsync being treated as a required commit.
-  const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-exch-'))
+  const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-exch-'))
   temporaryDirectories.push(configDirectory)
   setClaudeConfigHomeDirForTesting(configDirectory)
   process.env.AIMLAPI_APP_URL = 'https://app.example.test'
@@ -765,7 +765,7 @@ test('provisionAimlapiKey itself fails when the post-exchange settled-receipt co
     amountUsdMinor: 2500,
     autoTopUp: false,
     partnerId: 'part_62yQoGYDq4Yqnrj2R1iGrDNJ',
-    partnerName: 'OpenClaude',
+    partnerName: 'Kalt Code',
     appBaseUrl: 'https://app.example.test',
     inferenceBaseUrl: 'https://api.aimlapi.com/v1',
     payBaseUrl: 'https://pay.example.test',
@@ -835,7 +835,7 @@ test('provisionAimlapiKey fails when the settled-receipt commit is a no-op, not 
   // /exchange succeeding and this call landing — e.g. a concurrent `topup reset`.
   // That's just as unrecoverable as an I/O failure: this call is still the only
   // place the exchanged key was ever recorded, so it must fail the same way.
-  const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-exch-noop-'))
+  const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-exch-noop-'))
   temporaryDirectories.push(configDirectory)
   setClaudeConfigHomeDirForTesting(configDirectory)
   process.env.AIMLAPI_APP_URL = 'https://app.example.test'
@@ -845,7 +845,7 @@ test('provisionAimlapiKey fails when the settled-receipt commit is a no-op, not 
     amountUsdMinor: 2500,
     autoTopUp: false,
     partnerId: 'part_62yQoGYDq4Yqnrj2R1iGrDNJ',
-    partnerName: 'OpenClaude',
+    partnerName: 'Kalt Code',
     appBaseUrl: 'https://app.example.test',
     inferenceBaseUrl: 'https://api.aimlapi.com/v1',
     payBaseUrl: 'https://pay.example.test',
@@ -893,7 +893,7 @@ test('provisionAimlapiKey fails when the settled-receipt commit is a no-op, not 
 })
 
 test('a receipt-write failure right after a successful exchange stops the flow instead of stranding the key', async () => {
-  const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-cli-'))
+  const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-cli-'))
   temporaryDirectories.push(configDirectory)
   setClaudeConfigHomeDirForTesting(configDirectory)
   process.env.AIMLAPI_AUTH_URL = 'https://auth.example.test'
@@ -982,7 +982,7 @@ test('a receipt-write failure right after a successful exchange stops the flow i
 })
 
 test('a sibling that cleared the checkout aborts instead of paying twice', async () => {
-  const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-cli-'))
+  const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-cli-'))
   temporaryDirectories.push(configDirectory)
   setClaudeConfigHomeDirForTesting(configDirectory)
   process.env.AIMLAPI_AUTH_URL = 'https://auth.example.test'
@@ -1012,7 +1012,7 @@ test('a sibling that cleared the checkout aborts instead of paying twice', async
 })
 
 test('CLI retains an already-exchanged checkout and blocks identical retries', async () => {
-  const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-cli-'))
+  const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-cli-'))
   temporaryDirectories.push(configDirectory)
   setClaudeConfigHomeDirForTesting(configDirectory)
   process.env.AIMLAPI_AUTH_URL = 'https://auth.example.test'
@@ -1023,7 +1023,7 @@ test('CLI retains an already-exchanged checkout and blocks identical retries', a
     amountUsdMinor: 2500,
     autoTopUp: false,
     partnerId: 'part_62yQoGYDq4Yqnrj2R1iGrDNJ',
-    partnerName: 'Gitlawb',
+    partnerName: 'KaltCode',
     appBaseUrl: 'https://app.example.test',
     inferenceBaseUrl: 'https://api.aimlapi.com/v1',
     payBaseUrl: 'https://pay.example.test',
@@ -1034,7 +1034,7 @@ test('CLI retains an already-exchanged checkout and blocks identical retries', a
     amountUsdMinor: 2500,
     autoTopUp: false,
     partnerId: 'part_62yQoGYDq4Yqnrj2R1iGrDNJ',
-    partnerName: 'Gitlawb',
+    partnerName: 'KaltCode',
     appBaseUrl: 'https://app.example.test',
     inferenceBaseUrl: 'https://api.aimlapi.com/v1',
     payBaseUrl: 'https://pay.example.test',
@@ -1085,7 +1085,7 @@ test('CLI retains an already-exchanged checkout and blocks identical retries', a
 })
 
 test('a failed payment retains the issued key for the next run', async () => {
-  const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-cli-'))
+  const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-cli-'))
   temporaryDirectories.push(configDirectory)
   setClaudeConfigHomeDirForTesting(configDirectory)
   process.env.AIMLAPI_AUTH_URL = 'https://auth.example.test'
@@ -1160,7 +1160,7 @@ test('the CLI refuses guided top-up on a non-canonical inference endpoint', asyn
 })
 
 test('a settled interrupted run resumes the profile write without re-provisioning', async () => {
-  const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-cli-'))
+  const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-cli-'))
   temporaryDirectories.push(configDirectory)
   setClaudeConfigHomeDirForTesting(configDirectory)
   const intent = {
@@ -1168,7 +1168,7 @@ test('a settled interrupted run resumes the profile write without re-provisionin
     amountUsdMinor: 2500,
     autoTopUp: false,
     partnerId: 'part_62yQoGYDq4Yqnrj2R1iGrDNJ',
-    partnerName: 'Gitlawb',
+    partnerName: 'KaltCode',
     appBaseUrl: 'https://app.aimlapi.com',
     inferenceBaseUrl: 'https://api.aimlapi.com/v1',
     payBaseUrl: 'https://pay.aimlapi.com',
@@ -1410,7 +1410,7 @@ test('an invalid amount is rejected before any key is minted', async () => {
 })
 
 test('an unsupported account action is rejected without provisioning', async () => {
-  const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-cli-'))
+  const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-cli-'))
   temporaryDirectories.push(configDirectory)
   setClaudeConfigHomeDirForTesting(configDirectory)
   process.env.AIMLAPI_AUTH_URL = 'https://auth.example.test'
@@ -1505,7 +1505,7 @@ test('an in-progress exchange is observed without issuing a second exchange', as
 })
 
 test('a peer settling mid-wait is resumed from instead of hard-failing the exchange', async () => {
-  const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-cli-'))
+  const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-cli-'))
   temporaryDirectories.push(configDirectory)
   setClaudeConfigHomeDirForTesting(configDirectory)
   process.env.AIMLAPI_APP_URL = 'https://app.example.test'
@@ -1515,7 +1515,7 @@ test('a peer settling mid-wait is resumed from instead of hard-failing the excha
     amountUsdMinor: 2500,
     autoTopUp: false,
     partnerId: 'part_test',
-    partnerName: 'Gitlawb',
+    partnerName: 'KaltCode',
     appBaseUrl: 'https://app.example.test',
     inferenceBaseUrl: 'https://api.example.test/v1',
     payBaseUrl: 'https://pay.example.test',
@@ -1558,7 +1558,7 @@ test('a peer settling mid-wait is resumed from instead of hard-failing the excha
 })
 
 test('a lease reclaimed mid-wait stops the poll instead of racing the peer to /exchange', async () => {
-  const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-cli-'))
+  const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-cli-'))
   temporaryDirectories.push(configDirectory)
   setClaudeConfigHomeDirForTesting(configDirectory)
   process.env.AIMLAPI_APP_URL = 'https://app.example.test'
@@ -1568,7 +1568,7 @@ test('a lease reclaimed mid-wait stops the poll instead of racing the peer to /e
     amountUsdMinor: 2500,
     autoTopUp: false,
     partnerId: 'part_test',
-    partnerName: 'Gitlawb',
+    partnerName: 'KaltCode',
     appBaseUrl: 'https://app.example.test',
     inferenceBaseUrl: 'https://api.example.test/v1',
     payBaseUrl: 'https://pay.example.test',
@@ -1617,7 +1617,7 @@ test('a lease reclaimed mid-wait stops the poll instead of racing the peer to /e
 }, 10_000)
 
 test('an ambiguous exchange failure that actually committed surfaces alreadyExchangedError instead of a generic retry', async () => {
-  const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-cli-'))
+  const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-cli-'))
   temporaryDirectories.push(configDirectory)
   setClaudeConfigHomeDirForTesting(configDirectory)
   process.env.AIMLAPI_APP_URL = 'https://app.example.test'
@@ -1627,7 +1627,7 @@ test('an ambiguous exchange failure that actually committed surfaces alreadyExch
     amountUsdMinor: 2500,
     autoTopUp: false,
     partnerId: 'part_test',
-    partnerName: 'Gitlawb',
+    partnerName: 'KaltCode',
     appBaseUrl: 'https://app.example.test',
     inferenceBaseUrl: 'https://api.example.test/v1',
     payBaseUrl: 'https://pay.example.test',
@@ -1677,7 +1677,7 @@ test('an ambiguous exchange failure that actually committed surfaces alreadyExch
 })
 
 test('a caller-aborted exchange POST holds the lease instead of releasing it for a retry to double-exchange', async () => {
-  const configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-cli-'))
+  const configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-cli-'))
   temporaryDirectories.push(configDirectory)
   setClaudeConfigHomeDirForTesting(configDirectory)
   process.env.AIMLAPI_APP_URL = 'https://app.example.test'
@@ -1688,7 +1688,7 @@ test('a caller-aborted exchange POST holds the lease instead of releasing it for
     amountUsdMinor: 2500,
     autoTopUp: false,
     partnerId: 'part_test',
-    partnerName: 'Gitlawb',
+    partnerName: 'KaltCode',
     appBaseUrl: 'https://app.example.test',
     inferenceBaseUrl: 'https://api.example.test/v1',
     payBaseUrl: 'https://pay.example.test',

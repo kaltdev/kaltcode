@@ -24,11 +24,11 @@ const originalEnv = {
 
 // completeAimlapiCodeSignIn persists the sign-in key cache/lease to disk (see
 // mintOrAdoptSignInKey), so tests need an isolated config dir per test —
-// otherwise they'd read/write the real ~/.openclaude and bleed into each other.
+// otherwise they'd read/write the real ~/.kaltcode and bleed into each other.
 let configDirectory: string
 
 beforeEach(() => {
-  configDirectory = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-onboarding-'))
+  configDirectory = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-onboarding-'))
   setClaudeConfigHomeDirForTesting(configDirectory)
 })
 

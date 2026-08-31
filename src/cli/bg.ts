@@ -71,8 +71,8 @@ export type BuildBackgroundSessionLaunchDeps = {
   ) => Promise<string | null | undefined>
 }
 
-const HEAP_RELAUNCHED_ENV = 'OPENCLAUDE_HEAP_RELAUNCHED'
-const HEAP_SIZE_ENV = 'OPENCLAUDE_NODE_MAX_OLD_SPACE_SIZE_MB'
+const HEAP_RELAUNCHED_ENV = 'KALTCODE_HEAP_RELAUNCHED'
+const HEAP_SIZE_ENV = 'KALTCODE_NODE_MAX_OLD_SPACE_SIZE_MB'
 const DEFAULT_HEAP_SIZE_MB = 8192
 const DEFAULT_TERM_GRACE_MS = 2_000
 const DEFAULT_KILL_GRACE_MS = 2_000
@@ -863,9 +863,9 @@ function unverifiedProcessError(
   const action =
     session.processMarker === undefined
       ? `This older background session could not be verified safely. Restart it to use stronger process identity, or terminate PID ${session.pid} manually after confirming ownership.`
-      : 'Re-run `openclaude ps` and retry after confirming the session identity.'
+      : 'Re-run `kaltcode ps` and retry after confirming the session identity.'
   return new Error(
-    `OpenClaude refused to signal an unverified process for background session ${session.id} (PID ${session.pid}): ${reason}. ${action}`,
+    `Kalt Code refused to signal an unverified process for background session ${session.id} (PID ${session.pid}): ${reason}. ${action}`,
   )
 }
 
@@ -1003,7 +1003,7 @@ export async function logsHandler(
   args: string[] | string | undefined,
 ): Promise<void> {
   const parsed = parseLogsInvocation(normalizeArgs(args))
-  if (!parsed.target) fail('Usage: openclaude logs <id-or-name> [-f]')
+  if (!parsed.target) fail('Usage: kaltcode logs <id-or-name> [-f]')
 
   await refreshBackgroundSessionStatuses()
   const session = await resolveSessionOrExit(parsed.target)
@@ -1031,12 +1031,12 @@ export async function attachHandler(
   args: string[] | string | undefined,
 ): Promise<void> {
   const target = normalizeArgs(args)[0]
-  if (!target) fail('Usage: openclaude attach <id-or-name>')
+  if (!target) fail('Usage: kaltcode attach <id-or-name>')
 
   await refreshBackgroundSessionStatuses()
   const session = await resolveSessionOrExit(target)
   console.error(
-    `Attach is not implemented for local background sessions yet. Use \`openclaude logs ${session.id} -f\` to follow output.`,
+    `Attach is not implemented for local background sessions yet. Use \`kaltcode logs ${session.id} -f\` to follow output.`,
   )
   process.exitCode = 1
 }
@@ -1045,7 +1045,7 @@ export async function killHandler(
   args: string[] | string | undefined,
 ): Promise<void> {
   const target = normalizeArgs(args)[0]
-  if (!target) fail('Usage: openclaude kill <id-or-name>')
+  if (!target) fail('Usage: kaltcode kill <id-or-name>')
 
   await refreshBackgroundSessionStatuses()
   const session = await resolveSessionOrExit(target)
@@ -1060,7 +1060,7 @@ export async function killHandler(
 export async function handleBgFlag(args: string[]): Promise<void> {
   const parsed = parseBackgroundInvocation(args)
   if (!parsed.prompt && !hasResumeSource(parsed.childArgs)) {
-    fail('Usage: openclaude --bg [--name <name>] "<prompt>"')
+    fail('Usage: kaltcode --bg [--name <name>] "<prompt>"')
   }
 
   try {
@@ -1081,7 +1081,7 @@ export async function handleBgFlag(args: string[]): Promise<void> {
   await ensureBackgroundSessionDirs()
   const entrypoint = process.argv[1]
   if (!entrypoint) {
-    fail('Cannot determine OpenClaude entrypoint for background session')
+    fail('Cannot determine Kalt Code entrypoint for background session')
   }
   const childConfig = buildBackgroundChildProcessConfig({
     execPath: process.execPath,
@@ -1170,7 +1170,7 @@ export async function handleBgFlag(args: string[]): Promise<void> {
   if (session.name) console.log(`Name: ${session.name}`)
   console.log(`PID: ${session.pid}`)
   console.log(`Logs: ${session.stdoutLogPath}`)
-  console.log(`Follow: openclaude logs ${session.id} -f`)
+  console.log(`Follow: kaltcode logs ${session.id} -f`)
   console.log(
     `Command: ${formatCommand(
       buildBackgroundSessionDisplayCommand([

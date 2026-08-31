@@ -163,7 +163,7 @@ describe('isVisionSupported', () => {
 describe('checkVisionCapabilityForFile (issue #1421)', () => {
   test('refuses PNG read for a registered non-vision model with an actionable message', () => {
     const result = checkVisionCapabilityForFile(
-      'C:\\temp\\openclaude\\tests\\fixtures\\screenshot.png',
+      'C:\\temp\\kaltcode\\tests\\fixtures\\screenshot.png',
       'mimo-v2.5-pro',
     )
 
@@ -191,7 +191,7 @@ describe('checkVisionCapabilityForFile (issue #1421)', () => {
 
   test('allows PNG read for a registered vision-capable model', () => {
     const result = checkVisionCapabilityForFile(
-      'C:\\temp\\openclaude\\tests\\fixtures\\screenshot.png',
+      'C:\\temp\\kaltcode\\tests\\fixtures\\screenshot.png',
       'claude-sonnet-4-6',
     )
     expect(result.result).toBe(true)

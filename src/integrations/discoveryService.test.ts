@@ -15,7 +15,7 @@ const originalFetch = globalThis.fetch
 const originalEnv = {
   CLAUDE_CONFIG_DIR: process.env.CLAUDE_CONFIG_DIR,
   OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
-  OPENGATEWAY_API_KEY: process.env.OPENGATEWAY_API_KEY,
+  KALTCODE_GATEWAY_API_KEY: process.env.KALTCODE_GATEWAY_API_KEY,
   OPENAI_BASE_URL: process.env.OPENAI_BASE_URL,
   OPENAI_API_BASE: process.env.OPENAI_API_BASE,
   OPENAI_API_KEY: process.env.OPENAI_API_KEY,
@@ -78,7 +78,7 @@ function clearProviderEnv(): void {
 beforeEach(async () => {
   await acquireSharedMutationLock('discoveryService.test.ts')
   mock.restore()
-  tempDir = mkdtempSync(join(tmpdir(), 'openclaude-discovery-service-test-'))
+  tempDir = mkdtempSync(join(tmpdir(), 'kaltcode-discovery-service-test-'))
   setClaudeConfigHomeDirForTesting(tempDir)
   process.env.CLAUDE_CONFIG_DIR = tempDir
   delete process.env.OPENROUTER_API_KEY
@@ -95,7 +95,7 @@ afterEach(() => {
     setClaudeConfigHomeDirForTesting(undefined)
     restoreEnvValue('CLAUDE_CONFIG_DIR')
     restoreEnvValue('OPENROUTER_API_KEY')
-    restoreEnvValue('OPENGATEWAY_API_KEY')
+    restoreEnvValue('KALTCODE_GATEWAY_API_KEY')
     restoreEnvValue('OPENAI_BASE_URL')
     restoreEnvValue('OPENAI_API_BASE')
     restoreEnvValue('OPENAI_API_KEY')
@@ -340,13 +340,13 @@ describe('discoverModelsForRoute', () => {
     expect(result?.models[3]?.contextWindow).toBe(200000)
   })
 
-  test('opengateway hybrid discovery loads the live list without a key', async () => {
+  test('kaltcode-gateway hybrid discovery loads the live list without a key', async () => {
     const { discoverModelsForRoute } = await loadDiscoveryServiceModule()
 
-    delete process.env.OPENGATEWAY_API_KEY
+    delete process.env.KALTCODE_GATEWAY_API_KEY
     delete process.env.OPENAI_API_KEY
     delete process.env.OPENAI_API_KEYS
-    const openGatewayCalls: Array<{ url: string; headers: unknown }> = []
+    const gatewayCalls: Array<{ url: string; headers: unknown }> = []
     setMockFetch(mock((input, init) => {
       const url =
         typeof input === 'string'
@@ -354,7 +354,7 @@ describe('discoverModelsForRoute', () => {
           : input instanceof URL
             ? input.toString()
             : input.url
-      openGatewayCalls.push({ url, headers: init?.headers })
+      gatewayCalls.push({ url, headers: init?.headers })
       return Promise.resolve(
         new Response(
           JSON.stringify({
@@ -377,13 +377,13 @@ describe('discoverModelsForRoute', () => {
       )
     }) as unknown as typeof globalThis.fetch)
 
-    const result = await discoverModelsForRoute('gitlawb-opengateway', {
+    const result = await discoverModelsForRoute('kaltcode-gateway', {
       forceRefresh: true,
     })
 
-    expect(openGatewayCalls).toHaveLength(1)
-    expect(openGatewayCalls[0]?.url).toContain('/v1/models')
-    expect(openGatewayCalls[0]?.headers).toEqual({
+    expect(gatewayCalls).toHaveLength(1)
+    expect(gatewayCalls[0]?.url).toContain('/v1/models')
+    expect(gatewayCalls[0]?.headers).toEqual({
       'Accept-Encoding': 'identity',
     })
     expect(result?.source).toBe('network')
@@ -443,7 +443,7 @@ describe('discoverModelsForRoute', () => {
     expect(result?.models.some(m => m.apiName === 'custom-proxy/model-1')).toBe(true)
   })
 
-  test('opengateway discovery preserves credentials and custom headers for overridden base URL', async () => {
+  test('kaltcode-gateway discovery preserves credentials and custom headers for overridden base URL', async () => {
     const { discoverModelsForRoute } = await loadDiscoveryServiceModule()
 
     let capturedUrl: string | undefined
@@ -466,7 +466,7 @@ describe('discoverModelsForRoute', () => {
       )
     }) as unknown as typeof globalThis.fetch)
 
-    const result = await discoverModelsForRoute('gitlawb-opengateway', {
+    const result = await discoverModelsForRoute('kaltcode-gateway', {
       baseUrl: 'https://og-proxy.corp.internal/v1',
       apiKey: 'ogw_live_proxy_key',
       headers: {
@@ -485,7 +485,7 @@ describe('discoverModelsForRoute', () => {
     expect(result?.models.some(m => m.apiName === 'custom-og/mimo-v3')).toBe(true)
   })
 
-  test('opengateway hybrid discovery filters expired static models and live duplicates after availableUntil cutoff', async () => {
+  test('kaltcode-gateway hybrid discovery filters expired static models and live duplicates after availableUntil cutoff', async () => {
     const { discoverModelsForRoute } = await loadDiscoveryServiceModule()
 
     setMockFetch(mock((input, init) => {
@@ -502,7 +502,7 @@ describe('discoverModelsForRoute', () => {
       )
     }) as unknown as typeof globalThis.fetch)
 
-    const result = await discoverModelsForRoute('gitlawb-opengateway', {
+    const result = await discoverModelsForRoute('kaltcode-gateway', {
       forceRefresh: true,
     })
 
@@ -532,7 +532,7 @@ describe('discoverModelsForRoute', () => {
         kind: 'openai-compatible',
         openaiShim: {
           headers: {
-            'X-Static-Client': 'openclaude',
+            'X-Static-Client': 'kaltcode',
           },
         },
       },
@@ -704,12 +704,12 @@ describe('discoverModelsForRoute', () => {
 
     expect(result?.source).toBe('network')
     expect(capturedHeaders).toEqual({
-      'X-AIMLAPI-Source': 'agent/openclaude',
+      'X-AIMLAPI-Source': 'agent/kaltcode',
       'X-AIMLAPI-Partner-ID': 'part_62yQoGYDq4Yqnrj2R1iGrDNJ',
-      'X-AIMLAPI-Integration-Repo': 'Gitlawb/openclaude',
+      'X-AIMLAPI-Integration-Repo': 'kaltdev/kaltcode',
       'X-AIMLAPI-Integration-Version': publicBuildVersion,
-      'HTTP-Referer': 'OpenClaude',
-      'X-Title': 'OpenClaude',
+      'HTTP-Referer': 'Kalt Code',
+      'X-Title': 'Kalt Code',
     })
     expect(result?.models.map((model: { apiName: string }) => model.apiName)).toEqual([
       'gpt-4o',

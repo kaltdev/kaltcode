@@ -22,7 +22,7 @@ const FALLBACK_PRIORITY: GlobalPackageManager[] = ['npm', 'bun', 'pnpm', 'yarn']
 
 /**
  * Build the argv (after the binary name) to globally install `spec`
- * (e.g. "@gitlawb/openclaude@latest") with the given package manager.
+ * (e.g. "@kaltdev/kaltcode@latest") with the given package manager.
  */
 export function getGlobalInstallArgs(
   pm: GlobalPackageManager,
@@ -37,7 +37,7 @@ export function getGlobalInstallArgs(
       return ['add', '-g', spec]
     case 'yarn':
       // Classic yarn syntax; yarn berry aliases `global add` to the same effect
-      // for the documented openclaude install path.
+      // for the documented kaltcode install path.
       return ['global', 'add', spec]
   }
 }
@@ -149,7 +149,7 @@ async function resolveRealPath(target: string): Promise<string> {
 }
 
 /**
- * Detect which package manager owns the currently running OpenClaude install.
+ * Detect which package manager owns the currently running Kalt Code install.
  *
  * Strategy:
  *  1. Resolve the real path of the running binary (following the bin symlink

@@ -1,5 +1,5 @@
 /**
- * End-to-end verification that `npm install -g @gitlawb/openclaude` is a
+ * End-to-end verification that `npm install -g @kaltdev/kaltcode` is a
  * zero-warning experience — the runtime half of the install contract whose
  * static half lives in externalsValidation.ts (RUNTIME_DEPENDENCY_CONTRACT).
  *
@@ -8,7 +8,7 @@
  *                       the working tree with `npm pack --ignore-scripts`
  *                       (dist/ must already be built — CI builds it first).
  *   --published [spec]  Verify the real registry artifact (default
- *                       @gitlawb/openclaude@latest). Used by the scheduled
+ *                       @kaltdev/kaltcode@latest). Used by the scheduled
  *                       install-hygiene workflow to catch registry drift
  *                       (e.g. a transitive dep deprecated after we shipped).
  *
@@ -44,13 +44,13 @@ import {
   validateRuntimeDependencyContract,
 } from './externalsValidation.js'
 
-const PACKAGE_NAME = '@gitlawb/openclaude'
+const PACKAGE_NAME = '@kaltdev/kaltcode'
 const MAX_TARBALL_BYTES = 12_000_000 // current tarball is ~8.8MB; catch payload blowups
 const INSTALL_RETRIES = 3
 const IS_WINDOWS = process.platform === 'win32'
 
 // Published artifacts that predate the silent-first-boot fix (the fresh-install
-// Opengateway default used to print a "saved provider profile" warning on
+// KaltCode Gateway default used to print a "saved provider profile" warning on
 // every command). Their stderr noise is a KNOWN issue, not a regression —
 // exempt exactly these versions so the scheduled published-mode run stays
 // signal. Self-cleaning: the next release is not in this set; remove the
@@ -239,7 +239,7 @@ function checkInstalledContract(scenario: string, prefix: string): void {
 }
 
 function binPath(prefix: string): string {
-  return IS_WINDOWS ? join(prefix, 'openclaude.cmd') : join(prefix, 'bin', 'openclaude')
+  return IS_WINDOWS ? join(prefix, 'kaltcode.cmd') : join(prefix, 'bin', 'kaltcode')
 }
 
 function runBin(
@@ -264,9 +264,9 @@ function runBin(
 function checkBinBoots(scenario: string, prefix: string, home: string, expectedVersion: string | null): void {
   const version = runBin(prefix, home, ['--version'])
   if (version.status !== 0) {
-    fail(scenario, `\`openclaude --version\` exited ${version.status}: ${version.stderr}`)
-  } else if (expectedVersion && version.stdout.trim() !== `${expectedVersion} (OpenClaude)`) {
-    fail(scenario, `--version printed "${version.stdout.trim()}", expected "${expectedVersion} (OpenClaude)"`)
+    fail(scenario, `\`kaltcode --version\` exited ${version.status}: ${version.stderr}`)
+  } else if (expectedVersion && version.stdout.trim() !== `${expectedVersion} (Kalt Code)`) {
+    fail(scenario, `--version printed "${version.stdout.trim()}", expected "${expectedVersion} (Kalt Code)"`)
   } else if (version.stderr.trim().length > 0) {
     fail(scenario, `--version wrote to stderr: "${version.stderr.trim()}"`)
   } else {
@@ -279,7 +279,7 @@ function checkBinBoots(scenario: string, prefix: string, home: string, expectedV
   const bootNoiseKnown = KNOWN_FIRST_BOOT_NOISE_VERSIONS.has(installedVersion ?? '')
   const help = runBin(prefix, home, ['--help'])
   if (help.status !== 0) {
-    fail(scenario, `\`openclaude --help\` exited ${help.status}: ${help.stderr}`)
+    fail(scenario, `\`kaltcode --help\` exited ${help.status}: ${help.stderr}`)
   } else if (!/usage/i.test(help.stdout)) {
     fail(scenario, `--help output does not look like help text: "${help.stdout.slice(0, 200)}"`)
   } else if (help.stderr.trim().length > 0) {
@@ -297,7 +297,7 @@ function checkTarballContents(tarballPath: string): void {
   const scenario = 'tarball'
   const required = [
     'package/package.json',
-    'package/bin/openclaude',
+    'package/bin/kaltcode',
     'package/bin/node-compile-cache.mjs',
     'package/dist/cli.mjs',
     'package/dist/sdk.mjs',
@@ -452,7 +452,7 @@ function main(): void {
     process.exit(1)
   }
 
-  const work = mkdtempSync(join(tmpdir(), 'openclaude-install-verify-'))
+  const work = mkdtempSync(join(tmpdir(), 'kaltcode-install-verify-'))
   try {
     let target: string
     let expectedVersion: string | null

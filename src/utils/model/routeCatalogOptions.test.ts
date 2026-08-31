@@ -42,16 +42,16 @@ describe('buildRouteCatalogModelOptions', () => {
   })
 
   test('surfaces catalog entry notes as a description tag', () => {
-    const options = buildRouteCatalogModelOptions('Gitlawb Opengateway', [
+    const options = buildRouteCatalogModelOptions('KaltCode Gateway', [
       {
-        id: 'opengateway-nemotron-3-ultra-free',
+        id: 'kaltcode-gateway-nemotron-3-ultra-free',
         apiName: 'nvidia/nemotron-3-ultra-550b-a55b:free',
-        label: 'Nemotron 3 Ultra Free (via Opengateway)',
+        label: 'Nemotron 3 Ultra Free (via KaltCode Gateway)',
         notes: 'Free',
       },
     ])
 
-    expect(options[0]?.description).toBe('Free · Provider: Gitlawb Opengateway')
+    expect(options[0]?.description).toBe('Free · Provider: KaltCode Gateway')
   })
 })
 

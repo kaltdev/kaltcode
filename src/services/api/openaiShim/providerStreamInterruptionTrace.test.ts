@@ -14,12 +14,12 @@ import {
   openaiStreamToAnthropic,
 } from './responseAdapters.js'
 
-const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
+const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
 const originalIdleTimeout = process.env.CLAUDE_STREAM_IDLE_TIMEOUT_MS
 
 beforeAll(async () => {
   await acquireSharedMutationLock('providerStreamInterruptionTrace.test.ts')
-  process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+  process.env.KALTCODE_INTERRUPT_TRACE = '1'
 })
 
 afterEach(() => {
@@ -32,8 +32,8 @@ afterEach(() => {
 
 afterAll(() => {
   __resetInterruptionTraceForTests()
-  if (originalTrace === undefined) delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-  else process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+  if (originalTrace === undefined) delete process.env.KALTCODE_INTERRUPT_TRACE
+  else process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
   if (originalIdleTimeout === undefined) {
     delete process.env.CLAUDE_STREAM_IDLE_TIMEOUT_MS
   } else {
@@ -158,10 +158,10 @@ test('all non-Codex readers distinguish raw, parsed, control, and ignored frames
 
 for (const traceEnabled of [false, true]) {
   test(`OpenAI-compatible and Gemini null payloads fail with tracing ${traceEnabled ? 'enabled' : 'disabled'}`, async () => {
-    const previousTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
+    const previousTrace = process.env.KALTCODE_INTERRUPT_TRACE
     try {
-      if (traceEnabled) process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
-      else delete process.env.OPENCLAUDE_INTERRUPT_TRACE
+      if (traceEnabled) process.env.KALTCODE_INTERRUPT_TRACE = '1'
+      else delete process.env.KALTCODE_INTERRUPT_TRACE
 
       const cases = [
         {
@@ -203,8 +203,8 @@ for (const traceEnabled of [false, true]) {
       }
     } finally {
       __resetInterruptionTraceForTests()
-      if (previousTrace === undefined) delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-      else process.env.OPENCLAUDE_INTERRUPT_TRACE = previousTrace
+      if (previousTrace === undefined) delete process.env.KALTCODE_INTERRUPT_TRACE
+      else process.env.KALTCODE_INTERRUPT_TRACE = previousTrace
     }
   })
 }

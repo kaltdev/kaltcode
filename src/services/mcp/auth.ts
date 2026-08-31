@@ -1188,7 +1188,7 @@ export async function performMCPOAuthFlow(
 
           res.writeHead(200, { 'Content-Type': 'text/html' })
           res.end(
-            `<h1>Authentication Successful</h1><p>You can close this window. Return to OpenClaude.</p>`,
+            `<h1>Authentication Successful</h1><p>You can close this window. Return to Kalt Code.</p>`,
           )
           cleanup()
           resolveOnce(result.code)
@@ -2106,7 +2106,7 @@ export class ClaudeAuthProvider implements OAuthClientProvider {
    * auth does a fresh IdP login (the cached id_token is likely stale/revoked).
    *
    * `_refreshInProgress` dedupes callers on this provider instance; the shared
-   * server lock below coordinates independent OpenClaude processes/providers.
+   * server lock below coordinates independent Kalt Code processes/providers.
    */
   private async xaaRefresh(
     abortSignal?: AbortSignal,

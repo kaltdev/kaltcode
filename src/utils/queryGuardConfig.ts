@@ -1,5 +1,5 @@
-export const OPENCLAUDE_QUERY_HARD_MAX_MS_ENV =
-  'OPENCLAUDE_QUERY_HARD_MAX_MS'
+export const KALTCODE_QUERY_HARD_MAX_MS_ENV =
+  'KALTCODE_QUERY_HARD_MAX_MS'
 
 // setTimeout-compatible upper bound; larger values can overflow timer APIs.
 export const MAX_CONFIGURABLE_QUERY_HARD_MAX_MS = 0x7fffffff
@@ -20,20 +20,20 @@ function warnInvalidQueryHardMax(
   log: DebugLogger,
 ): void {
   log(
-    `${OPENCLAUDE_QUERY_HARD_MAX_MS_ENV} invalid value "${value}" (${reason}); using default query hard max`,
+    `${KALTCODE_QUERY_HARD_MAX_MS_ENV} invalid value "${value}" (${reason}); using default query hard max`,
     { level: 'warn' },
   )
 }
 
 function defaultWarnLogger(message: string): void {
-  console.warn(`[OpenClaude] ${message}`)
+  console.warn(`[Kalt Code] ${message}`)
 }
 
 export function getQueryGuardOptionsFromEnv(
   env: EnvLike = process.env,
   log: DebugLogger = defaultWarnLogger,
 ): QueryGuardResolvedOptions {
-  const raw = env[OPENCLAUDE_QUERY_HARD_MAX_MS_ENV]
+  const raw = env[KALTCODE_QUERY_HARD_MAX_MS_ENV]
   const value = raw?.trim()
   if (!value) {
     return {}

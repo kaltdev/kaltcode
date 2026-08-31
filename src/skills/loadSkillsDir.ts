@@ -82,11 +82,11 @@ export function getSkillsPath(
 ): string {
   switch (source) {
     case 'policySettings':
-      return join(getManagedFilePath(), '.openclaude', dir)
+      return join(getManagedFilePath(), '.kaltcode', dir)
     case 'userSettings':
       return join(getClaudeConfigHomeDir(), dir)
     case 'projectSettings':
-      return `.openclaude/${dir}`
+      return `.kaltcode/${dir}`
     case 'plugin':
       return 'plugin'
     default:
@@ -100,8 +100,8 @@ export function getProjectSkillsPaths(dir: string): string[] {
   )
 }
 
-function prefersOpenClaudeConfigDir(path: string): number {
-  return path.split(pathSep).includes('.openclaude') ? 0 : 1
+function prefersKaltCodeConfigDir(path: string): number {
+  return path.split(pathSep).includes('.kaltcode') ? 0 : 1
 }
 
 function compareSkillDirPrecedence(a: string, b: string): number {
@@ -109,7 +109,7 @@ function compareSkillDirPrecedence(a: string, b: string): number {
   if (depthDelta !== 0) {
     return depthDelta
   }
-  return prefersOpenClaudeConfigDir(a) - prefersOpenClaudeConfigDir(b)
+  return prefersKaltCodeConfigDir(a) - prefersKaltCodeConfigDir(b)
 }
 
 /**
@@ -776,7 +776,7 @@ async function loadSkillsFromCommandsDir(
 export const getSkillDirCommands = memoize(
   async (cwd: string): Promise<Command[]> => {
     const userSkillsDir = join(getClaudeConfigHomeDir(), 'skills')
-    const managedSkillsDir = join(getManagedFilePath(), '.openclaude', 'skills')
+    const managedSkillsDir = join(getManagedFilePath(), '.kaltcode', 'skills')
     const projectSkillsDirs = getProjectDirsUpToHome(
       'skills',
       cwd,
@@ -1020,7 +1020,7 @@ export async function discoverSkillDirsForPaths(
           try {
             await fs.stat(skillDir)
             // Skills dir exists. Before loading, check if the containing dir
-            // is gitignored — blocks e.g. node_modules/pkg/.openclaude/skills from
+            // is gitignored — blocks e.g. node_modules/pkg/.kaltcode/skills from
             // loading silently. `git check-ignore` handles nested .gitignore,
             // .git/info/exclude, and global gitignore. Fails open outside a
             // git repo (exit 128 → false); the invocation-time trust dialog

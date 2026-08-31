@@ -7,7 +7,7 @@
 import type { performance as PerformanceType } from 'perf_hooks'
 import { formatFileSize } from './format.js'
 
-const OPENCLAUDE_PERFORMANCE_PREFIX = 'openclaude:'
+const KALTCODE_PERFORMANCE_PREFIX = 'kaltcode:'
 
 // Lazy-load performance API only when profiling is enabled.
 // Shared across all profilers — perf_hooks.performance is a process-wide singleton.
@@ -26,7 +26,7 @@ export function formatMs(ms: number): string {
 }
 
 function getProfilerPrefix(scope: string): string {
-  return `${OPENCLAUDE_PERFORMANCE_PREFIX}${scope}:`
+  return `${KALTCODE_PERFORMANCE_PREFIX}${scope}:`
 }
 
 export function getProfilerMarkName(scope: string, name: string): string {

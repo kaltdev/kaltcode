@@ -54,14 +54,14 @@ const jsonLd = [
   {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'openclaude',
+    name: 'kaltcode',
     applicationCategory: 'DeveloperApplication',
     operatingSystem: 'macOS, Linux, Windows',
     url: SITE.url,
     downloadUrl: SITE.npmUrl,
     description: SITE.description,
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-    author: { '@type': 'Organization', name: 'GitLawb', url: SITE.gitlawb },
+    author: { '@type': 'Organization', name: 'GitLawb', url: SITE.kaltcode },
   },
   {
     '@context': 'https://schema.org',
@@ -75,7 +75,7 @@ const jsonLd = [
 <BaseLayout title={SITE.title} description={SITE.description} jsonLd={jsonLd}>
   <section class="hero grid-bg" aria-labelledby="hero-heading">
     <div class="container hero-inner">
-      <p class="pill fade-up"><span class="dot" aria-hidden="true"></span>open source · gitlawb-aligned · model-neutral</p>
+      <p class="pill fade-up"><span class="dot" aria-hidden="true"></span>open source · kaltcode-aligned · model-neutral</p>
       <h1 id="hero-heading" class="text-hero fade-up fade-up-1">
         runs anywhere.<br />uses anything.
       </h1>
@@ -100,8 +100,8 @@ const jsonLd = [
         <h2 id="demo-heading">an agent loop you can watch.</h2>
       </div>
       <Terminal>
-        <span class="ln"><span class="t-prompt">$</span> openclaude</span>
-        <span class="ln t-dim">openclaude · provider: ollama · model: qwen3-coder</span>
+        <span class="ln"><span class="t-prompt">$</span> kaltcode</span>
+        <span class="ln t-dim">kaltcode · provider: ollama · model: qwen3-coder</span>
         <span class="ln">&nbsp;</span>
         <span class="ln"><span class="t-prompt">&gt;</span> add retry with backoff to the fetch client</span>
         <span class="ln">&nbsp;</span>
@@ -148,7 +148,7 @@ const jsonLd = [
         {providers.map(p => <li>{p}</li>)}
       </ul>
       <p class="text-body-dim provider-foot">
-        plus bedrock, vertex, codex oauth, atomic chat, opengateway, and any
+        plus bedrock, vertex, codex oauth, atomic chat, kaltcode-gateway, and any
         openai-compatible endpoint. <a href="/docs/providers/">see all providers →</a>
       </p>
     </div>
@@ -223,7 +223,7 @@ const jsonLd = [
             <span class="step-num">02</span>
             <div>
               <strong>start</strong>
-              <p>run <code>openclaude</code> in any repo.</p>
+              <p>run <code>kaltcode</code> in any repo.</p>
             </div>
           </li>
           <li>

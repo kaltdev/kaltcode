@@ -1,6 +1,6 @@
 import type { LocalizationKey } from './types.js'
 
-const openClaudeCommandDescriptionKeys: Record<string, LocalizationKey> = {
+const kaltCodeCommandDescriptionKeys: Record<string, LocalizationKey> = {
   'add-dir': 'commands.add-dir.description',
   agents: 'commands.agents.description',
   'auto-fix': 'commands.auto-fix.description',
@@ -63,8 +63,8 @@ const openClaudeCommandDescriptionKeys: Record<string, LocalizationKey> = {
   wiki: 'commands.wiki.description',
 }
 
-export function getOpenClaudeCommandDescriptionKey(
+export function getKaltCodeCommandDescriptionKey(
   commandName: string,
 ): LocalizationKey | undefined {
-  return openClaudeCommandDescriptionKeys[commandName]
+  return kaltCodeCommandDescriptionKeys[commandName]
 }

@@ -28,7 +28,7 @@ if (invocation[0] === 'launcher') {
       process.exit(143)
     })
   }
-  const readyPath = process.env.OPENCLAUDE_BG_FINALIZER_FIXTURE_READY
+  const readyPath = process.env.KALTCODE_BG_FINALIZER_FIXTURE_READY
   if (readyPath) await writeFile(readyPath, 'ready')
   if (mode === 'wait' || mode === 'sigint' || mode === 'sigterm') {
     setInterval(() => {}, 1_000)

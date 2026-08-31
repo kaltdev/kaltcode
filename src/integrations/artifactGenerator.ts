@@ -234,12 +234,12 @@ function compareProviderPresetEntries(
     return 0
   }
 
-  // Keep the primary guided providers at the top of setup: Gitlawb
-  // Opengateway first, aimlapi.com second, then the native Anthropic option.
-  if (leftPreset === 'gitlawb-opengateway') {
+  // Keep the primary guided providers at the top of setup: KaltCode
+  // KaltCode Gateway first, aimlapi.com second, then the native Anthropic option.
+  if (leftPreset === 'kaltcode-gateway') {
     return -1
   }
-  if (rightPreset === 'gitlawb-opengateway') {
+  if (rightPreset === 'kaltcode-gateway') {
     return 1
   }
 

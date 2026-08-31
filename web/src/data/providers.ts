@@ -69,7 +69,7 @@ export const providers: Provider[] = [
     id: 'xai-oauth',
     name: 'xAI OAuth (Grok)',
     group: 'subscriptions',
-    setup: '/provider or `openclaude auth xai login`',
+    setup: '/provider or `kaltcode auth xai login`',
     notes: 'Sign in with your xAI account in the browser; device-code flow available for remote hosts with no localhost callback.',
   },
   {
@@ -115,19 +115,19 @@ export const providers: Provider[] = [
 
   // ── gateways ─────────────────────────────────────────────────────────
   {
-    id: 'opengateway',
-    name: 'Gitlawb Opengateway',
+    id: 'kaltcode-gateway',
+    name: 'KaltCode Gateway',
     group: 'gateways',
     setup: 'startup default, /provider, or env vars',
-    envVars: ['OPENGATEWAY_API_KEY'],
-    notes: 'Smart gateway at https://opengateway.gitlawb.com/v1 with auto smart-routing, MiMo, MiniMax, Qwen, GLM, Gemini — plus free models (Nemotron 3 Ultra, Ling 3.0 Flash, Tencent HY3). Keys at gitlawb.com/opengateway/keys.',
+    envVars: ['KALTCODE_GATEWAY_API_KEY'],
+    notes: 'Smart gateway at https://kaltcode.my.id/v1 with auto smart-routing, MiMo, MiniMax, Qwen, GLM, Gemini — plus free models (Nemotron 3 Ultra, Ling 3.0 Flash, Tencent HY3). Keys at kaltcode.my.id/kaltcode-gateway/keys.',
     badge: 'recommended',
   },
   {
     id: 'aimlapi',
     name: 'AI/ML API',
     group: 'gateways',
-    setup: '/provider or `openclaude aimlapi topup`',
+    setup: '/provider or `kaltcode aimlapi topup`',
     envVars: ['AIMLAPI_API_KEY'],
     notes: '1,000+ models behind one OpenAI-compatible endpoint, with guided top-up and key provisioning from the CLI.',
     badge: 'recommended',

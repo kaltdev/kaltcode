@@ -11,8 +11,8 @@ import { redactHomePath, redactLikelySecrets } from './redaction.js'
 const TRACE_CAPACITY = 512
 export const __INTERRUPTION_TRACE_CAPACITY_FOR_TESTS = TRACE_CAPACITY
 const TRACE_SCHEMA_VERSION = 1
-const TRACE_ENABLED_ENV = 'OPENCLAUDE_INTERRUPT_TRACE'
-const TRACE_FILE_ENV = 'OPENCLAUDE_INTERRUPT_TRACE_FILE'
+const TRACE_ENABLED_ENV = 'KALTCODE_INTERRUPT_TRACE'
+const TRACE_FILE_ENV = 'KALTCODE_INTERRUPT_TRACE_FILE'
 
 export type InterruptionTraceFields = {
   source?: string

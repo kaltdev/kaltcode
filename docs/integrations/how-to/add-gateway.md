@@ -131,7 +131,7 @@ export default defineGateway({
     kind: 'openai-compatible',
     openaiShim: {
       headers: {
-        'X-Acme-Client': 'openclaude',
+        'X-Acme-Client': 'kaltcode',
       },
       supportsApiFormatSelection: false,
       supportsAuthHeaders: true,
@@ -453,7 +453,7 @@ Use `discoveryRefreshMode` to match the operational shape of the route:
 
 If an authenticated inference route exposes a public model endpoint, set
 `catalog.discovery.requiresAuth` to `false` while keeping `setup.requiresAuth`
-enabled. OpenRouter and Gitlawb Opengateway use this split: model listing is
+enabled. OpenRouter and KaltCode Gateway use this split: model listing is
 keyless, but inference still requires an API key. Avoid combining
 `discoveryRefreshMode: 'startup'` with an `openai-compatible-models` readiness
 probe when both execute the same request, because that doubles startup traffic.
@@ -514,7 +514,7 @@ transportConfig: {
   kind: 'openai-compatible',
   openaiShim: {
     headers: {
-      'X-Acme-Client': 'openclaude',
+      'X-Acme-Client': 'kaltcode',
     },
     supportsApiFormatSelection: false,
     supportsAuthHeaders: true,

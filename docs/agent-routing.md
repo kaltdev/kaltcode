@@ -1,13 +1,13 @@
 # Agent Routing and Step Limits
 
-OpenClaude can route different agents to different models, and custom agents
+Kalt Code can route different agents to different models, and custom agents
 can cap how many tool-use steps they may execute. Both features live in
 settings and agent frontmatter — no code changes required.
 
 ## Agent step limits
 
 Custom agents can define `maxSteps` as a positive integer to cap how many
-tool-use steps a sub-agent may execute. When the limit is reached, OpenClaude
+tool-use steps a sub-agent may execute. When the limit is reached, Kalt Code
 stops additional tool calls and asks the sub-agent for a concise final summary
 covering completed work, findings, remaining tasks, and whether another run is
 needed. Omitting `maxSteps`, or setting it to an invalid value such as `0` or
@@ -25,11 +25,11 @@ You are a focused research agent.
 
 ## Agent routing
 
-OpenClaude can route different agents to different models through
+Kalt Code can route different agents to different models through
 settings-based routing. This is useful for cost optimization or splitting work
 by model strength.
 
-Add to `~/.openclaude/settings.json`:
+Add to `~/.kaltcode/settings.json`:
 
 > **Note:** `api_key` values in `settings.json` are stored in plaintext. Keep this file private and do not commit it to version control.
 
@@ -97,7 +97,7 @@ any entry, the verifier inherits the main-loop model.
 
 ## GitHub Copilot sub-agent optimization
 
-When `CLAUDE_CODE_USE_GITHUB=1`, OpenClaude serializes sub-agent execution to
+When `CLAUDE_CODE_USE_GITHUB=1`, Kalt Code serializes sub-agent execution to
 reduce GitHub Copilot Premium Request consumption. Default behavior is
 `GITHUB_COPILOT_MAX_SUBAGENTS=1` (synchronous, one sub-agent at a time).
 Tuning vars (all optional):

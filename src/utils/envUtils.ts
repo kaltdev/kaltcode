@@ -4,19 +4,19 @@ import { join } from 'path'
 
 /**
  * Resolves the override env value for the config home directory.
- * Resolves the OpenClaude config home override.
+ * Resolves the Kalt Code config home override.
  *
- * Intentionally does not read `CLAUDE_CONFIG_DIR`: OpenClaude config must stay
+ * Intentionally does not read `CLAUDE_CONFIG_DIR`: Kalt Code config must stay
  * independent from Claude Code config and credentials.
  */
 export function resolveConfigDirEnv(options?: {
-  openClaudeConfigDir?: string
+  kaltCodeConfigDir?: string
   legacyConfigDir?: string
   warn?: (message: string) => void
 }): string | undefined {
   void options?.legacyConfigDir
   void options?.warn
-  return options?.openClaudeConfigDir || undefined
+  return options?.kaltCodeConfigDir || undefined
 }
 
 /**
@@ -36,9 +36,9 @@ export function resolveClaudeConfigHomeDir(options?: {
   }
 
   const homeDir = options?.homeDir ?? homedir()
-  const openClaudeDir = join(homeDir, '.openclaude')
+  const kaltCodeDir = join(homeDir, '.kaltcode')
 
-  return openClaudeDir.normalize('NFC')
+  return kaltCodeDir.normalize('NFC')
 }
 
 let claudeConfigHomeDirOverride: string | undefined
@@ -73,7 +73,7 @@ export const getClaudeConfigHomeDir = Object.assign(
     }
 
     const configDirEnv = resolveConfigDirEnv({
-      openClaudeConfigDir: process.env.OPENCLAUDE_CONFIG_DIR,
+      kaltCodeConfigDir: process.env.KALTCODE_CONFIG_DIR,
     })
     if (configDirEnv) {
       return resolveClaudeConfigHomeDir({ configDirEnv })

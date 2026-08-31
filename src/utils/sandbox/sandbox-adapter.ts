@@ -149,15 +149,15 @@ export function resolveSandboxFilesystemPath(
 
 function getCurrentCwdSettingsDenyWritePaths(cwd: string): string[] {
   return [
-    resolve(cwd, '.openclaude', 'settings.json'),
-    resolve(cwd, '.openclaude', 'settings.local.json'),
+    resolve(cwd, '.kaltcode', 'settings.json'),
+    resolve(cwd, '.kaltcode', 'settings.local.json'),
     resolve(cwd, getRelativeSettingsFilePathForSource('projectSettings')),
     resolve(cwd, getRelativeSettingsFilePathForSource('localSettings')),
   ]
 }
 
 function getLegacyClaudeConfigDenyWritePaths(cwd: string): string[] {
-  return [resolve(cwd, '.claude')]
+  return [resolve(cwd, '.kaltcode')]
 }
 
 /**
@@ -264,14 +264,14 @@ export function convertToSandboxRuntimeConfig(
     denyWrite.push(...getLegacyClaudeConfigDenyWritePaths(cwd))
   }
 
-  // Block writes to .openclaude/skills in both original and current working directories.
-  // The sandbox-runtime's getDangerousDirectories() protects .openclaude/commands and
-  // .openclaude/agents but not .openclaude/skills. Skills have the same privilege level
+  // Block writes to .kaltcode/skills in both original and current working directories.
+  // The sandbox-runtime's getDangerousDirectories() protects .kaltcode/commands and
+  // .kaltcode/agents but not .kaltcode/skills. Skills have the same privilege level
   // (auto-discovered, auto-loaded, full Claude capabilities) so they need the
   // same OS-level sandbox protection.
-  denyWrite.push(resolve(originalCwd, '.openclaude', 'skills'))
+  denyWrite.push(resolve(originalCwd, '.kaltcode', 'skills'))
   if (cwd !== originalCwd) {
-    denyWrite.push(resolve(cwd, '.openclaude', 'skills'))
+    denyWrite.push(resolve(cwd, '.kaltcode', 'skills'))
   }
 
   // SECURITY: Git's is_git_directory() treats cwd as a bare repo if it has
@@ -479,7 +479,7 @@ const checkDependencies = memoize((): SandboxDependencyCheck => {
 /**
  * Read sandbox.enabled only from trusted settings sources.
  * projectSettings is intentionally excluded — a malicious repo could
- * otherwise disable the sandbox via .claude/settings.json.
+ * otherwise disable the sandbox via .kaltcode/settings.json.
  */
 function getSandboxEnabledSetting(): boolean {
   try {

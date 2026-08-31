@@ -40,7 +40,7 @@ const ENV_KEYS = [
   'NVIDIA_API_KEY',
   'NVIDIA_NIM',
   'BNKR_API_KEY',
-  'OPENGATEWAY_API_KEY',
+  'KALTCODE_GATEWAY_API_KEY',
   'OPENROUTER_API_KEY',
   'DEEPSEEK_API_KEY',
   'MOONSHOT_API_KEY',
@@ -376,10 +376,10 @@ test('codex auth error redacts descriptor-declared provider secret values used a
   const providerSecret = 'ogw-provider-secret'
   process.env.CLAUDE_CODE_USE_OPENAI = '1'
   process.env.CLAUDE_CODE_SIMPLE = '1'
-  process.env.CODEX_AUTH_JSON_PATH = `/tmp/openclaude-provider-validation-missing-auth-${process.pid}.json`
+  process.env.CODEX_AUTH_JSON_PATH = `/tmp/kaltcode-provider-validation-missing-auth-${process.pid}.json`
   process.env.OPENAI_BASE_URL = 'https://chatgpt.com/backend-api/codex'
   process.env.OPENAI_MODEL = providerSecret
-  process.env.OPENGATEWAY_API_KEY = providerSecret
+  process.env.KALTCODE_GATEWAY_API_KEY = providerSecret
   delete process.env.CODEX_API_KEY
   delete process.env.CHATGPT_ACCOUNT_ID
   delete process.env.CODEX_ACCOUNT_ID
@@ -496,7 +496,7 @@ test('xai validation surfaces sign-in guidance when no credential source is set'
   })
   expect(error).not.toBeNull()
   expect(error!).toContain('XAI_API_KEY is required')
-  expect(error!).toContain('openclaude auth xai login')
+  expect(error!).toContain('kaltcode auth xai login')
 })
 
 test('xai validation accepts stored OAuth credentials even without an env marker', async () => {
@@ -647,37 +647,37 @@ test('nearai validation accepts NEARAI_API_KEY for wildcard TEE completions endp
   await expect(getProviderValidationError(process.env)).resolves.toBeNull()
 })
 
-test('opengateway validation fails without OPENGATEWAY_API_KEY or OPENAI_API_KEY', async () => {
+test('kaltcode-gateway validation fails without KALTCODE_GATEWAY_API_KEY or OPENAI_API_KEY', async () => {
   process.env.CLAUDE_CODE_USE_OPENAI = '1'
-  process.env.OPENAI_BASE_URL = 'https://opengateway.gitlawb.com/v1'
+  process.env.OPENAI_BASE_URL = 'https://kaltcode.my.id/v1'
   delete process.env.OPENAI_API_KEY
-  delete process.env.OPENGATEWAY_API_KEY
+  delete process.env.KALTCODE_GATEWAY_API_KEY
 
   const error = await getProviderValidationError(process.env)
   expect(error).not.toBeNull()
-  expect(error!).toContain('OPENGATEWAY_API_KEY')
+  expect(error!).toContain('KALTCODE_GATEWAY_API_KEY')
 })
 
-test('opengateway validation passes when OPENGATEWAY_API_KEY is set', async () => {
+test('kaltcode-gateway validation passes when KALTCODE_GATEWAY_API_KEY is set', async () => {
   process.env.CLAUDE_CODE_USE_OPENAI = '1'
-  process.env.OPENAI_BASE_URL = 'https://opengateway.gitlawb.com/v1'
-  process.env.OPENGATEWAY_API_KEY = 'ogw_live_test_0000000000000000'
+  process.env.OPENAI_BASE_URL = 'https://kaltcode.my.id/v1'
+  process.env.KALTCODE_GATEWAY_API_KEY = 'ogw_live_test_0000000000000000'
   delete process.env.OPENAI_API_KEY
 
   await expect(getProviderValidationError(process.env)).resolves.toBeNull()
 })
 
-test('opengateway validation accepts OPENAI_API_KEY as fallback', async () => {
+test('kaltcode-gateway validation accepts OPENAI_API_KEY as fallback', async () => {
   process.env.CLAUDE_CODE_USE_OPENAI = '1'
-  process.env.OPENAI_BASE_URL = 'https://opengateway.gitlawb.com/v1'
+  process.env.OPENAI_BASE_URL = 'https://kaltcode.my.id/v1'
   process.env.OPENAI_API_KEY = 'ogw_live_test_0000000000000000'
-  delete process.env.OPENGATEWAY_API_KEY
+  delete process.env.KALTCODE_GATEWAY_API_KEY
 
   await expect(getProviderValidationError(process.env)).resolves.toBeNull()
 })
 
 test.each([
-  ['opengateway', 'https://opengateway.gitlawb.com/v1', 'mimo-v2.5-pro'],
+  ['kaltcode-gateway', 'https://kaltcode.my.id/v1', 'mimo-v2.5-pro'],
   ['hicap', 'https://api.hicap.ai/v1', 'claude-opus-4.8'],
   ['venice', 'https://api.venice.ai/api/v1', 'venice-uncensored'],
   ['xiaomi mimo', 'https://api.xiaomimimo.com/v1', 'mimo-v2.5-pro'],
@@ -689,7 +689,7 @@ test.each([
   process.env.OPENAI_MODEL = model
   process.env.OPENAI_API_KEYS = 'key-a,key-b'
   delete process.env.OPENAI_API_KEY
-  delete process.env.OPENGATEWAY_API_KEY
+  delete process.env.KALTCODE_GATEWAY_API_KEY
   delete process.env.HICAP_API_KEY
   delete process.env.VENICE_API_KEY
   delete process.env.MIMO_API_KEY
@@ -698,15 +698,15 @@ test.each([
   await expect(getProviderValidationError(process.env)).resolves.toBeNull()
 })
 
-test('opengateway validation still requires a key on the model-specific path', async () => {
+test('kaltcode-gateway validation still requires a key on the model-specific path', async () => {
   process.env.CLAUDE_CODE_USE_OPENAI = '1'
-  process.env.OPENAI_BASE_URL = 'https://opengateway.gitlawb.com/v1/xiaomi-mimo'
+  process.env.OPENAI_BASE_URL = 'https://kaltcode.my.id/v1/xiaomi-mimo'
   delete process.env.OPENAI_API_KEY
-  delete process.env.OPENGATEWAY_API_KEY
+  delete process.env.KALTCODE_GATEWAY_API_KEY
 
   const error = await getProviderValidationError(process.env)
   expect(error).not.toBeNull()
-  expect(error!).toContain('OPENGATEWAY_API_KEY')
+  expect(error!).toContain('KALTCODE_GATEWAY_API_KEY')
 })
 
 test('github validation stays descriptor-selected and reports missing auth', async () => {

@@ -56,7 +56,7 @@ function parsePositiveIntegerEnv(value: string | undefined): number | null {
 
 export function getOllamaNumCtx(): number {
   return (
-    parsePositiveIntegerEnv(process.env.OPENCLAUDE_OLLAMA_NUM_CTX) ??
+    parsePositiveIntegerEnv(process.env.KALTCODE_OLLAMA_NUM_CTX) ??
     parsePositiveIntegerEnv(process.env.OLLAMA_CONTEXT_LENGTH) ??
     MIN_RECOMMENDED_OLLAMA_CONTEXT_TOKENS
   )

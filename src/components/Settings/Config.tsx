@@ -340,7 +340,7 @@ export function Config({
     id: 'replMaxTurns',
     label: 'Max turns (interactive)',
     // Display/persist the saved preference (normalized). Effective runtime cap
-    // may still be overridden by CLI `--max-turns` or OPENCLAUDE_MAX_TURNS.
+    // may still be overridden by CLI `--max-turns` or KALTCODE_MAX_TURNS.
     value: String(normalizeReplMaxTurns(globalConfig.replMaxTurns)),
     // Include a hand-edited config value so it round-trips through the picker.
     options: [...new Set([...REPL_MAX_TURNS_OPTIONS.map(String), String(normalizeReplMaxTurns(globalConfig.replMaxTurns))])],

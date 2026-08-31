@@ -36,7 +36,7 @@ import {
 // checkReadableInternalPath: a plan file for the current session is auto-allowed
 // for read AND for write with no prompt. The match must be exactly this
 // session's plan, not any sibling that shares the slug as a name prefix.
-const PLANS = join('/home/user', '.openclaude', 'plans')
+const PLANS = join('/home/user', '.kaltcode', 'plans')
 const SLUG = 'brave-swift-otter'
 
 test('accepts the main plan file', () => {
@@ -345,7 +345,7 @@ describe('legacy plan file recovery', () => {
     // Acquire the lock first, then guard EVERY mutation (env, memo cache, slug,
     // temp dir) inside try/finally so a throw during setup still restores state.
     await acquireSharedMutationLock('utils/permissions/planFilePath.test.ts')
-    const savedCfg = process.env.OPENCLAUDE_CONFIG_DIR
+    const savedCfg = process.env.KALTCODE_CONFIG_DIR
     let configDir: string | undefined
     const clearPlansCache = () =>
       (
@@ -353,7 +353,7 @@ describe('legacy plan file recovery', () => {
       ).cache.clear()
     try {
       configDir = mkdtempSync(join(tmpdir(), 'plancfg-'))
-      process.env.OPENCLAUDE_CONFIG_DIR = configDir
+      process.env.KALTCODE_CONFIG_DIR = configDir
       // getPlansDirectory is memoized; clear it so it recomputes under the temp
       // config dir.
       clearPlansCache()
@@ -377,9 +377,9 @@ describe('legacy plan file recovery', () => {
       expect(existsSync(legacy)).toBe(false)
     } finally {
       if (savedCfg === undefined) {
-        delete process.env.OPENCLAUDE_CONFIG_DIR
+        delete process.env.KALTCODE_CONFIG_DIR
       } else {
-        process.env.OPENCLAUDE_CONFIG_DIR = savedCfg
+        process.env.KALTCODE_CONFIG_DIR = savedCfg
       }
       clearPlansCache()
       clearPlanSlug(getSessionId())
@@ -394,7 +394,7 @@ describe('legacy plan file recovery', () => {
   // Drive the real getPlan() so the empty-read fallthrough branch is covered.
   test('getPlan prefers a legacy plan over an empty escaped stub', async () => {
     await acquireSharedMutationLock('utils/permissions/planFilePath.test.ts')
-    const savedCfg = process.env.OPENCLAUDE_CONFIG_DIR
+    const savedCfg = process.env.KALTCODE_CONFIG_DIR
     let configDir: string | undefined
     const clearPlansCache = () =>
       (
@@ -402,7 +402,7 @@ describe('legacy plan file recovery', () => {
       ).cache.clear()
     try {
       configDir = mkdtempSync(join(tmpdir(), 'planstub-'))
-      process.env.OPENCLAUDE_CONFIG_DIR = configDir
+      process.env.KALTCODE_CONFIG_DIR = configDir
       clearPlansCache()
       const plansDir = getPlansDirectory()
       setPlanSlug(getSessionId(), SLUG)
@@ -423,9 +423,9 @@ describe('legacy plan file recovery', () => {
       expect(existsSync(legacy)).toBe(true)
     } finally {
       if (savedCfg === undefined) {
-        delete process.env.OPENCLAUDE_CONFIG_DIR
+        delete process.env.KALTCODE_CONFIG_DIR
       } else {
-        process.env.OPENCLAUDE_CONFIG_DIR = savedCfg
+        process.env.KALTCODE_CONFIG_DIR = savedCfg
       }
       clearPlansCache()
       clearPlanSlug(getSessionId())

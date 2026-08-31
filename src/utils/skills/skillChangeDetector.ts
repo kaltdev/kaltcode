@@ -214,13 +214,13 @@ async function getWatchablePaths(): Promise<string[]> {
     }
   }
 
-  // User skills directory (~/.openclaude/skills)
+  // User skills directory (~/.kaltcode/skills)
   const userSkillsPath = dependencies.getSkillsPath('userSettings', 'skills')
   if (userSkillsPath) {
     await pushIfExists(userSkillsPath)
   }
 
-  // User commands directory (~/.openclaude/commands)
+  // User commands directory (~/.kaltcode/commands)
   const userCommandsPath = dependencies.getSkillsPath(
     'userSettings',
     'commands',
@@ -230,7 +230,7 @@ async function getWatchablePaths(): Promise<string[]> {
   }
 
   // Project skills/commands directories. Keep this in sync with the loader's
-  // OpenClaude project config directories.
+  // Kalt Code project config directories.
   for (const configDirName of PROJECT_CONFIG_DIR_NAMES) {
     await pushIfExists(platformPath.resolve(configDirName, 'skills'))
     await pushIfExists(platformPath.resolve(configDirName, 'commands'))

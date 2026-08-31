@@ -190,9 +190,9 @@ export function AutoUpdater({
             ✓ Update installed · Restart to apply
           </Text>}
       {(autoUpdaterResult?.status === 'install_failed' || autoUpdaterResult?.status === 'no_permissions') && <Text color="error" wrap="truncate">
-          ✗ Auto-update failed &middot; Try <Text bold>openclaude doctor</Text> or{' '}
+          ✗ Auto-update failed &middot; Try <Text bold>kaltcode doctor</Text> or{' '}
           <Text bold>
-            {hasLocalInstall ? `cd ~/.openclaude/local && npm update ${MACRO.PACKAGE_URL}` : `npm i -g ${MACRO.PACKAGE_URL}@latest`}
+            {hasLocalInstall ? `cd ~/.kaltcode/local && npm update ${MACRO.PACKAGE_URL}` : `npm i -g ${MACRO.PACKAGE_URL}@latest`}
           </Text>
         </Text>}
     </Box>;

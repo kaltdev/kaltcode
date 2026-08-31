@@ -48,8 +48,8 @@ const ENV_KEYS = [
   'CONCENTRATE_BASE_URL',
   'CONCENTRATE_MODEL',
   'LONGCAT_API_KEY',
-  'OPENGATEWAY_API_KEY',
-  'OPENGATEWAY_BASE_URL',
+  'KALTCODE_GATEWAY_API_KEY',
+  'KALTCODE_GATEWAY_BASE_URL',
   'CLOUDFLARE_API_TOKEN',
   'MISTRAL_MODEL',
   'ANTHROPIC_MODEL',
@@ -102,8 +102,8 @@ const RESET_KEYS = [
   'CONCENTRATE_BASE_URL',
   'CONCENTRATE_MODEL',
   'LONGCAT_API_KEY',
-  'OPENGATEWAY_API_KEY',
-  'OPENGATEWAY_BASE_URL',
+  'KALTCODE_GATEWAY_API_KEY',
+  'KALTCODE_GATEWAY_BASE_URL',
   'CLOUDFLARE_API_TOKEN',
   'MISTRAL_MODEL',
   'ANTHROPIC_MODEL',
@@ -642,9 +642,9 @@ describe('applyProviderFlag - descriptor-backed openai-compatible routes', () =>
 
   test('descriptor-backed provider selection preserves custom OPENAI_API_BASE alias', () => {
     process.env.OPENAI_API_BASE = 'http://proxy.local:8080/v1'
-    process.env.OPENGATEWAY_API_KEY = 'fake-ogw-key'
+    process.env.KALTCODE_GATEWAY_API_KEY = 'fake-ogw-key'
 
-    const result = applyProviderFlag('gitlawb-opengateway', [])
+    const result = applyProviderFlag('kaltcode-gateway', [])
 
     expect(result.error).toBeUndefined()
     expect(process.env.CLAUDE_CODE_USE_OPENAI).toBe('1')
@@ -656,44 +656,44 @@ describe('applyProviderFlag - descriptor-backed openai-compatible routes', () =>
   test('descriptor-backed provider selection ignores placeholder OPENAI_API_BASE alias values', () => {
     process.env.OPENAI_API_BASE = 'undefined'
 
-    const result = applyProviderFlag('gitlawb-opengateway', [])
+    const result = applyProviderFlag('kaltcode-gateway', [])
 
     expect(result.error).toBeUndefined()
     expect(process.env.CLAUDE_CODE_USE_OPENAI).toBe('1')
-    expect(process.env.OPENAI_BASE_URL).toBe('https://opengateway.gitlawb.com/v1')
+    expect(process.env.OPENAI_BASE_URL).toBe('https://kaltcode.my.id/v1')
     expect(process.env.OPENAI_API_BASE).toBe('undefined')
   })
 
-  test('gitlawb-opengateway explicit provider overrides stale generic base URL', () => {
+  test('kaltcode-gateway explicit provider overrides stale generic base URL', () => {
     process.env.OPENAI_BASE_URL = 'https://api.openai.com/v1'
     process.env.OPENAI_MODEL = 'gpt-5.5'
-    process.env.OPENGATEWAY_API_KEY = 'fake-ogw-key'
+    process.env.KALTCODE_GATEWAY_API_KEY = 'fake-ogw-key'
 
-    const result = applyProviderFlag('gitlawb-opengateway', [])
+    const result = applyProviderFlag('kaltcode-gateway', [])
 
     expect(result.error).toBeUndefined()
     expect(process.env.CLAUDE_CODE_USE_OPENAI).toBe('1')
-    expect(process.env.OPENAI_BASE_URL).toBe('https://opengateway.gitlawb.com/v1')
-    expect(process.env.OPENGATEWAY_API_KEY).toBe('fake-ogw-key')
+    expect(process.env.OPENAI_BASE_URL).toBe('https://kaltcode.my.id/v1')
+    expect(process.env.KALTCODE_GATEWAY_API_KEY).toBe('fake-ogw-key')
     expect(process.env.OPENAI_API_KEY).toBe('fake-ogw-key')
   })
 
-  test('gitlawb-opengateway explicit provider respects OPENGATEWAY_BASE_URL override', () => {
+  test('kaltcode-gateway explicit provider respects KALTCODE_GATEWAY_BASE_URL override', () => {
     process.env.OPENAI_BASE_URL = 'https://api.openai.com/v1'
-    process.env.OPENGATEWAY_BASE_URL = 'http://localhost:8181/v1'
+    process.env.KALTCODE_GATEWAY_BASE_URL = 'http://localhost:8181/v1'
 
-    const result = applyProviderFlag('gitlawb-opengateway', [])
+    const result = applyProviderFlag('kaltcode-gateway', [])
 
     expect(result.error).toBeUndefined()
     expect(process.env.CLAUDE_CODE_USE_OPENAI).toBe('1')
     expect(process.env.OPENAI_BASE_URL).toBe('http://localhost:8181/v1')
   })
 
-  test('gitlawb-opengateway explicit provider preserves custom OPENAI_BASE_URL when no OPENGATEWAY_BASE_URL is set', () => {
+  test('kaltcode-gateway explicit provider preserves custom OPENAI_BASE_URL when no KALTCODE_GATEWAY_BASE_URL is set', () => {
     process.env.OPENAI_BASE_URL = 'http://localhost:8181/v1'
-    process.env.OPENGATEWAY_API_KEY = 'fake-ogw-key'
+    process.env.KALTCODE_GATEWAY_API_KEY = 'fake-ogw-key'
 
-    const result = applyProviderFlag('gitlawb-opengateway', [])
+    const result = applyProviderFlag('kaltcode-gateway', [])
 
     expect(result.error).toBeUndefined()
     expect(process.env.CLAUDE_CODE_USE_OPENAI).toBe('1')
@@ -701,12 +701,12 @@ describe('applyProviderFlag - descriptor-backed openai-compatible routes', () =>
     expect(process.env.OPENAI_API_KEY).toBe('fake-ogw-key')
   })
 
-  test('gitlawb-opengateway explicit provider prefers OPENGATEWAY_API_KEY over generic OPENAI_API_KEY', () => {
-    process.env.OPENGATEWAY_BASE_URL = 'http://localhost:8181/v1'
-    process.env.OPENGATEWAY_API_KEY = 'fake-ogw-key'
+  test('kaltcode-gateway explicit provider prefers KALTCODE_GATEWAY_API_KEY over generic OPENAI_API_KEY', () => {
+    process.env.KALTCODE_GATEWAY_BASE_URL = 'http://localhost:8181/v1'
+    process.env.KALTCODE_GATEWAY_API_KEY = 'fake-ogw-key'
     process.env.OPENAI_API_KEY = 'fake-generic-openai-key'
 
-    const result = applyProviderFlag('gitlawb-opengateway', [])
+    const result = applyProviderFlag('kaltcode-gateway', [])
 
     expect(result.error).toBeUndefined()
     expect(process.env.CLAUDE_CODE_USE_OPENAI).toBe('1')
@@ -714,12 +714,12 @@ describe('applyProviderFlag - descriptor-backed openai-compatible routes', () =>
     expect(process.env.OPENAI_API_KEY).toBe('fake-ogw-key')
   })
 
-  test('gitlawb-opengateway explicit provider ignores blank OPENGATEWAY_API_KEY fallback', () => {
-    process.env.OPENGATEWAY_BASE_URL = 'http://localhost:8181/v1'
-    process.env.OPENGATEWAY_API_KEY = '   '
+  test('kaltcode-gateway explicit provider ignores blank KALTCODE_GATEWAY_API_KEY fallback', () => {
+    process.env.KALTCODE_GATEWAY_BASE_URL = 'http://localhost:8181/v1'
+    process.env.KALTCODE_GATEWAY_API_KEY = '   '
     process.env.OPENAI_API_KEY = 'fake-openai-fallback'
 
-    const result = applyProviderFlag('gitlawb-opengateway', [])
+    const result = applyProviderFlag('kaltcode-gateway', [])
 
     expect(result.error).toBeUndefined()
     expect(process.env.CLAUDE_CODE_USE_OPENAI).toBe('1')
@@ -727,11 +727,11 @@ describe('applyProviderFlag - descriptor-backed openai-compatible routes', () =>
     expect(process.env.OPENAI_API_KEY).toBe('fake-openai-fallback')
   })
 
-  test('gitlawb-opengateway trims scoped API key and clears the copied key when switching routes', () => {
-    process.env.OPENGATEWAY_API_KEY = ' fake-ogw-key '
+  test('kaltcode-gateway trims scoped API key and clears the copied key when switching routes', () => {
+    process.env.KALTCODE_GATEWAY_API_KEY = ' fake-ogw-key '
 
-    const opengatewayResult = applyProviderFlag('gitlawb-opengateway', [])
-    expect(opengatewayResult.error).toBeUndefined()
+    const gatewayResult = applyProviderFlag('kaltcode-gateway', [])
+    expect(gatewayResult.error).toBeUndefined()
     expect(process.env.OPENAI_API_KEY).toBe('fake-ogw-key')
 
     const openrouterResult = applyProviderFlag('openrouter', [])
@@ -739,12 +739,12 @@ describe('applyProviderFlag - descriptor-backed openai-compatible routes', () =>
     expect(openrouterResult.error).toBeUndefined()
     expect(process.env.OPENAI_BASE_URL).toBe('https://openrouter.ai/api/v1')
     expect(process.env.OPENAI_API_KEY).toBeUndefined()
-    expect(process.env.OPENGATEWAY_API_KEY).toBe(' fake-ogw-key ')
+    expect(process.env.KALTCODE_GATEWAY_API_KEY).toBe(' fake-ogw-key ')
   })
 
-  test('clears OPENGATEWAY_API_KEY copied into OPENAI_API_KEY when switching routes', () => {
+  test('clears KALTCODE_GATEWAY_API_KEY copied into OPENAI_API_KEY when switching routes', () => {
     process.env.OPENAI_API_KEY = 'fake-ogw-key'
-    process.env.OPENGATEWAY_API_KEY = 'fake-ogw-key'
+    process.env.KALTCODE_GATEWAY_API_KEY = 'fake-ogw-key'
 
     const result = applyProviderFlag('openrouter', [])
 
@@ -752,19 +752,19 @@ describe('applyProviderFlag - descriptor-backed openai-compatible routes', () =>
     expect(process.env.CLAUDE_CODE_USE_OPENAI).toBe('1')
     expect(process.env.OPENAI_BASE_URL).toBe('https://openrouter.ai/api/v1')
     expect(process.env.OPENAI_API_KEY).toBeUndefined()
-    expect(process.env.OPENGATEWAY_API_KEY).toBe('fake-ogw-key')
+    expect(process.env.KALTCODE_GATEWAY_API_KEY).toBe('fake-ogw-key')
   })
 
-  test('descriptor-backed provider selection does not keep stale OpenGateway route', () => {
-    process.env.OPENAI_BASE_URL = 'https://opengateway.gitlawb.com/v1'
-    process.env.OPENGATEWAY_API_KEY = 'fake-ogw-key'
+  test('descriptor-backed provider selection does not keep stale KaltCode Gateway route', () => {
+    process.env.OPENAI_BASE_URL = 'https://kaltcode.my.id/v1'
+    process.env.KALTCODE_GATEWAY_API_KEY = 'fake-ogw-key'
 
     const result = applyProviderFlag('openrouter', [])
 
     expect(result.error).toBeUndefined()
     expect(process.env.CLAUDE_CODE_USE_OPENAI).toBe('1')
     expect(process.env.OPENAI_BASE_URL).toBe('https://openrouter.ai/api/v1')
-    expect(process.env.OPENGATEWAY_API_KEY).toBe('fake-ogw-key')
+    expect(process.env.KALTCODE_GATEWAY_API_KEY).toBe('fake-ogw-key')
   })
 
   test('clears stale NVIDIA_NIM marker when switching to another OpenAI-compatible route', () => {
@@ -1284,9 +1284,9 @@ describe('applyProviderFlagFromArgs', () => {
     expect(applyProviderFlagFromArgs(['--model', 'gpt-4o'])).toBeUndefined()
   })
 
-  test('reapplies remembered gitlawb-opengateway after settings env restores stale OpenAI routing', () => {
-    const args = ['--provider', 'gitlawb-opengateway']
-    delete process.env.OPENGATEWAY_API_KEY
+  test('reapplies remembered kaltcode-gateway after settings env restores stale OpenAI routing', () => {
+    const args = ['--provider', 'kaltcode-gateway']
+    delete process.env.KALTCODE_GATEWAY_API_KEY
     delete process.env.OPENAI_API_KEY
 
     const earlyResult = applyProviderFlagFromArgs(args, {
@@ -1294,18 +1294,18 @@ describe('applyProviderFlagFromArgs', () => {
     })
     expect(earlyResult?.error).toBeUndefined()
     expect(process.env.OPENAI_BASE_URL).toBe(
-      'https://opengateway.gitlawb.com/v1',
+      'https://kaltcode.my.id/v1',
     )
     expect(process.env.OPENAI_API_KEY).toBeUndefined()
 
-    process.env.OPENGATEWAY_API_KEY = 'settings-ogw-key'
+    process.env.KALTCODE_GATEWAY_API_KEY = 'settings-ogw-key'
     process.env.OPENAI_BASE_URL = 'https://api.openai.com/v1'
 
     const lateResult = reapplyRememberedProviderFlag()
 
     expect(lateResult?.error).toBeUndefined()
     expect(process.env.OPENAI_BASE_URL).toBe(
-      'https://opengateway.gitlawb.com/v1',
+      'https://kaltcode.my.id/v1',
     )
     expect(process.env.OPENAI_API_KEY as string | undefined).toBe(
       'settings-ogw-key',
@@ -1317,7 +1317,7 @@ describe('applyProviderFlagFromArgs', () => {
       [
         '--print',
         '--provider',
-        'gitlawb-opengateway',
+        'kaltcode-gateway',
         '--model',
         'custom-ogw-model',
         'do not retain prompt text',
@@ -1333,7 +1333,7 @@ describe('applyProviderFlagFromArgs', () => {
 
     expect(lateResult?.error).toBeUndefined()
     expect(process.env.OPENAI_BASE_URL).toBe(
-      'https://opengateway.gitlawb.com/v1',
+      'https://kaltcode.my.id/v1',
     )
     expect(process.env.OPENAI_MODEL).toBe('custom-ogw-model')
   })

@@ -42,7 +42,7 @@ let settingsBySource: Partial<Record<string, SettingsJson>> = {}
 beforeEach(async () => {
   await acquireSharedMutationLock('utils/settings/modelPricing.test.ts')
   mock.restore()
-  tempDir = mkdtempSync(join(tmpdir(), 'openclaude-model-pricing-'))
+  tempDir = mkdtempSync(join(tmpdir(), 'kaltcode-model-pricing-'))
   originalCwd = getOriginalCwd()
   originalSources = [...getAllowedSettingSources()]
   originalFlagPath = getFlagSettingsPath()
@@ -87,7 +87,7 @@ function writeJson(path: string, data: unknown): void {
 }
 
 test('shared project settings cannot influence personal pricing', async () => {
-  const settingsDir = join(tempDir, '.openclaude')
+  const settingsDir = join(tempDir, '.kaltcode')
   mkdirSync(settingsDir, { recursive: true })
   writeJson(join(settingsDir, 'settings.json'), {
     modelPricing: { 'repo-controlled-model': paid(999) },

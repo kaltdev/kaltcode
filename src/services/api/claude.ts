@@ -1422,7 +1422,7 @@ async function* queryModel(
   // (OpenAI-compatible env providers, per-agent providerOverride, Codex)
   // compresses at its own layer, where the local fast-path opt-out applies.
   // compressToolHistory is generic over AnyMessage — cast to satisfy the type
-  // checker since OpenClaude's Message union is a superset of what the
+  // checker since Kalt Code's Message union is a superset of what the
   // function actually inspects.
   const compressNativeToolHistory = shouldCompressNativeToolHistory({
     apiProvider: getAPIProvider(),
@@ -2676,7 +2676,7 @@ async function* queryModel(
                 max_tokens: maxOutputTokens,
               })
               const is3pProvider = shouldUseIntegrationRuntimeLimits()
-              const providerNoun = is3pProvider ? "Model's" : "OpenClaude's"
+              const providerNoun = is3pProvider ? "Model's" : "Kalt Code's"
               yield createAssistantAPIErrorMessage({
                 content: `${API_ERROR_MESSAGE_PREFIX}: ${providerNoun} response exceeded the ${
                   maxOutputTokens

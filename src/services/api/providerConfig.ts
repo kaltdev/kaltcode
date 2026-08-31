@@ -53,12 +53,12 @@ function asGithubEnterpriseEnvUrl(value: string | undefined): string | undefined
   return trimmed
 }
 
-function normalizeGitlawbOpengatewayBaseUrl(baseUrl: string | undefined): string | undefined {
+function normalizeKaltcodeGatewayBaseUrl(baseUrl: string | undefined): string | undefined {
   if (!baseUrl) return undefined
   try {
     const parsed = new URL(baseUrl)
     const hostname = parsed.hostname.toLowerCase()
-    if (hostname !== 'opengateway.gitlawb.com' && hostname !== 'opengateway.fly.dev') {
+    if (hostname !== 'kaltcode.my.id') {
       return baseUrl
     }
     const path = parsed.pathname.replace(/\/+$/, '').toLowerCase()
@@ -608,12 +608,12 @@ export function isLocalProviderUrl(baseUrl: string | undefined): boolean {
 // API the layers are invisible, but against multi-second local round-trips
 // they multiply per-call.
 //
-// Set `OPENCLAUDE_LOCAL_FAST_PATH=1` to force it on, `=0` to force off, or
+// Set `KALTCODE_LOCAL_FAST_PATH=1` to force it on, `=0` to force off, or
 // leave it unset to let `isLocalProviderUrl` decide. The opt-out is intended
 // to be conservative: if the env var is set explicitly, callers can audit
 // regressions; if not, behaviour only changes for hosts already classified
 // as local by the existing detector (loopback, RFC1918, .local, ULA/LL).
-const LOCAL_FAST_PATH_ENV = 'OPENCLAUDE_LOCAL_FAST_PATH'
+const LOCAL_FAST_PATH_ENV = 'KALTCODE_LOCAL_FAST_PATH'
 
 export type LocalFastPathConfig = {
   enabled: boolean
@@ -1075,7 +1075,7 @@ export function resolveProviderRequest(options?: {
     !isGithubMode && isCodexAliasModel && !hasUserSetBaseUrl
       ? DEFAULT_CODEX_BASE_URL
       : rawBaseUrl
-  const finalBaseUrl = normalizeGitlawbOpengatewayBaseUrl(finalBaseUrlRaw)
+  const finalBaseUrl = normalizeKaltcodeGatewayBaseUrl(finalBaseUrlRaw)
 
   const gheUrl = githubEnterpriseEnvUrl
   const githubEndpointType = isGithubMode

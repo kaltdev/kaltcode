@@ -72,8 +72,8 @@ function renderSuccessPage(): string {
   </head>
   <body>
     <h1>Codex login complete</h1>
-    <p>You can return to OpenClaude now.</p>
-    <p>OpenClaude will finish activating your new Codex OAuth login.</p>
+    <p>You can return to Kalt Code now.</p>
+    <p>Kalt Code will finish activating your new Codex OAuth login.</p>
   </body>
 </html>`
 }
@@ -94,7 +94,7 @@ function renderErrorPage(message: string): string {
   <body>
     <h1>Codex login failed</h1>
     <p>${safeMessage}</p>
-    <p>You can close this window and try again in OpenClaude.</p>
+    <p>You can close this window and try again in Kalt Code.</p>
   </body>
 </html>`
 }
@@ -113,7 +113,7 @@ function renderCancelledPage(): string {
   </head>
   <body>
     <h1>Codex login cancelled</h1>
-    <p>You can close this window and retry in OpenClaude.</p>
+    <p>You can close this window and retry in Kalt Code.</p>
   </body>
 </html>`
 }
@@ -224,7 +224,7 @@ export class CodexOAuthService {
   /**
    * Recover the flow when the loopback callback is unreachable — typically a
    * remote SSH session where the user's browser redirects to a localhost URL
-   * that resolves to their workstation, not the openclaude host. The user
+   * that resolves to their workstation, not the kaltcode host. The user
    * pastes the full redirected URL (or just its query string), we validate
    * the state parameter against the in-flight flow, and resolve the same
    * authorization code the loopback path would have produced.

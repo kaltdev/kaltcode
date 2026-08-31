@@ -46,11 +46,11 @@ export function getInstallationPath(): string {
   const homeDir = homedir();
   if (isWindows) {
     // Convert to Windows-style path
-    const windowsPath = join(homeDir, '.local', 'bin', 'openclaude.exe');
+    const windowsPath = join(homeDir, '.local', 'bin', 'kaltcode.exe');
     // Replace forward slashes with backslashes for Windows display
     return windowsPath.replace(/\//g, '\\');
   }
-  return '~/.local/bin/openclaude';
+  return '~/.local/bin/kaltcode';
 }
 function SetupNotes(t0) {
   const $ = _c(5);
@@ -147,7 +147,7 @@ export function Install({
         }
 
         // Now that native installation succeeded, clean up old npm installations.
-        // npm uninstall owns its bin entries and can remove ~/.local/bin/openclaude
+        // npm uninstall owns its bin entries and can remove ~/.local/bin/kaltcode
         // when the npm prefix overlaps the native launcher directory, so repair the
         // native launcher after cleanup before checking the final install state.
         logForDebugging('Install: Cleaning up npm installations after successful install');
@@ -238,12 +238,12 @@ export function Install({
   useEffect(() => {
     if (state.type === 'success') {
       // Give success message time to render before exiting
-      setTimeout(onDone, 2000, 'OpenClaude installation completed successfully', {
+      setTimeout(onDone, 2000, 'Kalt Code installation completed successfully', {
         display: 'system' as const
       });
     } else if (state.type === 'error') {
       // Give error message time to render before exiting
-      setTimeout(onDone, 3000, 'OpenClaude installation failed', {
+      setTimeout(onDone, 3000, 'Kalt Code installation failed', {
         display: 'system' as const
       });
     }
@@ -254,7 +254,7 @@ export function Install({
       {state.type === 'cleaning-npm' && <Text color="warning">Cleaning up old npm installations...</Text>}
 
       {state.type === 'installing' && <Text color="claude">
-          Installing OpenClaude native build {state.version}...
+          Installing Kalt Code native build {state.version}...
         </Text>}
 
       {state.type === 'setting-up' && <Text color="claude">Setting up launcher and shell integration...</Text>}
@@ -265,7 +265,7 @@ export function Install({
           <Box>
             <StatusIcon status="success" withSpace />
             <Text color="success" bold>
-              OpenClaude successfully installed!
+              Kalt Code successfully installed!
             </Text>
           </Box>
           <Box marginLeft={2} flexDirection="column" gap={1}>
@@ -282,7 +282,7 @@ export function Install({
             <Box marginTop={1}>
               <Text dimColor>Next: Run </Text>
               <Text color="claude" bold>
-                openclaude --help
+                kaltcode --help
               </Text>
               <Text dimColor> to get started</Text>
             </Box>
@@ -307,7 +307,7 @@ export function Install({
 export const install = {
   type: 'local-jsx' as const,
   name: 'install',
-  description: 'Install OpenClaude native build',
+  description: 'Install Kalt Code native build',
   argumentHint: '[options]',
   async call(onDone: (result: string, options?: {
     display?: CommandResultDisplay;

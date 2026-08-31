@@ -65,7 +65,7 @@ async function mintOrAdoptSignInKey(
     if (lease.status === 'acquired') {
       let created: { key: string; id: string }
       try {
-        created = await client.createKey(accessToken, 'OpenClaude CLI', signal)
+        created = await client.createKey(accessToken, 'Kalt Code CLI', signal)
       } catch (error) {
         // createKey is non-idempotent and exposes no retrieval-by-id
         // endpoint, so a transport-level failure is ambiguous: the POST may

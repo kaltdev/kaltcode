@@ -879,7 +879,7 @@ function commandLineContainsArgs(commandLine: string, args: string[]): boolean {
   // one CONTIGUOUS run of whole command tokens. An ordered-subsequence match
   // (skipping unrelated tokens between matches) would let a reused PID whose
   // command line merely interleaves the stored tokens pass — e.g. stored
-  // ["node", "openclaude", "1642"] satisfied by "node attacker openclaude extra
+  // ["node", "kaltcode", "1642"] satisfied by "node attacker kaltcode extra
   // 1642 --serve" — reopening the same wrong-process `kill` risk for token
   // insertion collisions. The real launch invocation appears as an unbroken run
   // (only the interpreter path or trailing flags differ), so leading/trailing

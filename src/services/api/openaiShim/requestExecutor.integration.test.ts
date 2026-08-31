@@ -48,8 +48,8 @@ const originalEnv = {
   OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
   DEEPSEEK_API_KEY: process.env.DEEPSEEK_API_KEY,
   MIMO_API_KEY: process.env.MIMO_API_KEY,
-  OPENGATEWAY_API_KEY: process.env.OPENGATEWAY_API_KEY,
-  OPENGATEWAY_BASE_URL: process.env.OPENGATEWAY_BASE_URL,
+  KALTCODE_GATEWAY_API_KEY: process.env.KALTCODE_GATEWAY_API_KEY,
+  KALTCODE_GATEWAY_BASE_URL: process.env.KALTCODE_GATEWAY_BASE_URL,
   OPENCODE_API_KEY: process.env.OPENCODE_API_KEY,
   CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED: process.env.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED,
   CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED_ID: process.env.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED_ID,
@@ -465,8 +465,8 @@ beforeEach(async () => {
   delete process.env.OPENROUTER_API_KEY
   delete process.env.DEEPSEEK_API_KEY
   delete process.env.MIMO_API_KEY
-  delete process.env.OPENGATEWAY_API_KEY
-  delete process.env.OPENGATEWAY_BASE_URL
+  delete process.env.KALTCODE_GATEWAY_API_KEY
+  delete process.env.KALTCODE_GATEWAY_BASE_URL
   delete process.env.OPENCODE_API_KEY
   delete process.env.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED
   delete process.env.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED_ID
@@ -509,8 +509,8 @@ afterEach(() => {
     restoreEnv('OPENROUTER_API_KEY', originalEnv.OPENROUTER_API_KEY)
     restoreEnv('DEEPSEEK_API_KEY', originalEnv.DEEPSEEK_API_KEY)
     restoreEnv('MIMO_API_KEY', originalEnv.MIMO_API_KEY)
-    restoreEnv('OPENGATEWAY_API_KEY', originalEnv.OPENGATEWAY_API_KEY)
-    restoreEnv('OPENGATEWAY_BASE_URL', originalEnv.OPENGATEWAY_BASE_URL)
+    restoreEnv('KALTCODE_GATEWAY_API_KEY', originalEnv.KALTCODE_GATEWAY_API_KEY)
+    restoreEnv('KALTCODE_GATEWAY_BASE_URL', originalEnv.KALTCODE_GATEWAY_BASE_URL)
     restoreEnv('OPENCODE_API_KEY', originalEnv.OPENCODE_API_KEY)
     restoreEnv('CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED', originalEnv.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED)
     restoreEnv('CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED_ID', originalEnv.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED_ID)
@@ -1070,14 +1070,14 @@ test('applies descriptor static headers before client and request headers', asyn
   expect(capturedHeaders?.get('x-override-header')).toBe('from-request')
 })
 
-test('opengateway sends Accept-Encoding: identity header on chat requests', async () => {
+test('kaltcode-gateway sends Accept-Encoding: identity header on chat requests', async () => {
   let capturedHeaders: Headers | undefined
 
   registerGateway({
-    id: 'gitlawb-opengateway-test',
-    label: 'Gitlawb Opengateway',
+    id: 'kaltcode-gateway-test',
+    label: 'KaltCode Gateway',
     category: 'aggregating',
-    defaultBaseUrl: 'https://opengateway.gitlawb.com/v1/xiaomi-mimo',
+    defaultBaseUrl: 'https://kaltcode.my.id/v1/xiaomi-mimo',
     defaultModel: 'mimo-v2.5-pro',
     setup: {
       requiresAuth: false,
@@ -1104,7 +1104,7 @@ test('opengateway sends Accept-Encoding: identity header on chat requests', asyn
   })
 
   process.env.CLAUDE_CODE_USE_OPENAI = '1'
-  process.env.OPENAI_BASE_URL = 'https://opengateway.gitlawb.com/v1/xiaomi-mimo'
+  process.env.OPENAI_BASE_URL = 'https://kaltcode.my.id/v1/xiaomi-mimo'
   process.env.OPENAI_MODEL = 'mimo-v2.5-pro'
 
   globalThis.fetch = (async (_input, init) => {
@@ -1433,8 +1433,8 @@ test('uses route-specific credential env vars for descriptor-backed openai-compa
   expect(capturedHeaders?.get('authorization')).toBe('Bearer or-route-key')
 })
 
-test('OpenGateway MiMo replays real reasoning_content without adding empty fallback', async () => {
-  process.env.OPENAI_BASE_URL = 'https://opengateway.gitlawb.com/v1'
+test('KaltCode Gateway MiMo replays real reasoning_content without adding empty fallback', async () => {
+  process.env.OPENAI_BASE_URL = 'https://kaltcode.my.id/v1'
   process.env.OPENAI_MODEL = 'mimo-v2.5-pro'
   let requestBody: Record<string, unknown> | undefined
 
@@ -1443,7 +1443,7 @@ test('OpenGateway MiMo replays real reasoning_content without adding empty fallb
 
     return new Response(
       JSON.stringify({
-        id: 'chatcmpl-opengateway-mimo',
+        id: 'chatcmpl-kaltcode-gateway-mimo',
         model: 'mimo-v2.5-pro',
         choices: [
           {
@@ -1595,8 +1595,8 @@ test('Xiaomi MiMo replays real reasoning_content without adding empty fallback',
   expect(requestBody).not.toHaveProperty('store')
 })
 
-test('OpenGateway MiMo does not synthesize empty reasoning_content when missing', async () => {
-  process.env.OPENAI_BASE_URL = 'https://opengateway.gitlawb.com/v1'
+test('KaltCode Gateway MiMo does not synthesize empty reasoning_content when missing', async () => {
+  process.env.OPENAI_BASE_URL = 'https://kaltcode.my.id/v1'
   process.env.OPENAI_MODEL = 'mimo-v2.5-pro'
   let requestBody: Record<string, unknown> | undefined
 
@@ -1605,7 +1605,7 @@ test('OpenGateway MiMo does not synthesize empty reasoning_content when missing'
 
     return new Response(
       JSON.stringify({
-        id: 'chatcmpl-opengateway-mimo',
+        id: 'chatcmpl-kaltcode-gateway-mimo',
         model: 'mimo-v2.5-pro',
         choices: [
           {
@@ -2182,27 +2182,27 @@ test('opencode go messages endpoint rotates raw x-api-key credentials after rate
   expect(capturedKeys).toEqual(['fake-opencode-a', 'fake-opencode-b'])
 })
 
-test('gitlawb opengateway provider flag sends OPENGATEWAY_API_KEY as bearer auth despite stale generic base URL', async () => {
+test('kaltcode-gateway provider flag sends KALTCODE_GATEWAY_API_KEY as bearer auth despite stale generic base URL', async () => {
   process.env.OPENAI_BASE_URL = 'https://api.openai.com/v1'
   process.env.OPENAI_MODEL = 'gpt-5.5'
-  process.env.OPENGATEWAY_API_KEY = 'fake-ogw-key'
+  process.env.KALTCODE_GATEWAY_API_KEY = 'fake-ogw-key'
   delete process.env.OPENAI_API_KEY
 
-  const result = applyProviderFlag('gitlawb-opengateway', [])
+  const result = applyProviderFlag('kaltcode-gateway', [])
   expect(result.error).toBeUndefined()
 
   const captured = await captureChatCompletionRequest()
 
-  expect(captured.url).toBe('https://opengateway.gitlawb.com/v1/chat/completions')
+  expect(captured.url).toBe('https://kaltcode.my.id/v1/chat/completions')
   expect(captured.authorization).toBe('Bearer fake-ogw-key')
 })
 
-test('gitlawb opengateway provider flag accepts OPENAI_API_KEY compatibility fallback', async () => {
+test('kaltcode-gateway provider flag accepts OPENAI_API_KEY compatibility fallback', async () => {
   delete process.env.OPENAI_BASE_URL
-  delete process.env.OPENGATEWAY_API_KEY
+  delete process.env.KALTCODE_GATEWAY_API_KEY
   process.env.OPENAI_API_KEY = 'fake-openai-fallback'
 
-  const result = applyProviderFlag('gitlawb-opengateway', [])
+  const result = applyProviderFlag('kaltcode-gateway', [])
   expect(result.error).toBeUndefined()
 
   const captured = await captureChatCompletionRequest()
@@ -2210,25 +2210,25 @@ test('gitlawb opengateway provider flag accepts OPENAI_API_KEY compatibility fal
   expect(captured.authorization).toBe('Bearer fake-openai-fallback')
 })
 
-test('gitlawb opengateway provider flag sends OPENAI_API_KEY fallback despite stale generic base URL', async () => {
+test('kaltcode-gateway provider flag sends OPENAI_API_KEY fallback despite stale generic base URL', async () => {
   process.env.OPENAI_BASE_URL = 'https://api.openai.com/v1'
   process.env.OPENAI_API_KEY = 'fake-openai-fallback'
-  delete process.env.OPENGATEWAY_API_KEY
+  delete process.env.KALTCODE_GATEWAY_API_KEY
 
-  const result = applyProviderFlag('gitlawb-opengateway', [])
+  const result = applyProviderFlag('kaltcode-gateway', [])
   expect(result.error).toBeUndefined()
 
   const captured = await captureChatCompletionRequest()
 
-  expect(captured.url).toBe('https://opengateway.gitlawb.com/v1/chat/completions')
+  expect(captured.url).toBe('https://kaltcode.my.id/v1/chat/completions')
   expect(captured.authorization).toBe('Bearer fake-openai-fallback')
 })
 
-test('gitlawb opengateway provider flag trims OPENGATEWAY_API_KEY before bearer auth', async () => {
-  process.env.OPENGATEWAY_API_KEY = ' fake-ogw-key '
+test('kaltcode-gateway provider flag trims KALTCODE_GATEWAY_API_KEY before bearer auth', async () => {
+  process.env.KALTCODE_GATEWAY_API_KEY = ' fake-ogw-key '
   delete process.env.OPENAI_API_KEY
 
-  const result = applyProviderFlag('gitlawb-opengateway', [])
+  const result = applyProviderFlag('kaltcode-gateway', [])
   expect(result.error).toBeUndefined()
 
   const captured = await captureChatCompletionRequest()
@@ -2236,11 +2236,11 @@ test('gitlawb opengateway provider flag trims OPENGATEWAY_API_KEY before bearer 
   expect(captured.authorization).toBe('Bearer fake-ogw-key')
 })
 
-test('gitlawb opengateway provider flag ignores blank OPENGATEWAY_API_KEY and uses OPENAI_API_KEY fallback', async () => {
-  process.env.OPENGATEWAY_API_KEY = '   '
+test('kaltcode-gateway provider flag ignores blank KALTCODE_GATEWAY_API_KEY and uses OPENAI_API_KEY fallback', async () => {
+  process.env.KALTCODE_GATEWAY_API_KEY = '   '
   process.env.OPENAI_API_KEY = 'fake-openai-fallback'
 
-  const result = applyProviderFlag('gitlawb-opengateway', [])
+  const result = applyProviderFlag('kaltcode-gateway', [])
   expect(result.error).toBeUndefined()
 
   const captured = await captureChatCompletionRequest()
@@ -2248,12 +2248,12 @@ test('gitlawb opengateway provider flag ignores blank OPENGATEWAY_API_KEY and us
   expect(captured.authorization).toBe('Bearer fake-openai-fallback')
 })
 
-test('gitlawb opengateway provider flag sends OPENGATEWAY_API_KEY to OPENGATEWAY_BASE_URL override', async () => {
-  process.env.OPENGATEWAY_BASE_URL = 'http://localhost:8181/v1'
-  process.env.OPENGATEWAY_API_KEY = 'fake-ogw-key'
+test('kaltcode-gateway provider flag sends KALTCODE_GATEWAY_API_KEY to KALTCODE_GATEWAY_BASE_URL override', async () => {
+  process.env.KALTCODE_GATEWAY_BASE_URL = 'http://localhost:8181/v1'
+  process.env.KALTCODE_GATEWAY_API_KEY = 'fake-ogw-key'
   delete process.env.OPENAI_API_KEY
 
-  const result = applyProviderFlag('gitlawb-opengateway', [])
+  const result = applyProviderFlag('kaltcode-gateway', [])
   expect(result.error).toBeUndefined()
 
   const captured = await captureChatCompletionRequest()
@@ -2262,13 +2262,13 @@ test('gitlawb opengateway provider flag sends OPENGATEWAY_API_KEY to OPENGATEWAY
   expect(captured.authorization).toBe('Bearer fake-ogw-key')
 })
 
-test('gitlawb opengateway provider flag sends OPENGATEWAY_API_KEY to custom OPENAI_BASE_URL fallback', async () => {
+test('kaltcode-gateway provider flag sends KALTCODE_GATEWAY_API_KEY to custom OPENAI_BASE_URL fallback', async () => {
   process.env.OPENAI_BASE_URL = 'http://localhost:8181/v1'
-  process.env.OPENGATEWAY_API_KEY = 'fake-ogw-key'
-  delete process.env.OPENGATEWAY_BASE_URL
+  process.env.KALTCODE_GATEWAY_API_KEY = 'fake-ogw-key'
+  delete process.env.KALTCODE_GATEWAY_BASE_URL
   delete process.env.OPENAI_API_KEY
 
-  const result = applyProviderFlag('gitlawb-opengateway', [])
+  const result = applyProviderFlag('kaltcode-gateway', [])
   expect(result.error).toBeUndefined()
 
   const captured = await captureChatCompletionRequest()
@@ -2277,12 +2277,12 @@ test('gitlawb opengateway provider flag sends OPENGATEWAY_API_KEY to custom OPEN
   expect(captured.authorization).toBe('Bearer fake-ogw-key')
 })
 
-test('gitlawb opengateway provider flag prefers OPENGATEWAY_API_KEY over generic OPENAI_API_KEY for custom base URL', async () => {
-  process.env.OPENGATEWAY_BASE_URL = 'http://localhost:8181/v1'
-  process.env.OPENGATEWAY_API_KEY = 'fake-ogw-key'
+test('kaltcode-gateway provider flag prefers KALTCODE_GATEWAY_API_KEY over generic OPENAI_API_KEY for custom base URL', async () => {
+  process.env.KALTCODE_GATEWAY_BASE_URL = 'http://localhost:8181/v1'
+  process.env.KALTCODE_GATEWAY_API_KEY = 'fake-ogw-key'
   process.env.OPENAI_API_KEY = 'fake-generic-openai-key'
 
-  const result = applyProviderFlag('gitlawb-opengateway', [])
+  const result = applyProviderFlag('kaltcode-gateway', [])
   expect(result.error).toBeUndefined()
 
   const captured = await captureChatCompletionRequest()
@@ -2291,15 +2291,15 @@ test('gitlawb opengateway provider flag prefers OPENGATEWAY_API_KEY over generic
   expect(captured.authorization).toBe('Bearer fake-ogw-key')
 })
 
-test('gitlawb opengateway stored provider profile key becomes bearer auth', async () => {
+test('kaltcode-gateway stored provider profile key becomes bearer auth', async () => {
   delete process.env.OPENAI_API_KEY
-  delete process.env.OPENGATEWAY_API_KEY
+  delete process.env.KALTCODE_GATEWAY_API_KEY
 
   applyProviderProfileToProcessEnv({
-    id: 'stored-opengateway',
-    provider: 'gitlawb-opengateway',
-    name: 'Gitlawb Opengateway',
-    baseUrl: 'https://opengateway.gitlawb.com/v1',
+    id: 'stored-kaltcode-gateway',
+    provider: 'kaltcode-gateway',
+    name: 'KaltCode Gateway',
+    baseUrl: 'https://kaltcode.my.id/v1',
     model: 'mimo-v2.5-pro',
     apiKey: 'fake-profile-key',
   })
@@ -2314,7 +2314,7 @@ test('openai route still sends OPENAI_API_KEY as bearer auth', async () => {
   process.env.OPENAI_BASE_URL = 'https://api.openai.com/v1'
   process.env.OPENAI_MODEL = 'gpt-5.5'
   process.env.OPENAI_API_KEY = 'fake-openai-key'
-  delete process.env.OPENGATEWAY_API_KEY
+  delete process.env.KALTCODE_GATEWAY_API_KEY
 
   const captured = await captureChatCompletionRequest('gpt-5.5')
 

@@ -31,13 +31,13 @@ import type { SecureStorageData } from './index.js'
 export const CREDENTIALS_SERVICE_SUFFIX = '-credentials'
 
 /**
- * Get the service/resource name for secure storage, scoped by OPENCLAUDE_CONFIG_DIR
+ * Get the service/resource name for secure storage, scoped by KALTCODE_CONFIG_DIR
  * if it's set to a non-default location.
  */
 export function getSecureStorageServiceName(
   serviceSuffix: string = '',
 ): string {
-  const configDirEnv = process.env.OPENCLAUDE_CONFIG_DIR || undefined
+  const configDirEnv = process.env.KALTCODE_CONFIG_DIR || undefined
   const configDir = configDirEnv
     ? resolveClaudeConfigHomeDir({ configDirEnv })
     : getClaudeConfigHomeDir()
@@ -51,7 +51,7 @@ export function getSecureStorageServiceName(
   const dirHash = isDefaultDir
     ? ''
     : `-${createHash('sha256').update(normalizedConfigDir).digest('hex').substring(0, 8)}`
-  return `OpenClaude${getOauthConfig().OAUTH_FILE_SUFFIX}${serviceSuffix}${dirHash}`
+  return `Kalt Code${getOauthConfig().OAUTH_FILE_SUFFIX}${serviceSuffix}${dirHash}`
 }
 
 export function getMacOsKeychainStorageServiceName(

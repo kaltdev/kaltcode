@@ -873,7 +873,7 @@ function isProcessEnvAlignedWithProfile(
  * distinct from `undefined`. Without it, clearing the active id falls through
  * to `profiles[0]` (see below), so a user with any saved third-party profile
  * could never return to Anthropic from `/provider` without hand-editing
- * `~/.openclaude.json` and restarting (#1426). Storing the sentinel preserves
+ * `~/.kaltcode.json` and restarting (#1426). Storing the sentinel preserves
  * the saved profiles for re-selection while expressing "no third-party active".
  */
 export const ANTHROPIC_DEFAULT_PROFILE_ID = '__anthropic_default__'
@@ -1220,7 +1220,7 @@ export function applyActiveProviderProfileFromConfig(
   // to undefined, so without this guard we would return below without marking
   // provider env as handled; buildStartupEnvFromProfile() then treats the
   // profile mirror that clearActiveProviderProfile() deleted as a fresh install
-  // and synthesizes the default Gitlawb OpenGateway env, bouncing the user off
+  // and synthesizes the default KaltCode Gateway env, bouncing the user off
   // built-in Anthropic on the next launch (#1429). Clear any managed provider
   // env and set the applied flag so the legacy/fresh-install fallback is
   // suppressed. An explicit startup provider selection still wins for the

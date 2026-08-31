@@ -49,7 +49,7 @@ describe("diagnostic redaction", () => {
     expect(new Set(collectProviderSecretEnvVars())).toEqual(expected);
     expect(expected.has("GEMINI_ACCESS_TOKEN")).toBe(true);
     expect(expected.has("GITHUB_TOKEN")).toBe(true);
-    expect(expected.has("OPENGATEWAY_API_KEY")).toBe(true);
+    expect(expected.has("KALTCODE_GATEWAY_API_KEY")).toBe(true);
     expect(expected.size).toBeGreaterThan(10);
   });
 
@@ -131,7 +131,7 @@ describe("diagnostic redaction", () => {
         "MISTRAL_API_KEY=mistralOpaqueToken123456789",
         "mistral api key abcdefghijklmnopqrstuvwxyz",
       ],
-      path: `${home}/private/openclaude/src/file.ts`,
+      path: `${home}/private/kaltcode/src/file.ts`,
     }) as { messages: string[]; path: string };
     const serialized = JSON.stringify(redacted);
 
@@ -143,7 +143,7 @@ describe("diagnostic redaction", () => {
       "MISTRAL_API_KEY=[REDACTED]",
       "mistral api key [redacted]",
     ]);
-    expect(redacted.path).toBe("~/private/openclaude/src/file.ts");
+    expect(redacted.path).toBe("~/private/kaltcode/src/file.ts");
     expect(serialized).not.toContain("sk-openai-secret-token");
     expect(serialized).not.toContain("AIzaSyDUMMY-secret-token");
     expect(serialized).not.toContain("abcdefghijklmnop");
@@ -170,12 +170,12 @@ describe("diagnostic redaction", () => {
 
     expect(
       redactHomePath(
-        "debug path C:\\Users\\Alice\\AppData\\Roaming\\openclaude",
+        "debug path C:\\Users\\Alice\\AppData\\Roaming\\kaltcode",
         home,
       ),
-    ).toBe("debug path ~\\AppData\\Roaming\\openclaude");
-    expect(redactHomePath("C:\\Users\\AliceOther\\openclaude", home)).toBe(
-      "C:\\Users\\AliceOther\\openclaude",
+    ).toBe("debug path ~\\AppData\\Roaming\\kaltcode");
+    expect(redactHomePath("C:\\Users\\AliceOther\\kaltcode", home)).toBe(
+      "C:\\Users\\AliceOther\\kaltcode",
     );
   });
 

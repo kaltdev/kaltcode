@@ -139,9 +139,9 @@ describe('skillChangeDetector reload batching', () => {
     expect(chokidarWatch).not.toHaveBeenCalled()
   })
 
-  test('watches OpenClaude project/add-dir skill paths that the loader reads', async () => {
+  test('watches Kalt Code project/add-dir skill paths that the loader reads', async () => {
     const detector = await importFreshModule()
-    const addDir = platformPath.join('/tmp', 'openclaude-add-dir')
+    const addDir = platformPath.join('/tmp', 'kaltcode-add-dir')
     const userSkillsPath = platformPath.join('/tmp', 'user', 'skills')
     const userCommandsPath = platformPath.join('/tmp', 'user', 'commands')
     additionalDirectories = [addDir]
@@ -163,24 +163,24 @@ describe('skillChangeDetector reload batching', () => {
     expect(watchedPaths).toContain(userSkillsPath)
     expect(watchedPaths).toContain(userCommandsPath)
     expect(watchedPaths).toContain(
-      platformPath.join(addDir, '.openclaude', 'skills'),
+      platformPath.join(addDir, '.kaltcode', 'skills'),
     )
     expect(watchedPaths).not.toContain(
-      platformPath.join(addDir, '.claude', 'skills'),
+      platformPath.join(addDir, '.kaltcode', 'skills'),
     )
     expect(
       watchedPaths.some(path =>
-        path.endsWith(platformPath.join('.openclaude', 'skills')),
+        path.endsWith(platformPath.join('.kaltcode', 'skills')),
       ),
     ).toBe(true)
     expect(
       watchedPaths.some(path =>
-        path.endsWith(platformPath.join('.claude', 'commands')),
+        path.endsWith(platformPath.join('.kaltcode', 'commands')),
       ),
     ).toBe(false)
     expect(
       watchedPaths.some(path =>
-        path.endsWith(platformPath.join('.openclaude', 'commands')),
+        path.endsWith(platformPath.join('.kaltcode', 'commands')),
       ),
     ).toBe(true)
     expect(watchOptions.depth).toBeUndefined()

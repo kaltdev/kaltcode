@@ -218,12 +218,12 @@ test('AIMLAPI discovery passes credentials and headers on the bootstrap route', 
     })
     expect(fallbackOptions?.apiKey).toBe('sk-aimlapi-test')
     expect(fallbackOptions?.headers).toEqual({
-      'X-AIMLAPI-Source': 'agent/openclaude',
+      'X-AIMLAPI-Source': 'agent/kaltcode',
       'X-AIMLAPI-Partner-ID': 'part_62yQoGYDq4Yqnrj2R1iGrDNJ',
-      'X-AIMLAPI-Integration-Repo': 'Gitlawb/openclaude',
+      'X-AIMLAPI-Integration-Repo': 'kaltdev/kaltcode',
       'X-AIMLAPI-Integration-Version': publicBuildVersion,
-      'HTTP-Referer': 'OpenClaude',
-      'X-Title': 'OpenClaude',
+      'HTTP-Referer': 'Kalt Code',
+      'X-Title': 'Kalt Code',
       Authorization: 'Bearer leaked',
       'X-API-Key': 'leaked-key',
     })
@@ -239,7 +239,7 @@ test('AIMLAPI discovery passes credentials and headers on the bootstrap route', 
   }
 })
 
-test('OpenGateway discovery filters expired models from bootstrap additionalModelOptions', async () => {
+test('KaltCode Gateway discovery filters expired models from bootstrap additionalModelOptions', async () => {
   const envKeys = [
     'ANTHROPIC_CUSTOM_HEADERS',
     'CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC',
@@ -248,7 +248,7 @@ test('OpenGateway discovery filters expired models from bootstrap additionalMode
     'OPENAI_API_KEYS',
     'OPENAI_BASE_URL',
     'OPENAI_MODEL',
-    'OPENGATEWAY_API_KEY',
+    'KALTCODE_GATEWAY_API_KEY',
   ] as const
   const savedEnv = new Map<string, string | undefined>(
     envKeys.map(key => [key, process.env[key]]),
@@ -257,21 +257,21 @@ test('OpenGateway discovery filters expired models from bootstrap additionalMode
   try {
     delete process.env.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC
     process.env.CLAUDE_CODE_USE_OPENAI = '1'
-    process.env.OPENAI_BASE_URL = 'https://opengateway.gitlawb.com/v1'
+    process.env.OPENAI_BASE_URL = 'https://kaltcode.my.id/v1'
     process.env.OPENAI_MODEL = 'auto'
     delete process.env.OPENAI_API_KEY
     delete process.env.OPENAI_API_KEYS
-    delete process.env.OPENGATEWAY_API_KEY
+    delete process.env.KALTCODE_GATEWAY_API_KEY
 
     const payload = await fetchLocalOpenAIModelOptions({
       getAdditionalModelOptionsCacheScope: () =>
-        'openai:https://opengateway.gitlawb.com/v1',
+        'openai:https://kaltcode.my.id/v1',
       resolveProviderRequest: () =>
         ({
-          baseUrl: 'https://opengateway.gitlawb.com/v1',
+          baseUrl: 'https://kaltcode.my.id/v1',
         }) as ReturnType<typeof import('./providerConfig.js').resolveProviderRequest>,
       discoverModelsForRoute: async () => ({
-        routeId: 'gitlawb-opengateway',
+        routeId: 'kaltcode-gateway',
         models: [
           { id: 'mimo-v2.5-pro', apiName: 'mimo-v2.5-pro', label: 'MiMo V2.5 Pro' },
           { id: 'moonshotai/kimi-k3', apiName: 'moonshotai/kimi-k3', label: 'Kimi K3' },

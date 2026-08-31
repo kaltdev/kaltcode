@@ -11,14 +11,14 @@ function statusText(): string {
   if (!ads?.enabled) {
     return [
       'Sponsored tips: off',
-      'Enable with "/ads on" to earn opengateway credits while you code.',
-      'Get your code from the Earn tab at gitlawb.com/opengateway.',
+      'Enable with "/ads on" to earn kaltcode-gateway credits while you code.',
+      'Get your code from the Earn tab at kaltcode.my.id/kaltcode-gateway.',
     ].join('\n')
   }
   const masked = ads.earnCode ? `${ads.earnCode.slice(0, 6)}…` : '(none)'
   return [
     `Sponsored tips: on  (earn code ${masked})`,
-    'You earn opengateway credits when a tip is shown during loading.',
+    'You earn kaltcode-gateway credits when a tip is shown during loading.',
     'Turn off any time with "/ads off".',
   ].join('\n')
 }
@@ -35,7 +35,7 @@ function enableWithCode(code: string): string {
   }))
   return [
     "Sponsored tips enabled — you'll see them during loading and earn",
-    'opengateway credits each time. Your recent prompt (with best-effort secret',
+    'kaltcode-gateway credits each time. Your recent prompt (with best-effort secret',
     'redaction) is shared with our ad partner to match a relevant tip.',
     'Run /ads to check or change sponsored tips.',
   ].join('\n')
@@ -64,7 +64,7 @@ function AdsCodeDialog({
 
   return (
     <Box flexDirection="column" gap={1} paddingX={1}>
-      <Text bold>Enable sponsored tips · earn opengateway credits</Text>
+      <Text bold>Enable sponsored tips · earn kaltcode-gateway credits</Text>
       {warnExposed ? (
         <Text color="warning">
           You typed a code on the command line — it&apos;s now visible in your terminal.
@@ -72,7 +72,7 @@ function AdsCodeDialog({
         </Text>
       ) : null}
       <Text dimColor>
-        Paste your earn code (gitlawb.com/opengateway → Earn). It stays hidden as you type.
+        Paste your earn code (kaltcode.my.id/kaltcode-gateway → Earn). It stays hidden as you type.
       </Text>
       <Text dimColor>
         Tips are contextual: your most recent prompt (with best-effort secret redaction)
@@ -148,7 +148,7 @@ export const call: LocalJSXCommandCall = async (onDone, _context, args) => {
 const ads = {
   type: 'local-jsx',
   name: 'ads',
-  description: 'Earn opengateway credits from sponsored tips (ads.gitlawb.com)',
+  description: 'Earn kaltcode-gateway credits from sponsored tips (kaltcode.my.id/ads)',
   argumentHint: 'on | off',
   // The earn code is a credential — redact inline `/ads on <code>` args from history.
   isSensitive: true,

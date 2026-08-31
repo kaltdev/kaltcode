@@ -1,4 +1,4 @@
-# OpenClaude for Non-Technical Users
+# Kalt Code for Non-Technical Users
 
 This guide is for people who want the easiest setup path.
 
@@ -6,9 +6,9 @@ You do not need to build from source. You do not need Bun. You do not need to un
 
 If you can copy and paste commands into a terminal, you can set this up.
 
-## What OpenClaude Does
+## What Kalt Code Does
 
-OpenClaude lets you use an AI coding assistant with different model providers such as:
+Kalt Code lets you use an AI coding assistant with different model providers such as:
 
 - OpenAI
 - DeepSeek
@@ -28,8 +28,8 @@ You need:
 
 ## Fastest Path
 
-1. Install OpenClaude with npm
-2. Run `openclaude`
+1. Install Kalt Code with npm
+2. Run `kaltcode`
 3. Inside the CLI, run `/provider` for guided provider setup
 
 The `/provider` command walks you through choosing a provider and entering credentials. You do not need to set environment variables beforehand.
@@ -41,7 +41,7 @@ The `/provider` command walks you through choosing a provider and entering crede
 
 ## Which Provider Should You Choose?
 
-Once you have picked a provider, run `/provider` inside OpenClaude to set it up with guided prompts.
+Once you have picked a provider, run `/provider` inside Kalt Code to set it up with guided prompts.
 
 ### OpenAI
 
@@ -66,7 +66,7 @@ Choose this if:
 
 ## What Success Looks Like
 
-After you run `openclaude`, the CLI should start and wait for your prompt.
+After you run `kaltcode`, the CLI should start and wait for your prompt.
 
 At that point, you can ask it to:
 
@@ -77,7 +77,7 @@ At that point, you can ask it to:
 
 ## Common Problems
 
-### `openclaude` command not found
+### `kaltcode` command not found
 
 Cause:
 
@@ -88,7 +88,7 @@ Fix:
 
 1. Close the terminal
 2. Open a new terminal
-3. Run `openclaude` again
+3. Run `kaltcode` again
 
 On Windows PowerShell, if that still does not work, add npm's global bin folder
 to your user `Path`, then open a new PowerShell window:
@@ -115,20 +115,20 @@ Cause:
 Fix:
 
 1. Get a fresh key from your provider
-2. Run `/provider` inside OpenClaude to update your credentials
-3. Re-run `openclaude`
+2. Run `/provider` inside Kalt Code to update your credentials
+3. Re-run `kaltcode`
 
 ### Missing Provider Key after copying .env.example
 
 Cause:
 
-- OpenClaude does not automatically load `.env` files. If you copied `.env.example` to `.env`, OpenClaude won't see the variables unless you tell it to.
+- Kalt Code does not automatically load `.env` files. If you copied `.env.example` to `.env`, Kalt Code won't see the variables unless you tell it to.
 
 Fix:
 
 - Load the file explicitly:
-  `openclaude --provider-env-file .env`
-- Or, use the `/provider` command inside OpenClaude instead (recommended).
+  `kaltcode --provider-env-file .env`
+- Or, use the `/provider` command inside Kalt Code instead (recommended).
 - Do not commit your `.env` file to git.
 - The explicit loader accepts provider/setup variables. Export runtime/debug variables from your shell or launcher instead.
 
@@ -153,18 +153,18 @@ If you want source builds, advanced provider profiles, diagnostics, or Bun-based
 
 ## Getting Help
 
-- **GitHub Discussions**: https://github.com/Gitlawb/openclaude/discussions
+- **GitHub Discussions**: https://github.com/kaltdev/kaltcode/discussions
   Use this for Q&A, setup help, and community conversation.
 
-- **GitHub Issues**: https://github.com/Gitlawb/openclaude/issues
+- **GitHub Issues**: https://github.com/kaltdev/kaltcode/issues
   Use this for confirmed bugs and feature requests.
 
 ### Quick diagnostic check
 
-If OpenClaude is not working after setup, run:
+If Kalt Code is not working after setup, run:
 
 ```bash
-openclaude --version
+kaltcode --version
 ```
 
 If this prints a version number, the install succeeded. If it says "command not found," close your terminal, open a new one, and try again. On Windows, you may also need to add npm's global bin folder to your user `Path` (see the [Windows Quick Start](quick-start-windows.md) guide for details).
@@ -172,5 +172,5 @@ If this prints a version number, the install succeeded. If it says "command not 
 When filing a bug, run this and paste the redacted output into the issue:
 
 ```bash
-openclaude doctor report --markdown
+kaltcode doctor report --markdown
 ```

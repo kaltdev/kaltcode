@@ -451,7 +451,7 @@ test('the façade replays Gemini signatures in follow-up tool calls', async () =
     stream: false,
   })
 
-  process.env.OPENAI_BASE_URL = 'https://opengateway.gitlawb.com/v1'
+  process.env.OPENAI_BASE_URL = 'https://kaltcode.my.id/v1'
   await client.beta.messages.create({
     model: 'google/gemini-3.1-flash-lite',
     messages: [
@@ -463,7 +463,7 @@ test('the façade replays Gemini signatures in follow-up tool calls', async () =
           id: 'call_1',
           name: 'Write',
           input: { file_path: 'todo.md', content: 'todo' },
-          signature: 'sig-opengateway',
+          signature: 'sig-kaltcode-gateway',
         }],
       },
       { role: 'user', content: [{ type: 'tool_result', tool_use_id: 'call_1', content: 'created' }] },
@@ -489,7 +489,7 @@ test('the façade replays Gemini signatures in follow-up tool calls', async () =
   }
   expect(secondAssistant.tool_calls?.[0]).toMatchObject({
     id: 'call_1',
-    extra_content: { google: { thought_signature: 'sig-opengateway' } },
+    extra_content: { google: { thought_signature: 'sig-kaltcode-gateway' } },
   })
 })
 

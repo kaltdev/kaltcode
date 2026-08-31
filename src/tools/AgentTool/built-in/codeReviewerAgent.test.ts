@@ -64,7 +64,7 @@ describe('code-reviewer built-in agent', () => {
 
     originalEnv = {
       HOME: process.env.HOME,
-      OPENCLAUDE_CONFIG_DIR: process.env.OPENCLAUDE_CONFIG_DIR,
+      KALTCODE_CONFIG_DIR: process.env.KALTCODE_CONFIG_DIR,
       CLAUDE_CONFIG_DIR: process.env.CLAUDE_CONFIG_DIR,
       EMBEDDED_SEARCH_TOOLS: process.env.EMBEDDED_SEARCH_TOOLS,
       CLAUDE_CODE_ENTRYPOINT: process.env.CLAUDE_CODE_ENTRYPOINT,
@@ -73,12 +73,12 @@ describe('code-reviewer built-in agent', () => {
     previousOverride = getClaudeConfigHomeDirOverrideForTesting()
     previousSettingSources = getAllowedSettingSources()
 
-    dir = await mkdtemp(join(tmpdir(), 'openclaude-reviewer-test-'))
-    const configDir = join(dir, '.openclaude')
+    dir = await mkdtemp(join(tmpdir(), 'kaltcode-reviewer-test-'))
+    const configDir = join(dir, '.kaltcode')
 
     setClaudeConfigHomeDirForTesting(configDir)
     process.env.HOME = dir
-    process.env.OPENCLAUDE_CONFIG_DIR = configDir
+    process.env.KALTCODE_CONFIG_DIR = configDir
     process.env.CLAUDE_CONFIG_DIR = configDir
     process.env.CLAUDE_CODE_USE_NATIVE_FILE_SEARCH = '1'
     setAllowedSettingSources([...SETTING_SOURCES])

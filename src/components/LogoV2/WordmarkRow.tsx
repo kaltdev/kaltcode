@@ -9,8 +9,8 @@ import {
 
 /**
  * The single-row brand wordmark: shade-gradient accents flanking letter-spaced
- * caps, with the OPEN half (and left accent) in the shimmer accent and the
- * CLAUDE half (and right accent) in the brand accent.
+ * caps, with the KALT half (and left accent) in the shimmer accent and the
+ * CODE half (and right accent) in the brand accent.
  */
 export function WordmarkRow(): React.ReactElement {
   return (

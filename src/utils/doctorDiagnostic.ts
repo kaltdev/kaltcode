@@ -48,7 +48,7 @@ import { which } from './which.js'
 function getCliBinaryName(): string {
   return MACRO.PACKAGE_URL === '@anthropic-ai/claude-code'
     ? 'claude'
-    : 'openclaude'
+    : 'kaltcode'
 }
 
 function getNativeDataDirName(): string {
@@ -82,7 +82,7 @@ export function getNativeInstallUnavailableFix(
     case 'local-config':
       return `Run ${getCliBinaryName()} update to refresh the install method, or update manually with: ${getNpmUpdateCommand()}`
     case 'local-overlap':
-      return `Use the local install at ~/.openclaude/local/${getCliBinaryName()}, remove it, or update the global npm package with: ${getNpmUpdateCommand()}`
+      return `Use the local install at ~/.kaltcode/local/${getCliBinaryName()}, remove it, or update the global npm package with: ${getNpmUpdateCommand()}`
     case 'global-permissions':
       return `Do one of: (1) Re-install node without sudo, or (2) Update manually with: ${getNpmUpdateCommand()}`
     case 'native-config':
@@ -273,7 +273,7 @@ async function detectMultipleInstallations(): Promise<
   }
 
   // Check for global npm installation
-  const packagesToCheck = [MACRO.PACKAGE_URL || '@gitlawb/openclaude']
+  const packagesToCheck = [MACRO.PACKAGE_URL || '@kaltdev/kaltcode']
   const npmResult = await execFileNoThrow('npm', [
     '-g',
     'config',
@@ -550,13 +550,13 @@ async function detectConfigurationIssues(
         // Alias exists but points to invalid target
         warnings.push({
           issue: 'Local installation not accessible',
-          fix: `Alias exists but points to invalid target: ${existingAlias}. Update alias: alias ${getCliBinaryName()}="~/.openclaude/local/${getCliBinaryName()}"`,
+          fix: `Alias exists but points to invalid target: ${existingAlias}. Update alias: alias ${getCliBinaryName()}="~/.kaltcode/local/${getCliBinaryName()}"`,
         })
       } else {
         // No alias exists and not in PATH
         warnings.push({
           issue: 'Local installation not accessible',
-          fix: `Create alias: alias ${getCliBinaryName()}="~/.openclaude/local/${getCliBinaryName()}"`,
+          fix: `Create alias: alias ${getCliBinaryName()}="~/.kaltcode/local/${getCliBinaryName()}"`,
         })
       }
     }
@@ -617,7 +617,7 @@ export async function getDoctorDiagnostic(): Promise<DiagnosticInfo> {
 
     for (const install of npmInstalls) {
       if (install.type === 'npm-global') {
-        const uninstallPackageName = MACRO.PACKAGE_URL || '@gitlawb/openclaude'
+        const uninstallPackageName = MACRO.PACKAGE_URL || '@kaltdev/kaltcode'
         const uninstallCmd = `npm -g uninstall ${uninstallPackageName}`
         warnings.push({
           issue: `Leftover npm global installation at ${install.path}`,

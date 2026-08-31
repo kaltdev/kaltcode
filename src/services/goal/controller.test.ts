@@ -70,8 +70,8 @@ async function drain(
 describe('goal continuation controller', () => {
   test.serial('traces goal evaluation start and completion', async () => {
     await acquireSharedMutationLock('goal/controller trace')
-    const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     try {
       const { context, abortController } = makeContext()
@@ -122,8 +122,8 @@ describe('goal continuation controller', () => {
     } finally {
       await __waitForInterruptionTraceFlushForTests()
       __resetInterruptionTraceForTests()
-      if (originalTrace === undefined) delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-      else process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+      if (originalTrace === undefined) delete process.env.KALTCODE_INTERRUPT_TRACE
+      else process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
       releaseSharedMutationLock()
     }
   })

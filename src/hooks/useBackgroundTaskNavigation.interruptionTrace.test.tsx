@@ -16,7 +16,7 @@ import {
 } from '../utils/interruptionTrace.js'
 import { useBackgroundTaskNavigation } from './useBackgroundTaskNavigation.js'
 
-const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
+const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
 
 beforeEach(async () => {
   await acquireSharedMutationLock(
@@ -28,9 +28,9 @@ afterEach(() => {
   try {
     __resetInterruptionTraceForTests()
     if (originalTrace === undefined) {
-      delete process.env.OPENCLAUDE_INTERRUPT_TRACE
+      delete process.env.KALTCODE_INTERRUPT_TRACE
     } else {
-      process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+      process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
     }
   } finally {
     releaseSharedMutationLock()
@@ -158,7 +158,7 @@ async function renderNavigation(initialState: AppState): Promise<{
 }
 
 test('records Escape causality before aborting the current teammate turn', async () => {
-  process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+  process.env.KALTCODE_INTERRUPT_TRACE = '1'
   const { task, currentWorkAbortController } = createTeammateTask()
   const rendered = await renderNavigation({
     ...getDefaultAppState(),
@@ -193,7 +193,7 @@ test('records Escape causality before aborting the current teammate turn', async
 })
 
 test('records kill-key causality before aborting the teammate lifecycle', async () => {
-  process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+  process.env.KALTCODE_INTERRUPT_TRACE = '1'
   const { task, lifecycleAbortController } = createTeammateTask()
   const rendered = await renderNavigation({
     ...getDefaultAppState(),

@@ -1,10 +1,10 @@
 # LiteLLM Setup
 
-OpenClaude can connect to LiteLLM through LiteLLM's OpenAI-compatible proxy.
+Kalt Code can connect to LiteLLM through LiteLLM's OpenAI-compatible proxy.
 
 ## Overview
 
-LiteLLM is an open-source LLM gateway that provides a unified API to 100+ model providers. By running the LiteLLM Proxy, you can route OpenClaude requests through LiteLLM to access any of its supported providers — all while using OpenClaude's existing OpenAI-compatible provider path.
+LiteLLM is an open-source LLM gateway that provides a unified API to 100+ model providers. By running the LiteLLM Proxy, you can route Kalt Code requests through LiteLLM to access any of its supported providers — all while using Kalt Code's existing OpenAI-compatible provider path.
 
 ## Prerequisites
 
@@ -57,7 +57,7 @@ litellm --config litellm_config.yaml --port 4000
 
 The proxy will start at `http://localhost:4000` by default.
 
-## 2. Point OpenClaude to LiteLLM
+## 2. Point Kalt Code to LiteLLM
 
 ### Option A: Environment Variables
 
@@ -66,7 +66,7 @@ export CLAUDE_CODE_USE_OPENAI=1
 export OPENAI_BASE_URL=http://localhost:4000/v1
 export OPENAI_API_KEY=<your-master-key-or-placeholder>
 export OPENAI_MODEL=<your-litellm-model-alias>
-openclaude
+kaltcode
 ```
 
 Replace `<your-litellm-model-alias>` with a model name from your `litellm_config.yaml` (e.g., `gpt-4o`, `claude-sonnet-4`, `gemini-2.5-flash`).
@@ -76,7 +76,7 @@ be omitted when you configure env vars manually.
 
 ### Option B: Using /provider
 
-1. Run `openclaude`
+1. Run `kaltcode`
 2. Type `/provider` to open the provider setup flow
 3. Choose the **OpenAI-compatible** option
 4. When prompted for the API key, enter the key required by your LiteLLM proxy.
@@ -118,26 +118,26 @@ litellm_settings:
 # Start proxy with a master key
 litellm --config litellm_config.yaml --port 4000 --master_key sk-my-master-key
 
-# Connect OpenClaude
+# Connect Kalt Code
 export CLAUDE_CODE_USE_OPENAI=1
 export OPENAI_BASE_URL=http://localhost:4000/v1
 export OPENAI_API_KEY=sk-my-master-key
 export OPENAI_MODEL=gpt-4o
-openclaude
+kaltcode
 ```
 
 ## 4. Notes
 
 - `OPENAI_MODEL` must match the **LiteLLM model alias** defined in your config, not the upstream raw provider model name.
 - If your proxy requires authentication, use the proxy key (or `master_key`) in `OPENAI_API_KEY`.
-- LiteLLM's OpenAI-compatible endpoint accepts the same request format as OpenAI, so OpenClaude works without custom request shaping.
-- OpenClaude discovers LiteLLM model context from `/v1/models` when LiteLLM exposes `context_length`, `context_window`, `max_model_len`, or `max_input_tokens`, including under `model_info`.
-- You can switch between any provider configured in LiteLLM by simply changing the `OPENAI_MODEL` value — no need to reconfigure OpenClaude.
+- LiteLLM's OpenAI-compatible endpoint accepts the same request format as OpenAI, so Kalt Code works without custom request shaping.
+- Kalt Code discovers LiteLLM model context from `/v1/models` when LiteLLM exposes `context_length`, `context_window`, `max_model_len`, or `max_input_tokens`, including under `model_info`.
+- You can switch between any provider configured in LiteLLM by simply changing the `OPENAI_MODEL` value — no need to reconfigure Kalt Code.
 
 ### Context window detection
 
 For custom LiteLLM aliases, add context metadata to each model entry when the
-upstream model supports a larger window than OpenClaude's fallback:
+upstream model supports a larger window than Kalt Code's fallback:
 
 ```yaml
 model_list:
@@ -165,7 +165,7 @@ export CLAUDE_CODE_OPENAI_CONTEXT_WINDOWS='{"long-context-model":1000000}'
 | 404 or Model Not Found | Model alias doesn't exist in LiteLLM config | Verify the `model_name` in `litellm_config.yaml` matches `OPENAI_MODEL` |
 | Connection Refused | LiteLLM proxy isn't running | Start the proxy with `litellm --config litellm_config.yaml --port 4000` |
 | Auth Failed | Missing or wrong `master_key` | Set the correct key in `OPENAI_API_KEY` |
-| `/context` shows 128K for a larger model | LiteLLM is not exposing context metadata for the alias, or startup discovery has not refreshed | Add `model_info.context_length` or `model_info.max_input_tokens` to the LiteLLM config, restart the proxy, then restart OpenClaude; use `CLAUDE_CODE_OPENAI_CONTEXT_WINDOWS` as an explicit override if needed |
+| `/context` shows 128K for a larger model | LiteLLM is not exposing context metadata for the alias, or startup discovery has not refreshed | Add `model_info.context_length` or `model_info.max_input_tokens` to the LiteLLM config, restart the proxy, then restart Kalt Code; use `CLAUDE_CODE_OPENAI_CONTEXT_WINDOWS` as an explicit override if needed |
 | Upstream provider error | The backend provider key is missing or invalid | Ensure the upstream API key (e.g., `OPENAI_API_KEY`) is set in your LiteLLM proxy process environment |
 | Tools fail but chat works | The selected model has weak function/tool calling support | Switch to a model with strong tool support (e.g., GPT-4o, Claude Sonnet) |
 

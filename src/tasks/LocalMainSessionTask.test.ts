@@ -59,7 +59,7 @@ beforeEach(async () => {
   originalCwd = getOriginalCwd()
   originalConfigDir = getClaudeConfigHomeDirOverrideForTesting()
   originalClaudeTmpDir = process.env.CLAUDE_CODE_TMPDIR
-  testRoot = await mkdtemp(join(tmpdir(), 'openclaude-main-session-task-'))
+  testRoot = await mkdtemp(join(tmpdir(), 'kaltcode-main-session-task-'))
   const projectDir = join(testRoot, 'project')
   await mkdir(projectDir)
 

@@ -80,11 +80,11 @@ async function expectModelCommandDoesNotWaitForRefresh(
   const result = await Promise.race([
     commandPromise,
     new Promise(resolve =>
-      setTimeout(() => resolve(Symbol.for('openclaude.test.timeout')), 1_000),
+      setTimeout(() => resolve(Symbol.for('kaltcode.test.timeout')), 1_000),
     ),
   ])
 
-  expect(result).not.toBe(Symbol.for('openclaude.test.timeout'))
+  expect(result).not.toBe(Symbol.for('kaltcode.test.timeout'))
   return result
 }
 
@@ -897,12 +897,12 @@ test('auto profile model picker mode uses explicit multi-model profiles as the p
 
 test('provider profile model picker surface keeps static route catalogs for single-default profiles', async () => {
   const activeProfile = {
-    id: 'opengateway-profile',
-    name: 'Gitlawb Opengateway',
-    provider: 'gitlawb-opengateway',
-    baseUrl: 'https://opengateway.gitlawb.com/v1',
+    id: 'kaltcode-gateway-profile',
+    name: 'KaltCode Gateway',
+    provider: 'kaltcode-gateway',
+    baseUrl: 'https://kaltcode.my.id/v1',
     model: 'mimo-v2.5-pro',
-    apiKey: 'sk-opengateway',
+    apiKey: 'sk-kaltcode-gateway',
   }
   process.env.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED = '1'
   process.env.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED_ID = activeProfile.id
@@ -919,17 +919,17 @@ test('provider profile model picker surface keeps static route catalogs for sing
 
   expect(
     mergeActiveProfileModelOptions(
-      'gitlawb-opengateway',
+      'kaltcode-gateway',
       [
         {
           value: 'mimo-v2.5-pro',
           label: 'MiMo v2.5 Pro',
-          description: 'Recommended · Provider: Gitlawb Opengateway',
+          description: 'Recommended · Provider: KaltCode Gateway',
         },
         {
           value: 'mimo-v2-pro',
           label: 'MiMo v2 Pro',
-          description: 'Provider: Gitlawb Opengateway',
+          description: 'Provider: KaltCode Gateway',
         },
       ],
       { profileModelSurface: 'provider' },
@@ -938,12 +938,12 @@ test('provider profile model picker surface keeps static route catalogs for sing
     {
       value: 'mimo-v2.5-pro',
       label: 'MiMo v2.5 Pro',
-      description: 'Recommended · Provider: Gitlawb Opengateway',
+      description: 'Recommended · Provider: KaltCode Gateway',
     },
     {
       value: 'mimo-v2-pro',
       label: 'MiMo v2 Pro',
-      description: 'Provider: Gitlawb Opengateway',
+      description: 'Provider: KaltCode Gateway',
     },
   ])
 })
@@ -1429,12 +1429,12 @@ test('/model discovery override still surfaces inactive-profile switch options (
 
 test('/model applies auto provider surface for single-model static descriptor profiles', async () => {
   const activeProfile = {
-    id: 'opengateway-profile',
-    name: 'Gitlawb Opengateway',
-    provider: 'gitlawb-opengateway',
-    baseUrl: 'https://opengateway.gitlawb.com/v1',
+    id: 'kaltcode-gateway-profile',
+    name: 'KaltCode Gateway',
+    provider: 'kaltcode-gateway',
+    baseUrl: 'https://kaltcode.my.id/v1',
     model: 'mimo-v2.5-pro',
-    apiKey: 'sk-opengateway',
+    apiKey: 'sk-kaltcode-gateway',
   }
   process.env.CLAUDE_CODE_USE_OPENAI = '1'
   process.env.OPENAI_BASE_URL = activeProfile.baseUrl
@@ -1456,7 +1456,7 @@ test('/model applies auto provider surface for single-model static descriptor pr
   })
   mockDescriptorDiscovery({
     cachedModels: [],
-    routeId: 'gitlawb-opengateway',
+    routeId: 'kaltcode-gateway',
   })
 
   // Pin the clock inside the Ling Tiny availability window (its catalog
@@ -1500,12 +1500,12 @@ test('/model applies auto provider surface for single-model static descriptor pr
 
 test('/model drops expired availableUntil entries from the static picker after the cutoff', async () => {
   const activeProfile = {
-    id: 'opengateway-profile',
-    name: 'Gitlawb Opengateway',
-    provider: 'gitlawb-opengateway',
-    baseUrl: 'https://opengateway.gitlawb.com/v1',
+    id: 'kaltcode-gateway-profile',
+    name: 'KaltCode Gateway',
+    provider: 'kaltcode-gateway',
+    baseUrl: 'https://kaltcode.my.id/v1',
     model: 'mimo-v2.5-pro',
-    apiKey: 'sk-opengateway',
+    apiKey: 'sk-kaltcode-gateway',
   }
   process.env.CLAUDE_CODE_USE_OPENAI = '1'
   process.env.OPENAI_BASE_URL = activeProfile.baseUrl
@@ -1550,14 +1550,14 @@ test('/model drops expired availableUntil entries from the static picker after t
   }
 })
 
-test('/model merges non-empty OpenGateway discovery cache with curated entries without duplicate MiMo rows', async () => {
+test('/model merges non-empty KaltCode Gateway discovery cache with curated entries without duplicate MiMo rows', async () => {
   const activeProfile = {
-    id: 'opengateway-profile',
-    name: 'Gitlawb Opengateway',
-    provider: 'gitlawb-opengateway',
-    baseUrl: 'https://opengateway.gitlawb.com/v1',
+    id: 'kaltcode-gateway-profile',
+    name: 'KaltCode Gateway',
+    provider: 'kaltcode-gateway',
+    baseUrl: 'https://kaltcode.my.id/v1',
     model: 'mimo-v2.5-pro',
-    apiKey: 'sk-opengateway',
+    apiKey: 'sk-kaltcode-gateway',
   }
   process.env.CLAUDE_CODE_USE_OPENAI = '1'
   process.env.OPENAI_BASE_URL = activeProfile.baseUrl
@@ -1581,9 +1581,9 @@ test('/model merges non-empty OpenGateway discovery cache with curated entries w
     cachedModels: [
       { id: 'mimo-v2.5-pro', apiName: 'mimo-v2.5-pro', label: 'MiMo V2.5 Pro' },
       { id: 'xiaomi/mimo-v2.5-pro', apiName: 'mimo-v2.5-pro', label: 'MiMo V2.5 Pro Raw' },
-      { id: 'moonshotai/kimi-k3', apiName: 'moonshotai/kimi-k3', label: 'Kimi K3 (via Opengateway)' },
+      { id: 'moonshotai/kimi-k3', apiName: 'moonshotai/kimi-k3', label: 'Kimi K3 (via KaltCode Gateway)' },
     ],
-    routeId: 'gitlawb-opengateway',
+    routeId: 'kaltcode-gateway',
   })
 
   const rendered = await renderModelCommandWithCapturedPicker(
@@ -1618,12 +1618,12 @@ test('/model merges non-empty OpenGateway discovery cache with curated entries w
   }
 })
 
-test('/model OpenGateway interactive refresh preserves availability filter and hides expired models', async () => {
+test('/model KaltCode Gateway interactive refresh preserves availability filter and hides expired models', async () => {
   const activeProfile = {
-    id: 'opengateway-profile',
-    name: 'Gitlawb Opengateway',
-    provider: 'gitlawb-opengateway',
-    baseUrl: 'https://opengateway.gitlawb.com/v1',
+    id: 'kaltcode-gateway-profile',
+    name: 'KaltCode Gateway',
+    provider: 'kaltcode-gateway',
+    baseUrl: 'https://kaltcode.my.id/v1',
     model: 'auto',
     apiKey: '',
   }
@@ -1633,7 +1633,7 @@ test('/model OpenGateway interactive refresh preserves availability filter and h
   process.env.OPENAI_BASE_URL = activeProfile.baseUrl
   process.env.OPENAI_MODEL = 'auto'
   delete process.env.OPENAI_API_KEY
-  delete process.env.OPENGATEWAY_API_KEY
+  delete process.env.KALTCODE_GATEWAY_API_KEY
   delete process.env.CLAUDE_CODE_USE_GEMINI
   delete process.env.CLAUDE_CODE_USE_GITHUB
   delete process.env.CLAUDE_CODE_USE_MISTRAL
@@ -1651,11 +1651,11 @@ test('/model OpenGateway interactive refresh preserves availability filter and h
       { id: 'inclusionai/ling-3.0-tiny:free', apiName: 'inclusionai/ling-3.0-tiny:free', label: 'Ling 3.0 Tiny Live' },
       { id: 'moonshotai/kimi-k3', apiName: 'moonshotai/kimi-k3', label: 'Kimi K3' },
     ],
-    routeId: 'gitlawb-opengateway',
+    routeId: 'kaltcode-gateway',
   })
 
   const rendered = await renderModelCommandWithCapturedPicker(
-    'opengateway-picker-refresh-availability',
+    'kaltcode-gateway-picker-refresh-availability',
   )
   try {
     const initialValues = (
@@ -1669,7 +1669,7 @@ test('/model OpenGateway interactive refresh preserves availability filter and h
       const message = rendered.getCapturedProps().discoveryState?.message
       return (
         message !== undefined &&
-        message !== 'Refreshing Gitlawb Opengateway models…'
+        message !== 'Refreshing KaltCode Gateway models…'
       )
     })
 
@@ -2836,19 +2836,19 @@ test('/model refresh reports discovered model changes for dynamic active profile
   expect(messages).toContain('Updated LM Studio models.')
 })
 
-test('/model refresh on OpenGateway does not restore or mention expired models', async () => {
+test('/model refresh on KaltCode Gateway does not restore or mention expired models', async () => {
   const activeProfile = {
-    id: 'opengateway-profile',
-    name: 'Gitlawb Opengateway',
-    provider: 'gitlawb-opengateway',
-    baseUrl: 'https://opengateway.gitlawb.com/v1',
+    id: 'kaltcode-gateway-profile',
+    name: 'KaltCode Gateway',
+    provider: 'kaltcode-gateway',
+    baseUrl: 'https://kaltcode.my.id/v1',
     model: 'auto',
     apiKey: '',
   }
   process.env.CLAUDE_CODE_USE_OPENAI = '1'
   process.env.OPENAI_BASE_URL = activeProfile.baseUrl
   delete process.env.OPENAI_API_KEY
-  delete process.env.OPENGATEWAY_API_KEY
+  delete process.env.KALTCODE_GATEWAY_API_KEY
   process.env.OPENAI_MODEL = activeProfile.model
   process.env.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED = '1'
   process.env.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED_ID = activeProfile.id
@@ -2878,7 +2878,7 @@ test('/model refresh on OpenGateway does not restore or mention expired models',
       options?: { apiKey?: string; baseUrl?: string; headers?: Record<string, string> },
     ) => `${routeId}|${options?.baseUrl ?? ''}|${options?.apiKey ?? ''}|${JSON.stringify(options?.headers ?? {})}`,
     discoverModelsForRoute: mock(async () => {
-      const rawStatic = getRouteDescriptor('gitlawb-opengateway')?.catalog?.models ?? []
+      const rawStatic = getRouteDescriptor('kaltcode-gateway')?.catalog?.models ?? []
       const discovered = [
         { id: 'mimo-v2.5-pro', apiName: 'mimo-v2.5-pro' },
         { id: 'moonshotai/kimi-k3', apiName: 'moonshotai/kimi-k3' },
@@ -2888,7 +2888,7 @@ test('/model refresh on OpenGateway does not restore or mention expired models',
         mergeRouteCatalogEntries(rawStatic, discovered),
       )
       return {
-        routeId: 'gitlawb-opengateway',
+        routeId: 'kaltcode-gateway',
         models: merged,
         stale: false,
         error: null,
@@ -2905,7 +2905,7 @@ test('/model refresh on OpenGateway does not restore or mention expired models',
 
   const messages: string[] = []
   const { call } = await importFreshModelModule(
-    'opengateway-refresh-summary-no-expired',
+    'kaltcode-gateway-refresh-summary-no-expired',
   )
   await call(
     (message?: string) => {
@@ -2917,7 +2917,7 @@ test('/model refresh on OpenGateway does not restore or mention expired models',
     'refresh',
   )
 
-  expect(messages).toContain('Updated Gitlawb Opengateway models.')
+  expect(messages).toContain('Updated KaltCode Gateway models.')
   expect(messages.join(' ')).not.toContain('inclusionai/ling-3.0-tiny:free')
 })
 

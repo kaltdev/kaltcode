@@ -62,7 +62,7 @@ async function importFreshProviderProfileModule() {
   return import(`./providerProfile.js?ts=${nonce}`)
 }
 
-const missingCodexAuthPath = join(tmpdir(), 'openclaude-missing-codex-auth.json')
+const missingCodexAuthPath = join(tmpdir(), 'kaltcode-missing-codex-auth.json')
 
 beforeEach(async () => {
   await acquireEnvMutex()
@@ -978,19 +978,19 @@ test('openai launch ignores codex persisted transport hints', async () => {
   assert.equal(env.OPENAI_API_KEY, 'sk-live')
 })
 
-test('buildStartupEnvFromProfile defaults fresh installs to Gitlawb Opengateway', async () => {
+test('buildStartupEnvFromProfile defaults fresh installs to KaltCode Gateway', async () => {
   const env = await buildStartupEnvFromProfile({
     persisted: null,
     processEnv: {},
   })
 
   assert.equal(env.CLAUDE_CODE_USE_OPENAI, '1')
-  assert.equal(env.OPENAI_BASE_URL, 'https://opengateway.gitlawb.com/v1')
+  assert.equal(env.OPENAI_BASE_URL, 'https://kaltcode.my.id/v1')
   assert.equal(env.OPENAI_MODEL, 'mimo-v2.5-pro')
   assert.equal(isDefaultStartupProviderEnv(env), true)
 })
 
-test('buildStartupEnvFromProfile fresh-install OpenGateway env is invalid without an API key (issue #1651)', async () => {
+test('buildStartupEnvFromProfile fresh-install KaltCode Gateway env is invalid without an API key (issue #1651)', async () => {
   const env = await buildStartupEnvFromProfile({
     persisted: null,
     processEnv: {},
@@ -999,7 +999,7 @@ test('buildStartupEnvFromProfile fresh-install OpenGateway env is invalid withou
   assert.equal(isDefaultStartupProviderEnv(env), true)
   const error = await getProviderValidationError(env)
   assert.notEqual(error, null)
-  assert.ok(error!.includes('OPENGATEWAY_API_KEY'))
+  assert.ok(error!.includes('KALTCODE_GATEWAY_API_KEY'))
 })
 
 test('applyStartupEnvFromProfile ignores the invalid fresh-install default SILENTLY (issue #1651 + zero-warning install)', async () => {
@@ -1015,7 +1015,7 @@ test('applyStartupEnvFromProfile ignores the invalid fresh-install default SILEN
   // Still ignored (not applied), but a brand-new machine must not see a
   // "saved provider profile" warning on every command — nothing was saved.
   assert.notEqual(error, null)
-  assert.ok(error!.includes('OPENGATEWAY_API_KEY'))
+  assert.ok(error!.includes('KALTCODE_GATEWAY_API_KEY'))
   assert.deepEqual(warnings, [])
   assert.deepEqual(processEnv, {})
 })
@@ -1041,21 +1041,21 @@ test('applyStartupEnvFromProfile still warns when a genuinely saved profile fail
   assert.deepEqual(processEnv, {})
 })
 
-test('applyStartupEnvFromProfile warns for a saved Opengateway-shaped profile even when the default-startup marker leaks in from a parent process', async () => {
+test('applyStartupEnvFromProfile warns for a saved KaltCode Gateway-shaped profile even when the default-startup marker leaks in from a parent process', async () => {
   // Collision guard: a persisted profile's launch env spreads processEnv, so
   // a CLAUDE_CODE_DEFAULT_STARTUP_PROVIDER marker inherited from a parent CLI
   // process can make the saved profile's env indistinguishable from the
   // injected fresh-install default by marker-sniffing alone. Provenance
   // (persisted !== null) must win: this saved-but-invalid profile warns.
   const processEnv: NodeJS.ProcessEnv = {
-    [DEFAULT_STARTUP_PROVIDER_ENV_VAR]: 'gitlawb-opengateway',
+    [DEFAULT_STARTUP_PROVIDER_ENV_VAR]: 'kaltcode-gateway',
   }
   const warnings: string[] = []
 
   const error = await applyStartupEnvFromProfile({
     persisted: {
       profile: 'openai',
-      env: { OPENAI_BASE_URL: 'https://opengateway.gitlawb.com/v1' },
+      env: { OPENAI_BASE_URL: 'https://kaltcode.my.id/v1' },
       createdAt: '2026-01-01T00:00:00.000Z',
     },
     processEnv,
@@ -1068,13 +1068,13 @@ test('applyStartupEnvFromProfile warns for a saved Opengateway-shaped profile ev
   ])
   // The invalid env is ignored: only the pre-existing marker remains.
   assert.deepEqual(processEnv, {
-    [DEFAULT_STARTUP_PROVIDER_ENV_VAR]: 'gitlawb-opengateway',
+    [DEFAULT_STARTUP_PROVIDER_ENV_VAR]: 'kaltcode-gateway',
   })
 })
 
 test('applyStartupEnvFromProfile applies valid startup env (issue #1651)', async () => {
   const processEnv: NodeJS.ProcessEnv = {
-    OPENGATEWAY_API_KEY: 'test-key',
+    KALTCODE_GATEWAY_API_KEY: 'test-key',
   }
   const warnings: string[] = []
 
@@ -1087,9 +1087,9 @@ test('applyStartupEnvFromProfile applies valid startup env (issue #1651)', async
   assert.equal(error, null)
   assert.deepEqual(warnings, [])
   assert.equal(processEnv.CLAUDE_CODE_USE_OPENAI, '1')
-  assert.equal(processEnv.OPENAI_BASE_URL, 'https://opengateway.gitlawb.com/v1')
+  assert.equal(processEnv.OPENAI_BASE_URL, 'https://kaltcode.my.id/v1')
   assert.equal(processEnv.OPENAI_MODEL, 'mimo-v2.5-pro')
-  assert.equal(processEnv.OPENGATEWAY_API_KEY, 'test-key')
+  assert.equal(processEnv.KALTCODE_GATEWAY_API_KEY, 'test-key')
 })
 
 test('buildStartupEnvFromProfile preserves explicit OpenAI-compatible env without a saved profile', async () => {
@@ -1170,10 +1170,10 @@ test('buildStartupEnvFromProfile does not activate non-NIM env-only OpenAI-compa
 
   assert.equal(env.CLAUDE_CODE_USE_OPENAI, '1')
   assert.equal(env.CLAUDE_CODE_PROVIDER_ROUTE_ID, undefined)
-  assert.equal(env.OPENAI_BASE_URL, 'https://opengateway.gitlawb.com/v1')
+  assert.equal(env.OPENAI_BASE_URL, 'https://kaltcode.my.id/v1')
   assert.equal(env.OPENAI_MODEL, 'mimo-v2.5-pro')
   assert.equal(env.OPENAI_API_KEY, undefined)
-  assert.equal(resolveActiveRouteIdFromEnv(env), 'gitlawb-opengateway')
+  assert.equal(resolveActiveRouteIdFromEnv(env), 'kaltcode-gateway')
   assert.equal(isDefaultStartupProviderEnv(env), true)
 })
 
@@ -1253,7 +1253,7 @@ test('buildStartupEnvFromProfile respects an explicit CLAUDE_CODE_USE_OPENAI=0 o
     },
   })
 
-  // The explicit opt-out must be preserved and the default Opengateway
+  // The explicit opt-out must be preserved and the default KaltCode Gateway
   // profile must NOT be injected over it.
   assert.equal(env.CLAUDE_CODE_USE_OPENAI, '0')
   assert.equal(env.OPENAI_BASE_URL, undefined)
@@ -1273,13 +1273,13 @@ test('buildStartupEnvFromProfile preserves env-only Fireworks setup without a sa
     },
   })
 
-  // Must NOT fall through to Gitlawb Opengateway default
+  // Must NOT fall through to KaltCode Gateway default
   assert.equal(env.FIREWORKS_API_KEY, 'fw-key')
   assert.equal(env.CLAUDE_CODE_USE_OPENAI, undefined)
   assert.equal(
     env.OPENAI_BASE_URL,
     undefined,
-    'should not inject Gitlawb Opengateway base URL',
+    'should not inject KaltCode Gateway base URL',
   )
   assert.equal(isDefaultStartupProviderEnv(env), false)
 })
@@ -1296,7 +1296,7 @@ test('buildStartupEnvFromProfile preserves env-only NEAR AI setup without a save
   assert.equal(
     env.OPENAI_BASE_URL,
     undefined,
-    'should not inject Gitlawb Opengateway base URL',
+    'should not inject KaltCode Gateway base URL',
   )
   assert.equal(isDefaultStartupProviderEnv(env), false)
 })
@@ -1313,7 +1313,7 @@ test('buildStartupEnvFromProfile preserves env-only LongCat setup without a save
   assert.equal(
     env.OPENAI_BASE_URL,
     undefined,
-    'should not inject Gitlawb Opengateway base URL',
+    'should not inject KaltCode Gateway base URL',
   )
   assert.equal(isDefaultStartupProviderEnv(env), false)
 })
@@ -1492,7 +1492,7 @@ test('codex launch ignores placeholder codex env keys', async () => {
 })
 
 test('codex launch prefers auth account id over stale persisted value', async () => {
-  const codexHome = mkdtempSync(join(tmpdir(), 'openclaude-codex-'))
+  const codexHome = mkdtempSync(join(tmpdir(), 'kaltcode-codex-'))
   try {
     writeFileSync(
       join(codexHome, 'auth.json'),
@@ -1732,7 +1732,7 @@ test('gemini profiles require a key', () => {
 })
 
 test('saveProfileFile writes a profile that loadProfileFile can read back', () => {
-  const cwd = mkdtempSync(join(tmpdir(), 'openclaude-profile-file-'))
+  const cwd = mkdtempSync(join(tmpdir(), 'kaltcode-profile-file-'))
 
   try {
     const persisted = createProfileFile('openai', {
@@ -1754,7 +1754,7 @@ test('saveProfileFile writes a profile that loadProfileFile can read back', () =
 })
 
 test('saveProfileFile restricts permissions when overwriting an existing profile', () => {
-  const cwd = mkdtempSync(join(tmpdir(), 'openclaude-profile-mode-'))
+  const cwd = mkdtempSync(join(tmpdir(), 'kaltcode-profile-mode-'))
 
   try {
     const filePath = join(cwd, PROFILE_FILE_NAME)
@@ -1777,8 +1777,8 @@ test('saveProfileFile restricts permissions when overwriting an existing profile
 })
 
 test('saveProfileFile defaults to user config instead of the working directory', async () => {
-  const cwd = mkdtempSync(join(tmpdir(), 'openclaude-workspace-profile-'))
-  const configRoot = mkdtempSync(join(tmpdir(), 'openclaude-config-profile-'))
+  const cwd = mkdtempSync(join(tmpdir(), 'kaltcode-workspace-profile-'))
+  const configRoot = mkdtempSync(join(tmpdir(), 'kaltcode-config-profile-'))
   const configDir = join(configRoot, 'config')
   const previousConfigDir = process.env.CLAUDE_CONFIG_DIR
   const previousCwd = process.cwd()
@@ -1816,8 +1816,8 @@ test('saveProfileFile defaults to user config instead of the working directory',
 })
 
 test('loadProfileFile keeps project-local files as a legacy fallback', async () => {
-  const cwd = mkdtempSync(join(tmpdir(), 'openclaude-legacy-profile-'))
-  const configDir = mkdtempSync(join(tmpdir(), 'openclaude-empty-config-profile-'))
+  const cwd = mkdtempSync(join(tmpdir(), 'kaltcode-legacy-profile-'))
+  const configDir = mkdtempSync(join(tmpdir(), 'kaltcode-empty-config-profile-'))
   const previousConfigDir = process.env.CLAUDE_CONFIG_DIR
   const previousCwd = process.cwd()
 
@@ -1849,8 +1849,8 @@ test('loadProfileFile keeps project-local files as a legacy fallback', async () 
 })
 
 test('loadProfileFile does not fall back when user config profile is invalid', async () => {
-  const cwd = mkdtempSync(join(tmpdir(), 'openclaude-invalid-profile-'))
-  const configDir = mkdtempSync(join(tmpdir(), 'openclaude-invalid-config-profile-'))
+  const cwd = mkdtempSync(join(tmpdir(), 'kaltcode-invalid-profile-'))
+  const configDir = mkdtempSync(join(tmpdir(), 'kaltcode-invalid-config-profile-'))
   const previousConfigDir = process.env.CLAUDE_CONFIG_DIR
   const previousCwd = process.cwd()
 
@@ -1883,8 +1883,8 @@ test('loadProfileFile does not fall back when user config profile is invalid', a
 })
 
 test('deleteProfileFile clears the default profile and legacy workspace fallback', async () => {
-  const cwd = mkdtempSync(join(tmpdir(), 'openclaude-delete-profile-'))
-  const configDir = mkdtempSync(join(tmpdir(), 'openclaude-delete-config-profile-'))
+  const cwd = mkdtempSync(join(tmpdir(), 'kaltcode-delete-profile-'))
+  const configDir = mkdtempSync(join(tmpdir(), 'kaltcode-delete-config-profile-'))
   const previousConfigDir = process.env.CLAUDE_CONFIG_DIR
   const previousCwd = process.cwd()
 
@@ -1925,8 +1925,8 @@ test('deleteProfileFile clears the default profile and legacy workspace fallback
 })
 
 test('deleteProfileFile with configDir and cwd clears both user config and legacy fallback', () => {
-  const cwd = mkdtempSync(join(tmpdir(), 'openclaude-delete-mixed-profile-'))
-  const configDir = mkdtempSync(join(tmpdir(), 'openclaude-delete-mixed-config-profile-'))
+  const cwd = mkdtempSync(join(tmpdir(), 'kaltcode-delete-mixed-profile-'))
+  const configDir = mkdtempSync(join(tmpdir(), 'kaltcode-delete-mixed-config-profile-'))
   const previousConfigDir = process.env.CLAUDE_CONFIG_DIR
   const previousCwd = process.cwd()
 
@@ -1992,7 +1992,7 @@ test('buildCodexProfileEnv tags OAuth-saved profiles so logout can remove them s
 })
 
 test('clearPersistedCodexOAuthProfile removes only persisted Codex OAuth profiles', async () => {
-  const cwd = mkdtempSync(join(tmpdir(), 'openclaude-codex-oauth-profile-'))
+  const cwd = mkdtempSync(join(tmpdir(), 'kaltcode-codex-oauth-profile-'))
 
   try {
     const providerProfileModule = await import(
@@ -2037,8 +2037,8 @@ test('clearPersistedCodexOAuthProfile removes only persisted Codex OAuth profile
 })
 
 test('clearPersistedCodexOAuthProfile clears both default and legacy OAuth profiles', async () => {
-  const cwd = mkdtempSync(join(tmpdir(), 'openclaude-clear-oauth-profile-'))
-  const configDir = mkdtempSync(join(tmpdir(), 'openclaude-clear-oauth-config-'))
+  const cwd = mkdtempSync(join(tmpdir(), 'kaltcode-clear-oauth-profile-'))
+  const configDir = mkdtempSync(join(tmpdir(), 'kaltcode-clear-oauth-config-'))
   const previousConfigDir = process.env.CLAUDE_CONFIG_DIR
   const previousCwd = process.cwd()
 
@@ -2218,7 +2218,7 @@ test('buildStartupEnvFromProfile leaves explicit provider selections untouched',
 })
 
 test('legacy openai saved profiles still deserialize and rebuild startup env', async () => {
-  const tempDir = mkdtempSync(join(tmpdir(), 'openclaude-provider-'))
+  const tempDir = mkdtempSync(join(tmpdir(), 'kaltcode-provider-'))
 
   try {
     saveProfileFile(
@@ -2249,7 +2249,7 @@ test('legacy openai saved profiles still deserialize and rebuild startup env', a
 })
 
 test('legacy openai saved profiles preserve OPENAI_API_KEYS during startup rebuild', async () => {
-  const tempDir = mkdtempSync(join(tmpdir(), 'openclaude-provider-'))
+  const tempDir = mkdtempSync(join(tmpdir(), 'kaltcode-provider-'))
 
   try {
     saveProfileFile(
@@ -2281,7 +2281,7 @@ test('legacy openai saved profiles preserve OPENAI_API_KEYS during startup rebui
 })
 
 test('legacy openai saved profiles let live singular keys override saved pools during startup rebuild', async () => {
-  const tempDir = mkdtempSync(join(tmpdir(), 'openclaude-provider-'))
+  const tempDir = mkdtempSync(join(tmpdir(), 'kaltcode-provider-'))
 
   try {
     saveProfileFile(
@@ -2308,7 +2308,7 @@ test('legacy openai saved profiles let live singular keys override saved pools d
   }
 })
 test('legacy openai saved profiles ignore delimiter-only shell OPENAI_API_KEYS during startup rebuild', async () => {
-  const tempDir = mkdtempSync(join(tmpdir(), 'openclaude-provider-'))
+  const tempDir = mkdtempSync(join(tmpdir(), 'kaltcode-provider-'))
 
   try {
     saveProfileFile(
@@ -2334,7 +2334,7 @@ test('legacy openai saved profiles ignore delimiter-only shell OPENAI_API_KEYS d
   }
 })
 test('legacy anthropic saved profiles still deserialize and rebuild startup env', async () => {
-  const tempDir = mkdtempSync(join(tmpdir(), 'openclaude-provider-'))
+  const tempDir = mkdtempSync(join(tmpdir(), 'kaltcode-provider-'))
 
   try {
     saveProfileFile(
@@ -2365,7 +2365,7 @@ test('legacy anthropic saved profiles still deserialize and rebuild startup env'
 })
 
 test('bedrock persisted profiles load and rebuild the dedicated startup env', async () => {
-  const tempDir = mkdtempSync(join(tmpdir(), 'openclaude-provider-'))
+  const tempDir = mkdtempSync(join(tmpdir(), 'kaltcode-provider-'))
 
   try {
     saveProfileFile(
@@ -2475,7 +2475,7 @@ test('applySavedProfileToCurrentSession replaces empty active OpenAI key for Cod
 
 test('buildStartupEnvFromProfile preserves plural-profile env when the legacy file is stale', async () => {
   // Regression: a user saves a provider via /provider (plural system).
-  // addProviderProfile does NOT sync the legacy .openclaude-profile.json,
+  // addProviderProfile does NOT sync the legacy .kaltcode-profile.json,
   // so the legacy file retains whatever it had from an earlier setup (e.g.
   // OpenAI defaults). At startup, applyActiveProviderProfileFromConfig()
   // correctly applies the active plural profile (Moonshot) first, marking

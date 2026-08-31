@@ -74,7 +74,7 @@ if (
 }
 
 if (role !== 'hold-path-for') {
-  process.env.OPENCLAUDE_CONFIG_DIR = target
+  process.env.KALTCODE_CONFIG_DIR = target
 }
 const settingsPath =
   role === 'hold-path-for'

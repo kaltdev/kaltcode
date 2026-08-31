@@ -13,7 +13,7 @@ let tempDir: string | null = null
 let originalCwd: string | null = null
 
 function createProject(): string {
-  tempDir = mkdtempSync(join(tmpdir(), 'openclaude-settings-drift-'))
+  tempDir = mkdtempSync(join(tmpdir(), 'kaltcode-settings-drift-'))
   return tempDir
 }
 
@@ -45,15 +45,15 @@ afterEach(() => {
 describe('detectStaleProjectSettingsPaths', () => {
   test('does not warn when legacy project settings exist without canonical settings', async () => {
     const project = createProject()
-    writeJson(join(project, '.claude', 'settings.json'))
+    writeJson(join(project, '.kaltcode', 'settings.json'))
 
     await expect(detectStaleProjectSettingsPaths(project)).resolves.toBeNull()
   })
 
   test('does not warn when the matching canonical project settings file exists', async () => {
     const project = createProject()
-    writeJson(join(project, '.claude', 'settings.json'))
-    writeJson(join(project, '.openclaude', 'settings.json'))
+    writeJson(join(project, '.kaltcode', 'settings.json'))
+    writeJson(join(project, '.kaltcode', 'settings.json'))
 
     await expect(detectStaleProjectSettingsPaths(project)).resolves.toBeNull()
   })
@@ -66,30 +66,30 @@ describe('detectStaleProjectSettingsPaths', () => {
 
   test('does not warn when only canonical settings files exist', async () => {
     const project = createProject()
-    writeJson(join(project, '.openclaude', 'settings.json'))
-    writeJson(join(project, '.openclaude', 'settings.local.json'))
+    writeJson(join(project, '.kaltcode', 'settings.json'))
+    writeJson(join(project, '.kaltcode', 'settings.local.json'))
 
     await expect(detectStaleProjectSettingsPaths(project)).resolves.toBeNull()
   })
 
   test('does not warn independently for legacy local settings', async () => {
     const project = createProject()
-    writeJson(join(project, '.claude', 'settings.local.json'))
+    writeJson(join(project, '.kaltcode', 'settings.local.json'))
 
     await expect(detectStaleProjectSettingsPaths(project)).resolves.toBeNull()
   })
 
   test('does not warn about legacy settings files when canonical files are absent', async () => {
     const project = createProject()
-    writeJson(join(project, '.claude', 'settings.json'))
-    writeJson(join(project, '.claude', 'settings.local.json'))
+    writeJson(join(project, '.kaltcode', 'settings.json'))
+    writeJson(join(project, '.kaltcode', 'settings.local.json'))
 
     await expect(detectStaleProjectSettingsPaths(project)).resolves.toBeNull()
   })
 
   test('uses the settings resolver project root by default', async () => {
     const project = createProject()
-    writeJson(join(project, '.claude', 'settings.json'))
+    writeJson(join(project, '.kaltcode', 'settings.json'))
     setOriginalCwd(project)
 
     await expect(detectStaleProjectSettingsPaths()).resolves.toBeNull()

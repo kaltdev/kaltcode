@@ -9,32 +9,32 @@ import { expandPath, getDirectoryForPath } from '../../../utils/path.js';
 import { normalizeCaseForComparison, pathInAllowedWorkingPath } from '../../../utils/permissions/filesystem.js';
 import type { OptionWithDescription } from '../../CustomSelect/select.js';
 /**
- * Check if a path is within the project's .openclaude/ folder.
- * This is used to determine whether to show the special OpenClaude folder permission option.
+ * Check if a path is within the project's .kaltcode/ folder.
+ * This is used to determine whether to show the special Kalt Code folder permission option.
  */
 export function isInClaudeFolder(filePath: string): boolean {
   const absolutePath = expandPath(filePath);
-  const claudeFolderPath = expandPath(`${getOriginalCwd()}/.openclaude`);
+  const claudeFolderPath = expandPath(`${getOriginalCwd()}/.kaltcode`);
 
-  // Check if the path is within the project's .openclaude folder
+  // Check if the path is within the project's .kaltcode folder
   const normalizedAbsolutePath = normalizeCaseForComparison(absolutePath);
   const normalizedClaudeFolderPath = normalizeCaseForComparison(claudeFolderPath);
 
-  // Path must start with the .openclaude folder path (and be inside it, not just the folder itself)
+  // Path must start with the .kaltcode folder path (and be inside it, not just the folder itself)
   return normalizedAbsolutePath.startsWith(normalizedClaudeFolderPath + sep.toLowerCase()) ||
   // Also match case where sep is / on posix systems
   normalizedAbsolutePath.startsWith(normalizedClaudeFolderPath + '/');
 }
 
 /**
- * Check if a path is within the global ~/.openclaude/ folder.
- * This is used to determine whether to show the special OpenClaude folder permission option
+ * Check if a path is within the global ~/.kaltcode/ folder.
+ * This is used to determine whether to show the special Kalt Code folder permission option
  * for files in the user's home directory.
  */
 export function isInGlobalClaudeFolder(filePath: string): boolean {
   const absolutePath = expandPath(filePath);
   const normalizedAbsolutePath = normalizeCaseForComparison(absolutePath);
-  const globalClaudeFolderPaths = [expandPath('~/.openclaude')];
+  const globalClaudeFolderPaths = [expandPath('~/.kaltcode')];
 
   return globalClaudeFolderPaths.some(globalClaudeFolderPath => {
     const normalizedGlobalClaudeFolderPath = normalizeCaseForComparison(globalClaudeFolderPath);
@@ -101,11 +101,11 @@ export function getFilePermissionOptions({
   const inAllowedPath = pathInAllowedWorkingPath(filePath, toolPermissionContext);
   const showFullAccessOption = toolPermissionContext.isBypassPermissionsModeAvailable;
 
-  // Check if this is a .openclaude/ folder path (project or global)
+  // Check if this is a .kaltcode/ folder path (project or global)
   const inClaudeFolder = isInClaudeFolder(filePath);
   const inGlobalClaudeFolder = isInGlobalClaudeFolder(filePath);
 
-  // Option 2: For .openclaude/ folder, show special option instead of generic session option
+  // Option 2: For .kaltcode/ folder, show special option instead of generic session option
   // Note: Session-level options are always shown since they only affect in-memory state,
   // not persisted settings. The allowManagedPermissionRulesOnly setting only restricts
   // persisted permission rules.

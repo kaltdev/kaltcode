@@ -10,19 +10,19 @@ import {
   requestPriorityNowAbort,
 } from './replInterruption.js'
 
-const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
+const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
 
 beforeEach(async () => {
   await __waitForInterruptionTraceFlushForTests()
   __resetInterruptionTraceForTests()
-  process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+  process.env.KALTCODE_INTERRUPT_TRACE = '1'
 })
 
 afterEach(async () => {
   await __waitForInterruptionTraceFlushForTests()
   __resetInterruptionTraceForTests()
-  if (originalTrace === undefined) delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-  else process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+  if (originalTrace === undefined) delete process.env.KALTCODE_INTERRUPT_TRACE
+  else process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
 })
 
 describe('REPL interruption source wiring', () => {

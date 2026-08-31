@@ -1197,7 +1197,7 @@ export const AgentDefinitionSchema = lazySchema(() =>
         .enum(['user', 'project', 'local'])
         .optional()
         .describe(
-          "Scope for auto-loading agent memory files. 'user' - ~/.openclaude/agent-memory/<agentType>/, 'project' - .openclaude/agent-memory/<agentType>/, 'local' - .openclaude/agent-memory-local/<agentType>/",
+          "Scope for auto-loading agent memory files. 'user' - ~/.kaltcode/agent-memory/<agentType>/, 'project' - .kaltcode/agent-memory/<agentType>/, 'local' - .kaltcode/agent-memory-local/<agentType>/",
         ),
       effort: z
         .union([z.enum(['low', 'medium', 'high', 'xhigh', 'max']), z.number().int()])
@@ -1225,9 +1225,9 @@ export const SettingSourceSchema = lazySchema(() =>
     .enum(['user', 'project', 'local'])
     .describe(
       'Source for loading filesystem-based settings. ' +
-        "'user' - Global user settings (~/.openclaude/settings.json). " +
-        "'project' - Project settings (.openclaude/settings.json). " +
-        "'local' - Local settings (.openclaude/settings.local.json).",
+        "'user' - Global user settings (~/.kaltcode/settings.json). " +
+        "'project' - Project settings (.kaltcode/settings.json). " +
+        "'local' - Local settings (.kaltcode/settings.local.json).",
     ),
 )
 

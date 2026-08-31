@@ -76,12 +76,12 @@ export default defineGateway({
     openaiShim: {
       headers: withResolvedPartnerHeader({
         'X-AIMLAPI-Partner-ID': 'part_62yQoGYDq4Yqnrj2R1iGrDNJ',
-        'X-AIMLAPI-Integration-Repo': 'Gitlawb/openclaude',
+        'X-AIMLAPI-Integration-Repo': 'kaltdev/kaltcode',
         'X-AIMLAPI-Integration-Version': publicBuildVersion,
         // Attribution headers AI/ML API records for api.aimlapi.com requests
         // (issue #835). `HTTP-Referer`/`X-Title` identify the referring app.
-        'HTTP-Referer': 'OpenClaude',
-        'X-Title': 'OpenClaude',
+        'HTTP-Referer': 'Kalt Code',
+        'X-Title': 'Kalt Code',
       }),
       supportsAuthHeaders: false,
     },

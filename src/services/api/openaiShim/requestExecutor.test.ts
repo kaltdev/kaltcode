@@ -54,8 +54,8 @@ const originalEnv = {
   CONCENTRATE_API_KEY: process.env.CONCENTRATE_API_KEY,
   CONCENTRATE_BASE_URL: process.env.CONCENTRATE_BASE_URL,
   CONCENTRATE_MODEL: process.env.CONCENTRATE_MODEL,
-  OPENGATEWAY_API_KEY: process.env.OPENGATEWAY_API_KEY,
-  OPENGATEWAY_BASE_URL: process.env.OPENGATEWAY_BASE_URL,
+  KALTCODE_GATEWAY_API_KEY: process.env.KALTCODE_GATEWAY_API_KEY,
+  KALTCODE_GATEWAY_BASE_URL: process.env.KALTCODE_GATEWAY_BASE_URL,
   OPENCODE_API_KEY: process.env.OPENCODE_API_KEY,
   CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED: process.env.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED,
   CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED_ID: process.env.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED_ID,
@@ -485,8 +485,8 @@ beforeEach(async () => {
   delete process.env.CONCENTRATE_API_KEY
   delete process.env.CONCENTRATE_BASE_URL
   delete process.env.CONCENTRATE_MODEL
-  delete process.env.OPENGATEWAY_API_KEY
-  delete process.env.OPENGATEWAY_BASE_URL
+  delete process.env.KALTCODE_GATEWAY_API_KEY
+  delete process.env.KALTCODE_GATEWAY_BASE_URL
   delete process.env.OPENCODE_API_KEY
   delete process.env.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED
   delete process.env.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED_ID
@@ -535,8 +535,8 @@ afterEach(() => {
     restoreEnv('CONCENTRATE_API_KEY', originalEnv.CONCENTRATE_API_KEY)
     restoreEnv('CONCENTRATE_BASE_URL', originalEnv.CONCENTRATE_BASE_URL)
     restoreEnv('CONCENTRATE_MODEL', originalEnv.CONCENTRATE_MODEL)
-    restoreEnv('OPENGATEWAY_API_KEY', originalEnv.OPENGATEWAY_API_KEY)
-    restoreEnv('OPENGATEWAY_BASE_URL', originalEnv.OPENGATEWAY_BASE_URL)
+    restoreEnv('KALTCODE_GATEWAY_API_KEY', originalEnv.KALTCODE_GATEWAY_API_KEY)
+    restoreEnv('KALTCODE_GATEWAY_BASE_URL', originalEnv.KALTCODE_GATEWAY_BASE_URL)
     restoreEnv('OPENCODE_API_KEY', originalEnv.OPENCODE_API_KEY)
     restoreEnv('CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED', originalEnv.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED)
     restoreEnv('CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED_ID', originalEnv.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED_ID)
@@ -550,13 +550,13 @@ afterEach(() => {
 })
 
 
-test('gitlawb opengateway provider flag prefers OPENGATEWAY_API_KEY over generic OPENAI_API_KEYS pool', async () => {
-  process.env.OPENGATEWAY_BASE_URL = 'http://localhost:8181/v1'
-  process.env.OPENGATEWAY_API_KEY = 'fake-ogw-key'
+test('kaltcode-gateway provider flag prefers KALTCODE_GATEWAY_API_KEY over generic OPENAI_API_KEYS pool', async () => {
+  process.env.KALTCODE_GATEWAY_BASE_URL = 'http://localhost:8181/v1'
+  process.env.KALTCODE_GATEWAY_API_KEY = 'fake-ogw-key'
   process.env.OPENAI_API_KEYS = 'fake-openai-pool-a,fake-openai-pool-b'
   delete process.env.OPENAI_API_KEY
 
-  const result = applyProviderFlag('gitlawb-opengateway', [])
+  const result = applyProviderFlag('kaltcode-gateway', [])
   expect(result.error).toBeUndefined()
 
   const captured = await captureChatCompletionRequest()
@@ -659,13 +659,13 @@ test('custom endpoints preserve configured auth and custom headers', async () =>
   expect(captured.headers['X-Tenant-Secret']).toBe('tenant-secret')
 })
 
-test('gitlawb opengateway provider flag uses generic OPENAI_API_KEYS pool before generic OPENAI_API_KEY fallback', async () => {
-  process.env.OPENGATEWAY_BASE_URL = 'http://localhost:8181/v1'
+test('kaltcode-gateway provider flag uses generic OPENAI_API_KEYS pool before generic OPENAI_API_KEY fallback', async () => {
+  process.env.KALTCODE_GATEWAY_BASE_URL = 'http://localhost:8181/v1'
   process.env.OPENAI_API_KEYS = 'fake-openai-pool-a,fake-openai-pool-b'
   process.env.OPENAI_API_KEY = 'fake-generic-openai-key'
-  delete process.env.OPENGATEWAY_API_KEY
+  delete process.env.KALTCODE_GATEWAY_API_KEY
 
-  const result = applyProviderFlag('gitlawb-opengateway', [])
+  const result = applyProviderFlag('kaltcode-gateway', [])
   expect(result.error).toBeUndefined()
 
   const captured = await captureChatCompletionRequest()

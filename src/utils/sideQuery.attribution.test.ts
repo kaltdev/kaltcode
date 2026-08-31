@@ -60,7 +60,7 @@ const envKeys = [
   'OPENAI_API_KEY',
   'OPENAI_BASE_URL',
   'OPENAI_MODEL',
-  'OPENCLAUDE_CONFIG_DIR',
+  'KALTCODE_CONFIG_DIR',
 ] as const
 const originalEnv = { ...process.env }
 const originalFetch = globalThis.fetch
@@ -169,7 +169,7 @@ beforeEach(async () => {
   configRoot = mkdtempSync(join(tmpdir(), 'side-query-attribution-'))
   for (const key of envKeys) delete process.env[key]
   process.env.ANTHROPIC_API_KEY = 'sk-test-side-query'
-  process.env.OPENCLAUDE_CONFIG_DIR = configRoot
+  process.env.KALTCODE_CONFIG_DIR = configRoot
   process.env.CLAUDE_FEATURE_FLAGS_FILE = join(
     configRoot,
     'feature-flags.json',
@@ -253,7 +253,7 @@ describeAttribution('sideQuery Anthropic attribution', () => {
     [
       'Unix-socket OAuth proxy',
       'ANTHROPIC_UNIX_SOCKET',
-      '/tmp/openclaude-auth-test.sock',
+      '/tmp/kaltcode-auth-test.sock',
       'auth-token',
     ],
   ] as const) {
@@ -294,7 +294,7 @@ describeAttribution('sideQuery Anthropic attribution', () => {
         },
       }),
     )
-    process.env.ANTHROPIC_UNIX_SOCKET = '/tmp/openclaude-auth-test.sock'
+    process.env.ANTHROPIC_UNIX_SOCKET = '/tmp/kaltcode-auth-test.sock'
     process.env.CLAUDE_CODE_ATTRIBUTION_HEADER = '0'
     getClaudeAIOAuthTokens.cache?.clear?.()
 

@@ -98,7 +98,7 @@ async function withTempFile<T>(
   name: string,
   run: (path: string) => Promise<T>,
 ): Promise<T> {
-  const dir = await mkdtemp(join(tmpdir(), 'openclaude-bg-test-'))
+  const dir = await mkdtemp(join(tmpdir(), 'kaltcode-bg-test-'))
   try {
     return await run(join(dir, name))
   } finally {
@@ -522,11 +522,11 @@ describe('background session CLI parsing', () => {
     const config = buildBackgroundChildProcessConfig({
       execPath: '/usr/bin/node',
       execArgv: ['--max-old-space-size=8192', '--expose-gc'],
-      entrypoint: '/repo/bin/openclaude',
+      entrypoint: '/repo/bin/kaltcode',
       childArgs: ['--print', 'fix failing tests'],
       processEnv: {
-        OPENCLAUDE_HEAP_RELAUNCHED: '1',
-        OPENCLAUDE_NODE_MAX_OLD_SPACE_SIZE_MB: '8192',
+        KALTCODE_HEAP_RELAUNCHED: '1',
+        KALTCODE_NODE_MAX_OLD_SPACE_SIZE_MB: '8192',
       },
       sessionName: 'tests',
       stdoutLogPath: '/tmp/bg.out.log',
@@ -539,13 +539,13 @@ describe('background session CLI parsing', () => {
     expect(config.args).toEqual([
       '--max-old-space-size=8192',
       '--expose-gc',
-      '/repo/bin/openclaude',
+      '/repo/bin/kaltcode',
       backgroundProcessMarkerToken(TEST_PROCESS_MARKER),
       '--print',
       'fix failing tests',
     ])
-    expect(config.env.OPENCLAUDE_HEAP_RELAUNCHED).toBe('1')
-    expect(config.env.OPENCLAUDE_NODE_MAX_OLD_SPACE_SIZE_MB).toBe('8192')
+    expect(config.env.KALTCODE_HEAP_RELAUNCHED).toBe('1')
+    expect(config.env.KALTCODE_NODE_MAX_OLD_SPACE_SIZE_MB).toBe('8192')
     expect(config.env.CLAUDE_CODE_SESSION_KIND).toBe('bg')
     expect(config.env.CLAUDE_CODE_SESSION_LOG).toBe('/tmp/bg.out.log')
     expect(config.env.CLAUDE_CODE_SESSION_NAME).toBe('tests')
@@ -557,11 +557,11 @@ describe('background session CLI parsing', () => {
     const config = buildBackgroundChildProcessConfig({
       execPath: '/usr/bin/node',
       execArgv: [],
-      entrypoint: '/repo/bin/openclaude',
+      entrypoint: '/repo/bin/kaltcode',
       childArgs: ['--print', 'fix failing tests'],
       processEnv: {
-        OPENCLAUDE_HEAP_RELAUNCHED: '1',
-        OPENCLAUDE_NODE_MAX_OLD_SPACE_SIZE_MB: '4096',
+        KALTCODE_HEAP_RELAUNCHED: '1',
+        KALTCODE_NODE_MAX_OLD_SPACE_SIZE_MB: '4096',
       },
       stdoutLogPath: '/tmp/bg.out.log',
       backgroundSessionId: 'bg-no-wrapper',
@@ -573,14 +573,14 @@ describe('background session CLI parsing', () => {
       '--max-old-space-size=4096',
       '--expose-gc',
     ])
-    expect(config.env.OPENCLAUDE_HEAP_RELAUNCHED).toBe('1')
+    expect(config.env.KALTCODE_HEAP_RELAUNCHED).toBe('1')
   })
 
   it('prevents the installed launcher from replacing a non-Node registered PID', () => {
     const config = buildBackgroundChildProcessConfig({
       execPath: '/usr/local/bin/bun',
       execArgv: [],
-      entrypoint: '/repo/bin/openclaude',
+      entrypoint: '/repo/bin/kaltcode',
       childArgs: ['--print', 'work'],
       processEnv: {},
       stdoutLogPath: '/tmp/bg.out.log',
@@ -590,7 +590,7 @@ describe('background session CLI parsing', () => {
     })
 
     expect(config.command).toBe('/usr/local/bin/bun')
-    expect(config.env.OPENCLAUDE_HEAP_RELAUNCHED).toBe('1')
+    expect(config.env.KALTCODE_HEAP_RELAUNCHED).toBe('1')
     expect(config.env[BACKGROUND_SESSION_ID_ENV]).toBe('bg-bun-owner')
     expect(config.env[BACKGROUND_SESSION_LAUNCHER_PID_ENV]).toBe('702')
   })
@@ -641,7 +641,7 @@ describe('background session CLI parsing', () => {
     const config = buildBackgroundChildProcessConfig({
       execPath: '/usr/bin/node',
       execArgv: [],
-      entrypoint: '/repo/bin/openclaude',
+      entrypoint: '/repo/bin/kaltcode',
       childArgs: [
         '--system-prompt',
         markerLookingValue,
@@ -658,7 +658,7 @@ describe('background session CLI parsing', () => {
     expect(config.args).toEqual([
       '--max-old-space-size=8192',
       '--expose-gc',
-      '/repo/bin/openclaude',
+      '/repo/bin/kaltcode',
       backgroundProcessMarkerToken(TEST_PROCESS_MARKER),
       '--system-prompt',
       markerLookingValue,
@@ -726,7 +726,7 @@ describe('background session CLI parsing', () => {
       startedAt: '2026-07-10T08:00:00.000Z',
       updatedAt: '2026-07-10T08:00:00.000Z',
       sessionId: 'conversation-finalizer-not-installed',
-      command: ['node', 'openclaude', '--print', 'work'],
+      command: ['node', 'kaltcode', '--print', 'work'],
       stdoutLogPath: '/tmp/bg-finalizer-not-installed.out.log',
       stderrLogPath: '/tmp/bg-finalizer-not-installed.err.log',
     }
@@ -763,7 +763,7 @@ describe('background session CLI parsing', () => {
       startedAt: '2026-07-10T08:00:00.000Z',
       updatedAt: '2026-07-10T08:00:00.000Z',
       sessionId: 'conversation-live-confirmation',
-      command: ['node', 'openclaude', '--print', 'work'],
+      command: ['node', 'kaltcode', '--print', 'work'],
       stdoutLogPath: '/tmp/bg-live-confirmation.out.log',
       stderrLogPath: '/tmp/bg-live-confirmation.err.log',
     }
@@ -794,7 +794,7 @@ describe('background session CLI parsing', () => {
       startedAt: '2026-07-10T08:00:00.000Z',
       updatedAt: '2026-07-10T08:00:00.000Z',
       sessionId: 'conversation-terminal-confirmation',
-      command: ['node', 'openclaude', '--print', 'work'],
+      command: ['node', 'kaltcode', '--print', 'work'],
       stdoutLogPath: '/tmp/bg-terminal-confirmation.out.log',
       stderrLogPath: '/tmp/bg-terminal-confirmation.err.log',
     }
@@ -840,7 +840,7 @@ describe('background session process termination safety', () => {
     startedAt: '2026-07-10T08:00:00.000Z',
     updatedAt: '2026-07-10T08:00:00.000Z',
     sessionId: 'conversation-safety',
-    command: ['node', 'openclaude', '--session-id', 'conversation-safety'],
+    command: ['node', 'kaltcode', '--session-id', 'conversation-safety'],
     stdoutLogPath: '/tmp/stdout.log',
     stderrLogPath: '/tmp/stderr.log',
   }
@@ -849,7 +849,7 @@ describe('background session process termination safety', () => {
     processMarker: TEST_PROCESS_MARKER,
     command: [
       'node',
-      'openclaude',
+      'kaltcode',
       backgroundProcessMarkerToken(TEST_PROCESS_MARKER),
       '--session-id',
       'conversation-safety',
@@ -876,7 +876,7 @@ describe('background session process termination safety', () => {
       isProcessAlive: () => ++aliveChecks <= 2,
       getProcessCommand: pid => {
         calls.push(`verify:${pid}`)
-        return 'node openclaude --session-id conversation-safety'
+        return 'node kaltcode --session-id conversation-safety'
       },
       killTree: async (pid, signal) => {
         calls.push(`signal:${pid}:${signal}`)
@@ -900,7 +900,7 @@ describe('background session process termination safety', () => {
       isProcessAlive: () => ++aliveChecks <= 2,
       getProcessCommand: pid => {
         calls.push(`verify:${pid}`)
-        return `node openclaude ${backgroundProcessMarkerToken(TEST_PROCESS_MARKER)} --session-id conversation-safety`
+        return `node kaltcode ${backgroundProcessMarkerToken(TEST_PROCESS_MARKER)} --session-id conversation-safety`
       },
       killTree: async (pid, signal) => {
         calls.push(`signal:${pid}:${signal}`)
@@ -959,7 +959,7 @@ describe('background session process termination safety', () => {
       killBackgroundSession(markedSession, {
         isProcessAlive: () => true,
         getProcessCommand: () =>
-          `node openclaude ${backgroundProcessMarkerToken(OTHER_PROCESS_MARKER)} --session-id conversation-safety`,
+          `node kaltcode ${backgroundProcessMarkerToken(OTHER_PROCESS_MARKER)} --session-id conversation-safety`,
         killTree: async (_pid, signal) => {
           calls.push(`signal:${signal}`)
         },
@@ -1008,7 +1008,7 @@ describe('background session process termination safety', () => {
         {
           isProcessAlive: () => true,
           getProcessCommand: () =>
-            `node openclaude ${backgroundProcessMarkerToken(OTHER_PROCESS_MARKER)} --session-id conversation-safety`,
+            `node kaltcode ${backgroundProcessMarkerToken(OTHER_PROCESS_MARKER)} --session-id conversation-safety`,
           killTree: async (_pid, signal) => {
             calls.push(`signal:${signal}`)
           },
@@ -1032,7 +1032,7 @@ describe('background session process termination safety', () => {
         {
           isProcessAlive: () => true,
           getProcessCommand: () =>
-            'node openclaude --resume conversation-safety',
+            'node kaltcode --resume conversation-safety',
           killTree: async (_pid, signal) => {
             calls.push(`signal:${signal}`)
           },
@@ -1198,8 +1198,8 @@ describe('background session process termination safety', () => {
   it('does not send SIGKILL when a marked token changes after SIGTERM', async () => {
     const calls: string[] = []
     const commands = [
-      `node openclaude ${backgroundProcessMarkerToken(TEST_PROCESS_MARKER)} --session-id conversation-safety`,
-      `node openclaude ${backgroundProcessMarkerToken(OTHER_PROCESS_MARKER)} --session-id conversation-safety`,
+      `node kaltcode ${backgroundProcessMarkerToken(TEST_PROCESS_MARKER)} --session-id conversation-safety`,
+      `node kaltcode ${backgroundProcessMarkerToken(OTHER_PROCESS_MARKER)} --session-id conversation-safety`,
     ]
 
     await expect(
@@ -1279,7 +1279,7 @@ describe('background session process termination safety', () => {
         },
         getProcessCommand: () => {
           calls.push('command')
-          return 'node openclaude --session-id conversation-safety'
+          return 'node kaltcode --session-id conversation-safety'
         },
         killTree: async (_pid, signal) => {
           calls.push(`signal:${signal}`)

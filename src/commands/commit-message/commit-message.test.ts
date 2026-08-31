@@ -29,42 +29,42 @@ afterEach(() => {
 
 describe('commit-message command helpers', () => {
   it('parses quoted co-author names with a plain email', () => {
-    expect(parseCoAuthor('"GPT 5.5" noreply@openclaude.dev')).toEqual({
+    expect(parseCoAuthor('"GPT 5.5" noreply@kaltcode.dev')).toEqual({
       name: 'GPT 5.5',
-      email: 'noreply@openclaude.dev',
+      email: 'noreply@kaltcode.dev',
     })
   })
 
   it('parses co-author trailers with angle-bracket emails', () => {
-    expect(parseCoAuthor('OpenClaude (gpt-5.5) <noreply@openclaude.dev>')).toEqual(
+    expect(parseCoAuthor('Kalt Code (gpt-5.5) <noreply@kaltcode.dev>')).toEqual(
       {
-        name: 'OpenClaude (gpt-5.5)',
-        email: 'noreply@openclaude.dev',
+        name: 'Kalt Code (gpt-5.5)',
+        email: 'noreply@kaltcode.dev',
       },
     )
   })
 
   it('rejects co-author trailers with empty sanitized names', () => {
-    expect(parseCoAuthor('"  " noreply@openclaude.dev')).toBeNull()
-    expect(parseCoAuthor('"  " <noreply@openclaude.dev>')).toBeNull()
+    expect(parseCoAuthor('"  " noreply@kaltcode.dev')).toBeNull()
+    expect(parseCoAuthor('"  " <noreply@kaltcode.dev>')).toBeNull()
   })
 
   it('strips one pair of matching quotes from custom attribution text', () => {
-    expect(stripMatchingQuotes('"Generated with OpenClaude"')).toBe(
-      'Generated with OpenClaude',
+    expect(stripMatchingQuotes('"Generated with Kalt Code"')).toBe(
+      'Generated with Kalt Code',
     )
-    expect(stripMatchingQuotes("'Generated with OpenClaude'")).toBe(
-      'Generated with OpenClaude',
+    expect(stripMatchingQuotes("'Generated with Kalt Code'")).toBe(
+      'Generated with Kalt Code',
     )
-    expect(stripMatchingQuotes('"Generated with OpenClaude')).toBe(
-      '"Generated with OpenClaude',
+    expect(stripMatchingQuotes('"Generated with Kalt Code')).toBe(
+      '"Generated with Kalt Code',
     )
   })
 
   it('formats a sanitized co-author trailer', () => {
     expect(
-      formatCoAuthorTrailer('OpenClaude <gpt>\n', '<noreply@openclaude.dev>'),
-    ).toBe('Co-Authored-By: OpenClaude gpt <noreply@openclaude.dev>')
+      formatCoAuthorTrailer('Kalt Code <gpt>\n', '<noreply@kaltcode.dev>'),
+    ).toBe('Co-Authored-By: Kalt Code gpt <noreply@kaltcode.dev>')
   })
 
   it('makes set scope explicit with example text', () => {
@@ -72,13 +72,13 @@ describe('commit-message command helpers', () => {
       'Controls only the attribution text appended after /commit messages.',
     )
     expect(USAGE).toContain(
-      '/commit-message set "Generated with OpenClaude using GPT-5.5"',
+      '/commit-message set "Generated with Kalt Code using GPT-5.5"',
     )
     expect(USAGE).not.toContain('/commit-message set-attribution')
   })
 
   it('describes default reset as privacy-preserving', async () => {
-    tempSettingsDir = mkdtempSync(join(tmpdir(), 'openclaude-settings-'))
+    tempSettingsDir = mkdtempSync(join(tmpdir(), 'kaltcode-settings-'))
     setClaudeConfigHomeDirForTesting(tempSettingsDir)
     getClaudeConfigHomeDir.cache?.clear?.()
 

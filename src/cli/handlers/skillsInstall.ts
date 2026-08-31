@@ -33,7 +33,7 @@ type SkillRegistryEntry = {
   path?: unknown
   homepage?: unknown
   sha256?: unknown
-  min_openclaude_version?: unknown
+  min_kaltcode_version?: unknown
   tools_required?: unknown
   category?: unknown
   tags?: unknown
@@ -46,7 +46,7 @@ type RegistryEntriesResult = {
 }
 
 const DEFAULT_SKILLS_REGISTRY_URL =
-  'https://raw.githubusercontent.com/Gitlawb/openclaude-skills/main/registry.json'
+  'https://raw.githubusercontent.com/kaltdev/kaltcode-skills/main/registry.json'
 const VALID_INSTALL_SKILL_NAME = /^[a-z0-9][a-z0-9-]*(?::[a-z0-9][a-z0-9-]*)*$/
 const MAX_INSTALL_SKILL_NAME_LENGTH = 120
 const REMOTE_SOURCE_TIMEOUT_MS = 30_000
@@ -77,7 +77,7 @@ async function pathExists(path: string): Promise<boolean> {
 function installRoot(options: InstallOptions): string {
   return options.global
     ? join(getClaudeConfigHomeDir(), 'skills')
-    : join(options.projectDir ?? getCwd(), '.openclaude', 'skills')
+    : join(options.projectDir ?? getCwd(), '.kaltcode', 'skills')
 }
 
 function normalizeRegistryEntries(parsed: unknown): SkillRegistryEntry[] {
@@ -188,7 +188,7 @@ async function resolveRegistryEntry(
 ): Promise<{ entry: SkillRegistryEntry; registrySource: string } | null> {
   const registrySource =
     options.registry ??
-    process.env.OPENCLAUDE_SKILLS_REGISTRY_URL ??
+    process.env.KALTCODE_SKILLS_REGISTRY_URL ??
     DEFAULT_SKILLS_REGISTRY_URL
   const registry = await readRegistryEntries(registrySource)
   const entry = registry.entries.find(
@@ -219,7 +219,7 @@ function registryMetadata(entry: SkillRegistryEntry): Record<string, unknown> {
     'path',
     'homepage',
     'sha256',
-    'min_openclaude_version',
+    'min_kaltcode_version',
     'tools_required',
   ] as const) {
     const value = entry[key]
@@ -265,27 +265,27 @@ function assertSha256Matches(text: string, expectedSha256: string, spec: string)
   }
 }
 
-function assertCompatibleOpenClaudeVersion(entry: SkillRegistryEntry, spec: string): string | undefined {
+function assertCompatibleKaltCodeVersion(entry: SkillRegistryEntry, spec: string): string | undefined {
   if (
-    typeof entry.min_openclaude_version !== 'string' ||
-    entry.min_openclaude_version.trim() === ''
+    typeof entry.min_kaltcode_version !== 'string' ||
+    entry.min_kaltcode_version.trim() === ''
   ) {
     return undefined
   }
 
-  const minimum = entry.min_openclaude_version.trim()
+  const minimum = entry.min_kaltcode_version.trim()
   const current = coerce(publicBuildVersion)
   const required = coerce(minimum)
 
   if (!current || !required) {
     throw new Error(
-      `Registry entry "${spec}" has an invalid min_openclaude_version value: ${minimum}.`,
+      `Registry entry "${spec}" has an invalid min_kaltcode_version value: ${minimum}.`,
     )
   }
 
   if (lt(current, required)) {
     throw new Error(
-      `Skill "${spec}" requires OpenClaude ${required.version} or newer. Current version is ${current.version}.`,
+      `Skill "${spec}" requires Kalt Code ${required.version} or newer. Current version is ${current.version}.`,
     )
   }
 
@@ -297,10 +297,10 @@ function trustInstallWarning(trust: string): string | null {
     return null
   }
   if (trust === 'verified') {
-    return 'Warning: this verified community skill was reviewed, but is not maintained as an official OpenClaude skill.'
+    return 'Warning: this verified community skill was reviewed, but is not maintained as an official Kalt Code skill.'
   }
   if (trust === 'community') {
-    return 'Warning: this community skill passed registry validation, but may not be deeply reviewed or maintained by OpenClaude maintainers.'
+    return 'Warning: this community skill passed registry validation, but may not be deeply reviewed or maintained by Kalt Code maintainers.'
   }
   if (trust === 'deprecated') {
     return 'Warning: this skill is marked deprecated. Install only if you intentionally need this older workflow.'
@@ -398,7 +398,7 @@ async function prepareSkillFromMarkdown({
       : getSkillNameFromMarkdown(markdown, fallbackName),
   )
   const fs = getFsImplementation()
-  const tempRoot = await fs.mkdtemp(join(tmpdir(), 'openclaude-skill-install-'))
+  const tempRoot = await fs.mkdtemp(join(tmpdir(), 'kaltcode-skill-install-'))
   try {
     const tempDir = resolveSkillInstallPath(tempRoot, skillName)
     await fs.mkdir(tempDir)
@@ -429,7 +429,7 @@ async function prepareInstallCandidate(
   sourceDescription: string
   trust: string
   toolsRequired: string[]
-  minOpenClaudeVersion?: string
+  minKaltCodeVersion?: string
   registryBacked: boolean
 }> {
   if (!isUrl(spec) && (await pathExists(resolve(spec)))) {
@@ -440,7 +440,7 @@ async function prepareInstallCandidate(
       const skillName = normalizeInstallSkillName(
         await getSkillNameFromDirectory(sourcePath),
       )
-      const tempRoot = await fs.mkdtemp(join(tmpdir(), 'openclaude-skill-install-'))
+      const tempRoot = await fs.mkdtemp(join(tmpdir(), 'kaltcode-skill-install-'))
       try {
         const tempDir = resolveSkillInstallPath(tempRoot, skillName)
         await fs.cp(sourcePath, tempDir, {
@@ -512,7 +512,7 @@ async function prepareInstallCandidate(
   }
 
   const expectedSha256 = requireRegistrySha256(entry, spec)
-  const minOpenClaudeVersion = assertCompatibleOpenClaudeVersion(entry, spec)
+  const minKaltCodeVersion = assertCompatibleKaltCodeVersion(entry, spec)
   const entrySource = resolveRegistryEntrySource(
     entry.source,
     registryMatch.registrySource,
@@ -532,7 +532,7 @@ async function prepareInstallCandidate(
     sourceDescription: entrySource,
     trust: typeof entry.trust === 'string' ? entry.trust : 'registry',
     toolsRequired: stringArray(entry.tools_required),
-    minOpenClaudeVersion,
+    minKaltCodeVersion,
     registryBacked: true,
   }
 }
@@ -579,8 +579,8 @@ export async function skillsInstallHandler(
     if (candidate.toolsRequired.length > 0) {
       console.log(`Tools required: ${candidate.toolsRequired.join(', ')}`)
     }
-    if (candidate.minOpenClaudeVersion) {
-      console.log(`Requires OpenClaude: >= ${candidate.minOpenClaudeVersion}`)
+    if (candidate.minKaltCodeVersion) {
+      console.log(`Requires Kalt Code: >= ${candidate.minKaltCodeVersion}`)
     }
     console.log(`Target: ${getDisplayPath(targetDir)}`)
 

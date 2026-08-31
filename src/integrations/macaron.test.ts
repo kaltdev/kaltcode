@@ -30,16 +30,16 @@ describe('Macaron V1 Tall descriptor', () => {
       'mindai/macaron-v1-tall',
     )
 
-    const catalogEntry = getCatalogEntriesForRoute('gitlawb-opengateway').find(
+    const catalogEntry = getCatalogEntriesForRoute('kaltcode-gateway').find(
       entry => entry.apiName === 'mindai/macaron-v1-tall',
     )
-    expect(catalogEntry?.id).toBe('opengateway-macaron-v1-tall')
+    expect(catalogEntry?.id).toBe('kaltcode-gateway-macaron-v1-tall')
     expect(catalogEntry?.modelDescriptorId).toBe(model?.id)
 
     expect(
       resolveModelRuntimeLimits({
         model: 'mindai/macaron-v1-tall',
-        baseUrl: 'https://opengateway.gitlawb.com/v1',
+        baseUrl: 'https://kaltcode.my.id/v1',
         processEnv: {},
       }),
     ).toEqual({ contextWindow: 262_144, maxOutputTokens: 32_768 })

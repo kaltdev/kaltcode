@@ -22,7 +22,7 @@ export function resolveGlobalClaudeFile(options: {
 }): string {
   const oauthSuffix = options.oauthSuffix ?? ''
   const configDir = options.configDirEnv || options.homeDir || homedir()
-  const newFilename = `.openclaude${oauthSuffix}.json`
+  const newFilename = `.kaltcode${oauthSuffix}.json`
 
   return join(configDir, newFilename)
 }
@@ -40,7 +40,7 @@ export const getGlobalClaudeFile = memoize((): string => {
 
   const oauthSuffix = fileSuffixForOauthConfig()
   const configDirEnv = resolveConfigDirEnv({
-    openClaudeConfigDir: process.env.OPENCLAUDE_CONFIG_DIR,
+    kaltCodeConfigDir: process.env.KALTCODE_CONFIG_DIR,
   })
   const configDir = configDirEnv || homedir()
 

@@ -211,7 +211,7 @@ function ensureOwnerOnlyDir(target: string): void {
   // mkdirSync(recursive) returns the first directory it created, or undefined if
   // `dir` already existed.
   const created = mkdirSync(dir, { recursive: true, mode: DIR_MODE })
-  // Only tighten a directory THIS flow created. OPENCLAUDE_CONFIG_DIR may point
+  // Only tighten a directory THIS flow created. KALTCODE_CONFIG_DIR may point
   // at a pre-existing shared/project root (or `/`), and forcing that to 0700
   // would break other users of it — the state file's own 0600 mode protects the
   // credential regardless. (mkdir's mode is masked by umask, so re-apply it to

@@ -9,7 +9,7 @@ import { getDisplayPath } from './file.js'
 
 function getUserConfigHomeForDisplay(): string {
   const configDirEnv = resolveConfigDirEnv({
-    openClaudeConfigDir: process.env.OPENCLAUDE_CONFIG_DIR,
+    kaltCodeConfigDir: process.env.KALTCODE_CONFIG_DIR,
   })
 
   if (configDirEnv) {

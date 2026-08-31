@@ -41,7 +41,7 @@ function resolveSandboxRoot(): string {
   for (const candidate of candidates) {
     if (!candidate || !existsSync(candidate)) continue
     try {
-      const probe = mkdtempSync(join(candidate, 'openclaude-2052-probe-'))
+      const probe = mkdtempSync(join(candidate, 'kaltcode-2052-probe-'))
       const parentHasGit = findGitRoot(probe) !== null
       rmSync(probe, { recursive: true, force: true })
       if (!parentHasGit) {
@@ -77,8 +77,8 @@ test(
   'createAgentWorktree fails for a non-git multi-repo parent, succeeds for a child repo cwd',
   () => {
     const sandboxRoot = resolveSandboxRoot()
-    const root = mkdtempSync(join(sandboxRoot, 'openclaude-2052-'))
-    const cfgDir = mkdtempSync(join(sandboxRoot, 'openclaude-2052-cfg-'))
+    const root = mkdtempSync(join(sandboxRoot, 'kaltcode-2052-'))
+    const cfgDir = mkdtempSync(join(sandboxRoot, 'kaltcode-2052-cfg-'))
     const parent = join(root, 'parent')
     const repoA = join(parent, 'repo-a')
     const repoB = join(parent, 'repo-b')

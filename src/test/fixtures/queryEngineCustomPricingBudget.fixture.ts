@@ -164,7 +164,7 @@ const originalPersistence = isSessionPersistenceDisabled()
 const originalSources = [...getAllowedSettingSources()]
 const originalFlagPath = getFlagSettingsPath()
 const originalFlagInline = getFlagSettingsInline()
-const fixtureDir = mkdtempSync(join(tmpdir(), 'openclaude-query-budget-'))
+const fixtureDir = mkdtempSync(join(tmpdir(), 'kaltcode-query-budget-'))
 const settingsPath = join(fixtureDir, 'settings.json')
 
 try {

@@ -122,9 +122,9 @@ export function buildMemoryGuardChecks(
   const disableAutoCompact = isTruthy(env.DISABLE_AUTO_COMPACT)
   const autoCompactAvailable =
     input.autoCompactEnabled && !disableCompact && !disableAutoCompact
-  const hardCapOverride = env.OPENCLAUDE_MAX_ACTIVE_MESSAGES_HARD_CAP
+  const hardCapOverride = env.KALTCODE_MAX_ACTIVE_MESSAGES_HARD_CAP
   const hardCap = getMaxActiveMessagesHardCap(env)
-  const legacyLimit = parsePositiveInteger(env.OPENCLAUDE_MAX_ACTIVE_MESSAGES)
+  const legacyLimit = parsePositiveInteger(env.KALTCODE_MAX_ACTIVE_MESSAGES)
   const configuredLimit =
     ((input.maxMessagesCompactionThreshold === undefined ||
       input.maxMessagesCompactionThreshold === 'off') &&
@@ -143,7 +143,7 @@ export function buildMemoryGuardChecks(
     (input.maxMessagesCompactionThreshold === undefined ||
       input.maxMessagesCompactionThreshold === 'off') &&
     legacyLimit > 0
-  const memoryBudget = parsePositiveInteger(env.OPENCLAUDE_MAX_MEMORY_MB) || 1536
+  const memoryBudget = parsePositiveInteger(env.KALTCODE_MAX_MEMORY_MB) || 1536
   const hasIndependentMessageCountGuard =
     configuredLimit !== 'off' &&
     (hasExplicitMessageCountGuard || hasLegacyMessageCountGuard)
@@ -173,7 +173,7 @@ export function buildMemoryGuardChecks(
     hardCap === 0
       ? fail(
           'Active-message hard cap',
-          'Disabled by OPENCLAUDE_MAX_ACTIVE_MESSAGES_HARD_CAP=0; long sessions can grow without the active-message safety cap.',
+          'Disabled by KALTCODE_MAX_ACTIVE_MESSAGES_HARD_CAP=0; long sessions can grow without the active-message safety cap.',
         )
       : pass(
           'Active-message hard cap',
@@ -638,7 +638,7 @@ export function readNodeExecutableVersion(
   if (result.error) {
     return {
       ok: false,
-      detail: `Unable to run \`node --version\`: ${result.error.message}. OpenClaude requires Node.js ${MIN_NODE_ENGINE_RANGE} on PATH.`,
+      detail: `Unable to run \`node --version\`: ${result.error.message}. Kalt Code requires Node.js ${MIN_NODE_ENGINE_RANGE} on PATH.`,
     }
   }
 
@@ -647,7 +647,7 @@ export function readNodeExecutableVersion(
     const suffix = output ? `: ${output}` : `: exit code ${result.status ?? 'unknown'}`
     return {
       ok: false,
-      detail: `Unable to run \`node --version\`${suffix}. OpenClaude requires Node.js ${MIN_NODE_ENGINE_RANGE} on PATH.`,
+      detail: `Unable to run \`node --version\`${suffix}. Kalt Code requires Node.js ${MIN_NODE_ENGINE_RANGE} on PATH.`,
     }
   }
 
@@ -655,7 +655,7 @@ export function readNodeExecutableVersion(
   if (!version) {
     return {
       ok: false,
-      detail: `Unable to read Node.js version from \`node --version\`. OpenClaude requires Node.js ${MIN_NODE_ENGINE_RANGE} on PATH.`,
+      detail: `Unable to read Node.js version from \`node --version\`. Kalt Code requires Node.js ${MIN_NODE_ENGINE_RANGE} on PATH.`,
     }
   }
 
@@ -1090,7 +1090,7 @@ async function checkBaseUrlReachability(): Promise<CheckResult> {
         headers['chatgpt-account-id'] = credentials.accountId
       }
       headers['Content-Type'] = 'application/json'
-      headers.originator = 'openclaude'
+      headers.originator = 'kaltcode'
       method = 'POST'
       body = JSON.stringify({
         model: request.resolvedModel,

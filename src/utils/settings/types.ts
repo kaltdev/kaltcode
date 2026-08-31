@@ -328,7 +328,7 @@ export const DeniedMcpServerEntrySchema = lazySchema(() =>
  *
  * ⚠️ BACKWARD COMPATIBILITY NOTICE ⚠️
  *
- * This schema defines the structure of user settings files (~/.openclaude/settings.json).
+ * This schema defines the structure of user settings files (~/.kaltcode/settings.json).
  * We support backward-compatible changes! Here's how:
  *
  * ✅ ALLOWED CHANGES:
@@ -700,7 +700,7 @@ export const SettingsSchema = lazySchema(() =>
         .describe(
           'When set in managed settings, blocks non-plugin customization sources for the listed surfaces. ' +
             'Array form locks specific surfaces (e.g. ["skills", "hooks"]); `true` locks all four; `false` is an explicit no-op. ' +
-            'Blocked: ~/.claude/{surface}/, .claude/{surface}/ (project), settings.json hooks, .mcp.json. ' +
+            'Blocked: ~/.kaltcode/{surface}/, .kaltcode/{surface}/ (project), settings.json hooks, .mcp.json. ' +
             'NOT blocked: managed (policySettings) sources, plugin-provided customizations. ' +
             'Composes with strictKnownMarketplaces for end-to-end admin control — plugins gated by ' +
             'marketplace allowlist, everything else blocked here.',
@@ -755,7 +755,7 @@ export const SettingsSchema = lazySchema(() =>
         })
         .optional()
         .describe(
-          'Additional marketplaces to make available for this repository. Typically used in repository .openclaude/settings.json to ensure team members have required plugin sources.',
+          'Additional marketplaces to make available for this repository. Typically used in repository .kaltcode/settings.json to ensure team members have required plugin sources.',
         ),
       // Enterprise strict list of allowed marketplace sources (policy settings only)
       // When set, ONLY these exact sources can be added. Check happens BEFORE download.
@@ -947,7 +947,7 @@ export const SettingsSchema = lazySchema(() =>
         .optional()
         .describe(
           'Ordered list of providerProfile ids. When the active provider returns a rate-limit ' +
-            'or quota error, OpenClaude advances to the next profile in this list (starting after ' +
+            'or quota error, Kalt Code advances to the next profile in this list (starting after ' +
             'the currently-active id) and retries the turn. ' +
             'Example: ["provider_anthropic", "provider_openai", "provider_ollama"]',
         ),
@@ -1101,7 +1101,7 @@ export const SettingsSchema = lazySchema(() =>
         .optional()
         .describe(
           'Custom directory for plan files, relative to project root. ' +
-            'If not set, defaults to ~/.openclaude/plans/',
+            'If not set, defaults to ~/.kaltcode/plans/',
         ),
       ...(process.env.USER_TYPE === 'ant'
         ? {
@@ -1247,7 +1247,7 @@ export const SettingsSchema = lazySchema(() =>
             .boolean()
             .optional()
             .describe(
-              'When true, opt in to the generated OpenClaude footer for PR descriptions. When false in any settings source, generated PR attribution is blocked.',
+              'When true, opt in to the generated Kalt Code footer for PR descriptions. When false in any settings source, generated PR attribution is blocked.',
             ),
           forbiddenCommitMessagePatterns: z
             .array(z.string())
@@ -1264,7 +1264,7 @@ export const SettingsSchema = lazySchema(() =>
         .string()
         .optional()
         .describe(
-          'Custom directory path for auto-memory storage. Supports ~/ prefix for home directory expansion. Ignored if set in projectSettings (checked-in .openclaude/settings.json) for security. When unset, defaults to ~/.openclaude/projects/<sanitized-cwd>/memory/.',
+          'Custom directory path for auto-memory storage. Supports ~/ prefix for home directory expansion. Ignored if set in projectSettings (checked-in .kaltcode/settings.json) for security. When unset, defaults to ~/.kaltcode/projects/<sanitized-cwd>/memory/.',
         ),
       autoDreamEnabled: z
         .boolean()
@@ -1382,7 +1382,7 @@ export const SettingsSchema = lazySchema(() =>
           'Glob patterns or absolute paths of AGENTS.md/CLAUDE.md files to exclude from loading. ' +
             'Patterns are matched against absolute file paths using picomatch. ' +
             'Only applies to User, Project, and Local memory types (Managed/policy files cannot be excluded). ' +
-            'Examples: "/home/user/monorepo/AGENTS.md", "**/code/CLAUDE.md", "**/some-dir/.claude/rules/**"',
+            'Examples: "/home/user/monorepo/AGENTS.md", "**/code/CLAUDE.md", "**/some-dir/.kaltcode/rules/**"',
         ),
       pluginTrustMessage: z
         .string()

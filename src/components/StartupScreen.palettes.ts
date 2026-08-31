@@ -12,7 +12,7 @@ export type LogoPalette = {
   accent: RGB
   /** Soft body text color (tagline value, label values). */
   cream: RGB
-  /** Dim color for label names and the openclaude prefix. */
+  /** Dim color for label names and the kaltcode prefix. */
   dim: RGB
   /** Box-drawing border color. */
   border: RGB
@@ -75,6 +75,20 @@ export const LOGO_PALETTES = {
     dim: [90, 115, 145],
     border: [70, 90, 115],
   },
+  violet: {
+    gradient: [
+      [203, 186, 235],
+      [168, 143, 213],
+      [133, 106, 185],
+      [102, 78, 152],
+      [75, 55, 118],
+      [48, 35, 78],
+    ],
+    accent: [203, 186, 235],
+    cream: [225, 216, 242],
+    dim: [140, 120, 175],
+    border: [90, 70, 120],
+  },
   monochrome: {
     gradient: [
       [225, 225, 225],
@@ -95,13 +109,14 @@ export type LogoPaletteName = keyof typeof LOGO_PALETTES
 
 export const LOGO_PALETTE_NAMES = Object.keys(LOGO_PALETTES) as LogoPaletteName[]
 
-export const DEFAULT_LOGO_PALETTE: LogoPaletteName = 'ember'
+export const DEFAULT_LOGO_PALETTE: LogoPaletteName = 'violet'
 
 export const LOGO_PALETTE_LABELS: Record<LogoPaletteName, string> = {
-  ember: 'Ember (default)',
+  ember: 'Ember',
   sunset: 'Sunset',
   forest: 'Forest green',
   ocean: 'Ocean blue',
+  violet: 'Kalt violet (default)',
   monochrome: 'Monochrome',
 }
 

@@ -1,8 +1,8 @@
-# Contributing to OpenClaude
+# Contributing to Kalt Code
 
 Thanks for contributing.
 
-OpenClaude is a rapidly evolving open-source coding-agent CLI with support for multiple providers, local backends, MCP, and a terminal-first workflow. The project is actively developed and updated frequently. Our current focus is on **stability and performance** — we're prioritizing reliable, well-tested contributions over new feature additions. The best contributions here are focused, well-tested, and easy to review.
+Kalt Code is a rapidly evolving open-source coding-agent CLI with support for multiple providers, local backends, MCP, and a terminal-first workflow. The project is actively developed and updated frequently. Our current focus is on **stability and performance** — we're prioritizing reliable, well-tested contributions over new feature additions. The best contributions here are focused, well-tested, and easy to review.
 
 ## Table of Contents
 
@@ -26,8 +26,8 @@ OpenClaude is a rapidly evolving open-source coding-agent CLI with support for m
 
 ## Before You Start
 
-- Search existing [issues](https://github.com/Gitlawb/openclaude/issues) and [discussions](https://github.com/Gitlawb/openclaude/discussions) before opening a new thread.
-- Check [open pull requests](https://github.com/Gitlawb/openclaude/pulls) for work that overlaps with your contribution. If a PR already exists that addresses the same change, open an issue or discussion first to align on direction — duplicate PRs may be closed without review.
+- Search existing [issues](https://github.com/kaltdev/kaltcode/issues) and [discussions](https://github.com/kaltdev/kaltcode/discussions) before opening a new thread.
+- Check [open pull requests](https://github.com/kaltdev/kaltcode/pulls) for work that overlaps with your contribution. If a PR already exists that addresses the same change, open an issue or discussion first to align on direction — duplicate PRs may be closed without review.
 - Use issues for confirmed bugs and actionable feature work.
 - Use discussions for setup help, ideas, and general community conversation.
 - For larger changes, open an issue first so the scope is clear before implementation.
@@ -35,7 +35,7 @@ OpenClaude is a rapidly evolving open-source coding-agent CLI with support for m
 
 ## Proposing New Features
 
-OpenClaude is moving toward a more **maintainer-directed roadmap**. We are focusing development efforts on stability, performance, and core reliability. As a result, new feature additions are being evaluated more carefully to ensure they align with the project's direction.
+Kalt Code is moving toward a more **maintainer-directed roadmap**. We are focusing development efforts on stability, performance, and core reliability. As a result, new feature additions are being evaluated more carefully to ensure they align with the project's direction.
 
 **Before investing time in a feature PR, please open an issue first** to propose and discuss your idea with the maintainers. This isn't about gatekeeping — we genuinely value your ideas and want to help shape them into contributions that fit the project's goals. The conversation will help you understand:
 
@@ -114,8 +114,8 @@ If you find yourself getting fix requests on every round, treat that as a signal
 
 We are proactive about closing duplicate PRs. Before submitting, **it is your responsibility to check** whether a similar PR already exists:
 
-- Search [open pull requests](https://github.com/Gitlawb/openclaude/pulls) for related work
-- Check [closed pull requests](https://github.com/Gitlawb/openclaude/pulls?q=is%3Apr+is%3Aclosed) to see if similar work was previously addressed or declined
+- Search [open pull requests](https://github.com/kaltdev/kaltcode/pulls) for related work
+- Check [closed pull requests](https://github.com/kaltdev/kaltcode/pulls?q=is%3Apr+is%3Aclosed) to see if similar work was previously addressed or declined
 - If you find an existing PR, engage in that thread rather than opening a new one
 
 Duplicate PRs will likely be closed without review or follow-up. This isn't personal — it's about keeping the review queue focused and efficient.
@@ -138,7 +138,7 @@ This is not a judgment on the contributor. It is how the project stays reviewabl
 
 ### Contributor Conduct
 
-We want OpenClaude to be a welcoming community, but we must also protect the project's quality and contributor time. The following actions will result in a **ban from future contributions**:
+We want Kalt Code to be a welcoming community, but we must also protect the project's quality and contributor time. The following actions will result in a **ban from future contributions**:
 
 - Repeated fly-by PRs with no follow-up after review requests
 - Repeated submission of duplicate PRs
@@ -189,7 +189,7 @@ In particular: link release-notes navigation to GitHub Releases rather than addi
 
 ## Provider Changes
 
-OpenClaude supports multiple provider paths. Before contributing provider changes, review the relevant documentation to ensure your implementation follows the expected patterns:
+Kalt Code supports multiple provider paths. Before contributing provider changes, review the relevant documentation to ensure your implementation follows the expected patterns:
 
 - start with `docs/integrations/overview.md` for an understanding of how integrations are structured
 - use the focused how-to guides under `docs/integrations/how-to/` for new vendors, gateways, models, anthropic proxies, and `/usage` support
@@ -265,10 +265,10 @@ bun install --frozen-lockfile
 bun run check
 bun run typecheck
 bun run typecheck:type-tests
-node bin/openclaude --version
+node bin/kaltcode --version
 bun run test:provider
 npm run test:provider-recommendation
-git fetch https://github.com/Gitlawb/openclaude.git main
+git fetch https://github.com/kaltdev/kaltcode.git main
 bun run security:pr-scan -- --base FETCH_HEAD --head HEAD
 ```
 
@@ -277,7 +277,7 @@ Also run the compile-cache-disabled launcher check using the syntax for your she
 Bash, zsh, and similar shells:
 
 ```bash
-NODE_DISABLE_COMPILE_CACHE=1 node bin/openclaude --version
+NODE_DISABLE_COMPILE_CACHE=1 node bin/kaltcode --version
 ```
 
 PowerShell:
@@ -287,7 +287,7 @@ PowerShell:
   $previousValue = [Environment]::GetEnvironmentVariable('NODE_DISABLE_COMPILE_CACHE', 'Process')
   try {
     $env:NODE_DISABLE_COMPILE_CACHE = '1'
-    node bin/openclaude --version
+    node bin/kaltcode --version
     $launcherExitCode = $LASTEXITCODE
     if ($launcherExitCode -ne 0) {
       throw "Launcher compatibility check failed with exit code $launcherExitCode"
@@ -309,7 +309,7 @@ bun run web:build
 Notes on the local preflight:
 
 - `bun run check` already builds the CLI and includes smoke, deadcode, and the full unit pass (`test:full`) — do not run those separately, or you execute work twice.
-- Fetching upstream `main` by URL avoids assuming that a fork checkout's `origin` points at Gitlawb/openclaude. `FETCH_HEAD` is the fetched upstream tip. The scan deliberately uses local `HEAD` so it includes commits that have not been pushed yet; CI uses the pushed PR head SHA after the push.
+- Fetching upstream `main` by URL avoids assuming that a fork checkout's `origin` points at kaltdev/kaltcode. `FETCH_HEAD` is the fetched upstream tip. The scan deliberately uses local `HEAD` so it includes commits that have not been pushed yet; CI uses the pushed PR head SHA after the push.
 - The web CI job remains unconditional as an integration backstop. Contributors do not need to run the web suite locally for changes that cannot affect the site.
 - This preflight covers the same command families as CI, but it does not reproduce CI exactly in one shell. CI runs the main checks under Node 22 and 24.11.x, separately builds and launches under exact Node 22.0.0, and executes every job on a clean runner.
 

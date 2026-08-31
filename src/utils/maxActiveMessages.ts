@@ -18,7 +18,7 @@ export function getMaxActiveMessagesHardCap(
   env: MaxActiveMessagesEnv = process.env,
 ): number {
   const hardCapOverride =
-    env.OPENCLAUDE_MAX_ACTIVE_MESSAGES_HARD_CAP
+    env.KALTCODE_MAX_ACTIVE_MESSAGES_HARD_CAP
   if (hardCapOverride === undefined) {
     return DEFAULT_MAX_ACTIVE_MESSAGES_HARD_CAP
   }

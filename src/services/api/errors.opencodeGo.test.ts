@@ -25,7 +25,7 @@ const originalBaseUrl = process.env.OPENAI_BASE_URL
 let tempDir: string
 
 beforeEach(() => {
-  tempDir = mkdtempSync(join(tmpdir(), 'openclaude-opencode-go-error-test-'))
+  tempDir = mkdtempSync(join(tmpdir(), 'kaltcode-opencode-go-error-test-'))
   setClaudeConfigHomeDirForTesting(tempDir)
 })
 

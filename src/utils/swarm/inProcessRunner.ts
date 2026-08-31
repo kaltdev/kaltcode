@@ -1183,7 +1183,7 @@ export async function runInProcessTeammate(
       const configuredMessageThreshold =
         getGlobalConfig().maxMessagesCompactionThreshold
       const legacyMessageThreshold = parseMaxActiveMessagesLimit(
-        process.env.OPENCLAUDE_MAX_ACTIVE_MESSAGES,
+        process.env.KALTCODE_MAX_ACTIVE_MESSAGES,
       )
       const hasExplicitMessageCountThreshold =
         configuredMessageThreshold !== undefined &&
@@ -1202,7 +1202,7 @@ export async function runInProcessTeammate(
             configuredMessageThreshold === undefined && legacyMessageThreshold > 0
               ? undefined
               : normalizeMaxMessagesCompactionThreshold(configuredMessageThreshold),
-            process.env.OPENCLAUDE_MAX_ACTIVE_MESSAGES,
+            process.env.KALTCODE_MAX_ACTIVE_MESSAGES,
           )
         : getMaxActiveMessagesHardCap()
       const tokenThreshold = getAutoCompactThreshold(

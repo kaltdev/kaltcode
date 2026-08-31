@@ -11,12 +11,12 @@ const MIN_WARM_RUNS = 20
 const DEFAULT_WARM_RUNS = 30
 const DEFAULT_COLD_RUNS = 10
 const REPO_ROOT = join(import.meta.dirname, '..')
-const LAUNCHER_PATH = join(REPO_ROOT, 'bin', 'openclaude')
+const LAUNCHER_PATH = join(REPO_ROOT, 'bin', 'kaltcode')
 const BUNDLE_PATH = join(REPO_ROOT, 'dist', 'cli.mjs')
 const PACKAGE_VERSION = JSON.parse(
   readFileSync(join(REPO_ROOT, 'package.json'), 'utf8'),
 ).version
-const EXPECTED_VERSION_OUTPUT = `${PACKAGE_VERSION} (OpenClaude)`
+const EXPECTED_VERSION_OUTPUT = `${PACKAGE_VERSION} (Kalt Code)`
 
 function readPositiveInteger(name, fallback) {
   const index = process.argv.indexOf(name)
@@ -40,7 +40,7 @@ if (!existsSync(BUNDLE_PATH) || !statSync(BUNDLE_PATH).isFile()) {
   throw new Error('dist/cli.mjs is missing; run `bun run build` first')
 }
 
-const scratch = mkdtempSync(join(tmpdir(), 'openclaude-startup-benchmark-'))
+const scratch = mkdtempSync(join(tmpdir(), 'kaltcode-startup-benchmark-'))
 
 function childEnv(tempRoot, cacheMode) {
   mkdirSync(tempRoot, { recursive: true })
@@ -48,15 +48,15 @@ function childEnv(tempRoot, cacheMode) {
     ...process.env,
     CI: '1',
     NO_COLOR: '1',
-    OPENCLAUDE_CONFIG_DIR: join(scratch, 'config'),
+    KALTCODE_CONFIG_DIR: join(scratch, 'config'),
     TEMP: tempRoot,
     TMP: tempRoot,
     TMPDIR: tempRoot,
   }
   delete env.NODE_COMPILE_CACHE
   delete env.NODE_DISABLE_COMPILE_CACHE
-  delete env.OPENCLAUDE_HEAP_RELAUNCHED
-  delete env.OPENCLAUDE_DISABLE_HEAP_RELAUNCH
+  delete env.KALTCODE_HEAP_RELAUNCHED
+  delete env.KALTCODE_DISABLE_HEAP_RELAUNCH
 
   if (cacheMode === 'disabled') {
     env.NODE_DISABLE_COMPILE_CACHE = '1'

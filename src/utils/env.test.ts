@@ -8,7 +8,7 @@ import {
 } from '../test/sharedMutationLock.js'
 
 const originalEnv = {
-  OPENCLAUDE_CONFIG_DIR: process.env.OPENCLAUDE_CONFIG_DIR,
+  KALTCODE_CONFIG_DIR: process.env.KALTCODE_CONFIG_DIR,
   CLAUDE_CONFIG_DIR: process.env.CLAUDE_CONFIG_DIR,
   CLAUDE_CODE_CUSTOM_OAUTH_URL: process.env.CLAUDE_CODE_CUSTOM_OAUTH_URL,
   USER_TYPE: process.env.USER_TYPE,
@@ -18,8 +18,8 @@ let tempDir: string
 
 beforeEach(async () => {
   await acquireSharedMutationLock('env.test.ts')
-  tempDir = mkdtempSync(join(tmpdir(), 'openclaude-env-test-'))
-  process.env.OPENCLAUDE_CONFIG_DIR = tempDir
+  tempDir = mkdtempSync(join(tmpdir(), 'kaltcode-env-test-'))
+  process.env.KALTCODE_CONFIG_DIR = tempDir
   delete process.env.CLAUDE_CONFIG_DIR
   delete process.env.CLAUDE_CODE_CUSTOM_OAUTH_URL
   delete process.env.USER_TYPE
@@ -28,10 +28,10 @@ beforeEach(async () => {
 afterEach(() => {
   try {
     rmSync(tempDir, { recursive: true, force: true })
-    if (originalEnv.OPENCLAUDE_CONFIG_DIR === undefined) {
-      delete process.env.OPENCLAUDE_CONFIG_DIR
+    if (originalEnv.KALTCODE_CONFIG_DIR === undefined) {
+      delete process.env.KALTCODE_CONFIG_DIR
     } else {
-      process.env.OPENCLAUDE_CONFIG_DIR = originalEnv.OPENCLAUDE_CONFIG_DIR
+      process.env.KALTCODE_CONFIG_DIR = originalEnv.KALTCODE_CONFIG_DIR
     }
     if (originalEnv.CLAUDE_CONFIG_DIR === undefined) {
       delete process.env.CLAUDE_CONFIG_DIR
@@ -59,62 +59,62 @@ async function importFreshEnvModule() {
 
 // getGlobalClaudeFile — default path plus explicit override compatibility
 
-test('getGlobalClaudeFile: new install returns .openclaude.json when neither file exists', async () => {
+test('getGlobalClaudeFile: new install returns .kaltcode.json when neither file exists', async () => {
   const { getGlobalClaudeFile } = await importFreshEnvModule()
-  expect(getGlobalClaudeFile()).toBe(join(tempDir, '.openclaude.json'))
+  expect(getGlobalClaudeFile()).toBe(join(tempDir, '.kaltcode.json'))
 })
 
-test('getGlobalClaudeFile: ignores .claude.json when only legacy file exists', async () => {
-  writeFileSync(join(tempDir, '.claude.json'), '{}')
+test('getGlobalClaudeFile: ignores .kaltcode.json when only legacy file exists', async () => {
+  writeFileSync(join(tempDir, '.kaltcode.json'), '{}')
   const { getGlobalClaudeFile } = await importFreshEnvModule()
-  expect(getGlobalClaudeFile()).toBe(join(tempDir, '.openclaude.json'))
+  expect(getGlobalClaudeFile()).toBe(join(tempDir, '.kaltcode.json'))
 })
 
-test('getGlobalClaudeFile: migrated user uses .openclaude.json when both files exist', async () => {
-  writeFileSync(join(tempDir, '.claude.json'), '{}')
-  writeFileSync(join(tempDir, '.openclaude.json'), '{}')
+test('getGlobalClaudeFile: migrated user uses .kaltcode.json when both files exist', async () => {
+  writeFileSync(join(tempDir, '.kaltcode.json'), '{}')
+  writeFileSync(join(tempDir, '.kaltcode.json'), '{}')
   const { getGlobalClaudeFile } = await importFreshEnvModule()
-  expect(getGlobalClaudeFile()).toBe(join(tempDir, '.openclaude.json'))
+  expect(getGlobalClaudeFile()).toBe(join(tempDir, '.kaltcode.json'))
 })
 
-test('getGlobalClaudeFile: OPENCLAUDE_CONFIG_DIR uses preferred config dir', async () => {
-  const preferredDir = mkdtempSync(join(tmpdir(), 'openclaude-preferred-env-test-'))
+test('getGlobalClaudeFile: KALTCODE_CONFIG_DIR uses preferred config dir', async () => {
+  const preferredDir = mkdtempSync(join(tmpdir(), 'kaltcode-preferred-env-test-'))
   try {
-    process.env.OPENCLAUDE_CONFIG_DIR = preferredDir
+    process.env.KALTCODE_CONFIG_DIR = preferredDir
     process.env.CLAUDE_CONFIG_DIR = tempDir
 
     const { getGlobalClaudeFile } = await importFreshEnvModule()
 
-    expect(getGlobalClaudeFile()).toBe(join(preferredDir, '.openclaude.json'))
+    expect(getGlobalClaudeFile()).toBe(join(preferredDir, '.kaltcode.json'))
   } finally {
     rmSync(preferredDir, { recursive: true, force: true })
   }
 })
 
-test('getGlobalClaudeFile: OPENCLAUDE_CONFIG_DIR ignores .claude.json fallback when only legacy file exists', async () => {
-  const preferredDir = mkdtempSync(join(tmpdir(), 'openclaude-preferred-env-test-'))
+test('getGlobalClaudeFile: KALTCODE_CONFIG_DIR ignores .kaltcode.json fallback when only legacy file exists', async () => {
+  const preferredDir = mkdtempSync(join(tmpdir(), 'kaltcode-preferred-env-test-'))
   try {
-    process.env.OPENCLAUDE_CONFIG_DIR = preferredDir
+    process.env.KALTCODE_CONFIG_DIR = preferredDir
     process.env.CLAUDE_CONFIG_DIR = tempDir
-    writeFileSync(join(preferredDir, '.claude.json'), '{}')
+    writeFileSync(join(preferredDir, '.kaltcode.json'), '{}')
 
     const { getGlobalClaudeFile } = await importFreshEnvModule()
 
-    expect(getGlobalClaudeFile()).toBe(join(preferredDir, '.openclaude.json'))
+    expect(getGlobalClaudeFile()).toBe(join(preferredDir, '.kaltcode.json'))
   } finally {
     rmSync(preferredDir, { recursive: true, force: true })
   }
 })
 
 test('resolveGlobalClaudeFile: ignores legacy file even when new file is missing', async () => {
-  writeFileSync(join(tempDir, '.claude.json'), '{}')
+  writeFileSync(join(tempDir, '.kaltcode.json'), '{}')
   const { resolveGlobalClaudeFile } = await importFreshEnvModule()
 
   expect(
     resolveGlobalClaudeFile({
       homeDir: tempDir,
     }),
-  ).toBe(join(tempDir, '.openclaude.json'))
+  ).toBe(join(tempDir, '.kaltcode.json'))
 })
 
 test('env.terminal: returns agy if process.env.TERM_PROGRAM is agy', async () => {

@@ -183,7 +183,7 @@ describe('CLAUDE_CODE_ATTRIBUTION_HEADER parsing', () => {
   ] as const) {
     test(`${label} preserves the existing setting contract`, () => {
       process.env.CLAUDE_FEATURE_FLAGS_FILE =
-        '/nonexistent/openclaude-attribution-feature-flags.json'
+        '/nonexistent/kaltcode-attribution-feature-flags.json'
       if (value === undefined) {
         delete process.env.CLAUDE_CODE_ATTRIBUTION_HEADER
       } else {
@@ -221,13 +221,13 @@ test('prompt telemetry selects the CLI prefix instead of the attribution fingerp
   const block = getSystemPromptTelemetryBlock(
     asSystemPrompt([
       'x-anthropic-billing-header: cc_version=0.0.0.fingerprint-abc123',
-      'You are OpenClaude, an open-source coding agent and CLI.',
+      'You are Kalt Code, an open-source coding agent and CLI.',
       'stable prompt',
     ]),
   )
 
   expect(block?.text).toBe(
-    'You are OpenClaude, an open-source coding agent and CLI.',
+    'You are Kalt Code, an open-source coding agent and CLI.',
   )
   expect(block?.text).not.toContain('fingerprint-abc123')
 })

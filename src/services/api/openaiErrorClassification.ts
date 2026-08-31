@@ -28,7 +28,7 @@ export type OpenAICompatibilityFailure = {
 }
 
 const NON_REPLAYABLE_OPENAI_REQUEST = Symbol.for(
-  'openclaude.openai.nonReplayableRequest',
+  'kaltcode.openai.nonReplayableRequest',
 )
 
 export function markOpenAIRequestNonReplayable<T extends object>(error: T): T {

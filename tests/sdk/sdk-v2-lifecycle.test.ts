@@ -405,7 +405,7 @@ describe('V2: SDK agents', () => {
   test('createSession() merges filesystem and SDK agents before injection', async () => {
     await withTempDir(async (dir) => {
       tempDirs.push(dir)
-      const agentsDir = join(dir, '.openclaude', 'agents')
+      const agentsDir = join(dir, '.kaltcode', 'agents')
       mkdirSync(agentsDir, { recursive: true })
       writeFileSync(
         join(agentsDir, 'filesystem.md'),
@@ -466,7 +466,7 @@ describe('V2: SDK agents', () => {
   test('createSession() lets SDK agents override filesystem agents with the same name', async () => {
     await withTempDir(async (dir) => {
       tempDirs.push(dir)
-      const agentsDir = join(dir, '.openclaude', 'agents')
+      const agentsDir = join(dir, '.kaltcode', 'agents')
       mkdirSync(agentsDir, { recursive: true })
       writeFileSync(
         join(agentsDir, 'helper.md'),
@@ -603,7 +603,7 @@ describe('V2: SDK agents', () => {
   test('createSession() emits filesystem agent parse failures before engine output', async () => {
     await withTempDir(async (dir) => {
       tempDirs.push(dir)
-      const agentsDir = join(dir, '.openclaude', 'agents')
+      const agentsDir = join(dir, '.kaltcode', 'agents')
       mkdirSync(agentsDir, { recursive: true })
       writeFileSync(
         join(agentsDir, 'broken.md'),

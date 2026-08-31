@@ -15,7 +15,7 @@ let tempDir: string
 
 beforeEach(async () => {
   await acquireSharedMutationLock('utils/plugins/loadPluginAgents.test.ts')
-  tempDir = await mkdtemp(join(tmpdir(), 'openclaude-plugin-agents-test-'))
+  tempDir = await mkdtemp(join(tmpdir(), 'kaltcode-plugin-agents-test-'))
   setInlinePlugins([])
   clearPluginCache('loadPluginAgents.test setup')
   clearPluginAgentCache()

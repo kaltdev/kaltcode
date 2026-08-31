@@ -56,7 +56,7 @@ const ENV_KEYS = [
   'OPENAI_AUTH_HEADER_VALUE',
   'OPENAI_API_KEYS',
   'OPENAI_API_KEY',
-  'OPENGATEWAY_API_KEY',
+  'KALTCODE_GATEWAY_API_KEY',
   'GITHUB_TOKEN',
   'GH_TOKEN',
   'GITHUB_COPILOT_KEY',
@@ -90,10 +90,10 @@ const ENV_KEYS = [
   'OPENCODE_API_KEY',
   'DISABLE_COMPACT',
   'DISABLE_AUTO_COMPACT',
-  'OPENCLAUDE_MAX_ACTIVE_MESSAGES',
-  'OPENCLAUDE_MAX_ACTIVE_MESSAGES_HARD_CAP',
-  'OPENCLAUDE_MAX_MEMORY_MB',
-  'OPENCLAUDE_CONFIG_DIR',
+  'KALTCODE_MAX_ACTIVE_MESSAGES',
+  'KALTCODE_MAX_ACTIVE_MESSAGES_HARD_CAP',
+  'KALTCODE_MAX_MEMORY_MB',
+  'KALTCODE_CONFIG_DIR',
   'WEB_SEARCH_PROVIDER',
   'WEB_SEARCH_TIMEOUT_SEC',
   'WEB_SEARCH_API',
@@ -121,8 +121,8 @@ beforeEach(() => {
     originalEnv[key] = process.env[key]
     delete process.env[key]
   }
-  tempConfigDir = mkdtempSync(join(tmpdir(), 'openclaude-system-check-'))
-  process.env.OPENCLAUDE_CONFIG_DIR = tempConfigDir
+  tempConfigDir = mkdtempSync(join(tmpdir(), 'kaltcode-system-check-'))
+  process.env.KALTCODE_CONFIG_DIR = tempConfigDir
   resetSettingsCache()
 })
 
@@ -217,7 +217,7 @@ describe('formatReachabilityFailureDetail', () => {
 
   test('redacts descriptor-declared provider secret values in codex model hints', () => {
     const providerSecret = 'ogw-provider-secret'
-    process.env.OPENGATEWAY_API_KEY = providerSecret
+    process.env.KALTCODE_GATEWAY_API_KEY = providerSecret
 
     const detail = formatReachabilityFailureDetail(
       'https://chatgpt.com/backend-api/codex/responses',
@@ -239,9 +239,9 @@ describe('system-check provider diagnostics', () => {
   test('redacts descriptor-declared provider secret values in displayed model fields', () => {
     const providerSecret = 'ogw-provider-secret'
     process.env.CLAUDE_CODE_USE_OPENAI = '1'
-    process.env.OPENAI_BASE_URL = 'https://opengateway.gitlawb.com/v1'
+    process.env.OPENAI_BASE_URL = 'https://kaltcode.my.id/v1'
     process.env.OPENAI_MODEL = providerSecret
-    process.env.OPENGATEWAY_API_KEY = providerSecret
+    process.env.KALTCODE_GATEWAY_API_KEY = providerSecret
 
     const results = checkOpenAIEnv()
     const serialized = JSON.stringify(results)
@@ -253,9 +253,9 @@ describe('system-check provider diagnostics', () => {
   test('summarizes descriptor-declared provider credentials without exposing values', () => {
     const providerSecret = 'ogw-provider-secret'
     process.env.CLAUDE_CODE_USE_OPENAI = '1'
-    process.env.OPENAI_BASE_URL = 'https://opengateway.gitlawb.com/v1'
+    process.env.OPENAI_BASE_URL = 'https://kaltcode.my.id/v1'
     process.env.OPENAI_MODEL = providerSecret
-    process.env.OPENGATEWAY_API_KEY = providerSecret
+    process.env.KALTCODE_GATEWAY_API_KEY = providerSecret
 
     const summary = serializeSafeEnvSummary()
 
@@ -700,7 +700,7 @@ describe('system-check memory guard diagnostics', () => {
       const results = buildMemoryGuardChecks({
         autoCompactEnabled: true,
         maxMessagesCompactionThreshold,
-        env: { OPENCLAUDE_MAX_ACTIVE_MESSAGES: '500' },
+        env: { KALTCODE_MAX_ACTIVE_MESSAGES: '500' },
       })
 
       expect(results).toContainEqual({
@@ -715,7 +715,7 @@ describe('system-check memory guard diagnostics', () => {
     const results = buildMemoryGuardChecks({
       autoCompactEnabled: true,
       maxMessagesCompactionThreshold: '100',
-      env: { OPENCLAUDE_MAX_ACTIVE_MESSAGES: '500' },
+      env: { KALTCODE_MAX_ACTIVE_MESSAGES: '500' },
     })
 
     expect(results).toContainEqual({
@@ -730,7 +730,7 @@ describe('system-check memory guard diagnostics', () => {
       autoCompactEnabled: true,
       maxMessagesCompactionThreshold: undefined,
       env: {
-        OPENCLAUDE_MAX_ACTIVE_MESSAGES_HARD_CAP: 'not-a-number',
+        KALTCODE_MAX_ACTIVE_MESSAGES_HARD_CAP: 'not-a-number',
       },
     })
 
@@ -746,7 +746,7 @@ describe('system-check memory guard diagnostics', () => {
       autoCompactEnabled: true,
       maxMessagesCompactionThreshold: undefined,
       env: {
-        OPENCLAUDE_MAX_ACTIVE_MESSAGES_HARD_CAP: '500',
+        KALTCODE_MAX_ACTIVE_MESSAGES_HARD_CAP: '500',
       },
     })
 
@@ -808,8 +808,8 @@ describe('system-check memory guard diagnostics', () => {
       autoCompactEnabled: true,
       maxMessagesCompactionThreshold: '100',
       env: {
-        OPENCLAUDE_MAX_ACTIVE_MESSAGES_HARD_CAP: '0',
-        OPENCLAUDE_MAX_MEMORY_MB: '4096',
+        KALTCODE_MAX_ACTIVE_MESSAGES_HARD_CAP: '0',
+        KALTCODE_MAX_MEMORY_MB: '4096',
       },
     })
 
@@ -817,7 +817,7 @@ describe('system-check memory guard diagnostics', () => {
       ok: false,
       label: 'Active-message hard cap',
       detail:
-        'Disabled by OPENCLAUDE_MAX_ACTIVE_MESSAGES_HARD_CAP=0; long sessions can grow without the active-message safety cap.',
+        'Disabled by KALTCODE_MAX_ACTIVE_MESSAGES_HARD_CAP=0; long sessions can grow without the active-message safety cap.',
     })
     expect(results).toContainEqual({
       ok: true,
@@ -848,7 +848,7 @@ describe('checkNodeVersion', () => {
       ok: false,
       label: 'Node.js version',
       detail:
-        'Detected 20.11.1. OpenClaude requires Node.js >=22.0.0. Install Node 22 LTS or newer, then reinstall/re-run OpenClaude.',
+        'Detected 20.11.1. Kalt Code requires Node.js >=22.0.0. Install Node 22 LTS or newer, then reinstall/re-run Kalt Code.',
     })
   })
 
@@ -864,7 +864,7 @@ describe('checkNodeVersion', () => {
       ok: false,
       label: 'Node.js version',
       detail:
-        'Unable to run `node --version`: spawn node ENOENT. OpenClaude requires Node.js >=22.0.0 on PATH.',
+        'Unable to run `node --version`: spawn node ENOENT. Kalt Code requires Node.js >=22.0.0 on PATH.',
     })
   })
 
@@ -873,7 +873,7 @@ describe('checkNodeVersion', () => {
       ok: false,
       label: 'Node.js version',
       detail:
-        'Detected 20.11.1. OpenClaude requires Node.js >=22.0.0. Install Node 22 LTS or newer, then reinstall/re-run OpenClaude.',
+        'Detected 20.11.1. Kalt Code requires Node.js >=22.0.0. Install Node 22 LTS or newer, then reinstall/re-run Kalt Code.',
     })
   })
 

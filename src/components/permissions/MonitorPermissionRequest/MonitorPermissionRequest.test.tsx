@@ -349,7 +349,7 @@ async function renderMonitorPermission(
   }
 }
 
-const originalInterruptionTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
+const originalInterruptionTrace = process.env.KALTCODE_INTERRUPT_TRACE
 
 beforeEach(async () => {
   await acquireSharedMutationLock(
@@ -366,9 +366,9 @@ afterEach(async () => {
     await __waitForInterruptionTraceFlushForTests()
     __resetInterruptionTraceForTests()
     if (originalInterruptionTrace === undefined) {
-      delete process.env.OPENCLAUDE_INTERRUPT_TRACE
+      delete process.env.KALTCODE_INTERRUPT_TRACE
     } else {
-      process.env.OPENCLAUDE_INTERRUPT_TRACE = originalInterruptionTrace
+      process.env.KALTCODE_INTERRUPT_TRACE = originalInterruptionTrace
     }
   } finally {
     releaseSharedMutationLock()
@@ -500,7 +500,7 @@ describe('MonitorPermissionRequest', () => {
   })
 
   test('escape cancels the pending permission request and closes the dialog', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     const onDone = mock(() => {})
     const onReject = mock(() => {})

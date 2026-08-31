@@ -3,7 +3,7 @@ import type { PackageManager } from './nativeInstaller/packageManagers.js'
 import { resolvePackageManagerUpdateGuidance } from './packageManagerUpdateGuidance.js'
 
 const UPSTREAM_PACKAGE_URL = '@anthropic-ai/claude-code'
-const OPENCLAUDE_PACKAGE_URL = '@gitlawb/openclaude'
+const KALTCODE_PACKAGE_URL = '@kaltdev/kaltcode'
 
 describe('resolvePackageManagerUpdateGuidance', () => {
   test.each([
@@ -16,7 +16,7 @@ describe('resolvePackageManagerUpdateGuidance', () => {
       expect(
         resolvePackageManagerUpdateGuidance(manager, UPSTREAM_PACKAGE_URL),
       ).toEqual({
-        message: `OpenClaude is managed by ${managerName}. Use ${managerName} to update OpenClaude.`,
+        message: `Kalt Code is managed by ${managerName}. Use ${managerName} to update Kalt Code.`,
         managerName,
         command,
       })
@@ -24,15 +24,15 @@ describe('resolvePackageManagerUpdateGuidance', () => {
   )
 
   test.each(['homebrew', 'winget', 'apk'] as const)(
-    'does not guess an upstream command for an OpenClaude %s install',
+    'does not guess an upstream command for an Kalt Code %s install',
     manager => {
       const guidance = resolvePackageManagerUpdateGuidance(
         manager,
-        OPENCLAUDE_PACKAGE_URL,
+        KALTCODE_PACKAGE_URL,
       )
 
       expect(guidance.command).toBeUndefined()
-      expect(guidance.message).toContain('OpenClaude')
+      expect(guidance.message).toContain('Kalt Code')
       expect(guidance.message.toLowerCase()).toContain(manager === 'homebrew' ? 'homebrew' : manager)
       expect(JSON.stringify(guidance)).not.toContain('brew upgrade claude-code')
       expect(JSON.stringify(guidance)).not.toContain('Anthropic.ClaudeCode')
@@ -45,7 +45,7 @@ describe('resolvePackageManagerUpdateGuidance', () => {
       resolvePackageManagerUpdateGuidance('homebrew', '@example/custom-cli'),
     ).toEqual({
       message:
-        'OpenClaude is managed by Homebrew. Use Homebrew to update OpenClaude.',
+        'Kalt Code is managed by Homebrew. Use Homebrew to update Kalt Code.',
       managerName: 'Homebrew',
     })
   })
@@ -54,10 +54,10 @@ describe('resolvePackageManagerUpdateGuidance', () => {
     'uses safe generic guidance for %s',
     manager => {
       expect(
-        resolvePackageManagerUpdateGuidance(manager, OPENCLAUDE_PACKAGE_URL),
+        resolvePackageManagerUpdateGuidance(manager, KALTCODE_PACKAGE_URL),
       ).toEqual({
         message:
-          'OpenClaude is managed by a package manager. Use your package manager to update OpenClaude.',
+          'Kalt Code is managed by a package manager. Use your package manager to update Kalt Code.',
       })
     },
   )

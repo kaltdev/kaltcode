@@ -63,8 +63,8 @@ afterAll(() => {
 
 describe('startSpeculation', () => {
   test('stops speculative writes in plan mode even when bypass is available', async () => {
-    const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     let appState = {
       speculation: IDLE_SPECULATION_STATE,
@@ -135,9 +135,9 @@ describe('startSpeculation', () => {
       abortSpeculation(setAppState)
       __resetInterruptionTraceForTests()
       if (originalTrace === undefined) {
-        delete process.env.OPENCLAUDE_INTERRUPT_TRACE
+        delete process.env.KALTCODE_INTERRUPT_TRACE
       } else {
-        process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+        process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
       }
     }
   })

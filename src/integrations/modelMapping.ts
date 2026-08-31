@@ -42,7 +42,7 @@ export function isKnownNonCodingModelId(id: string): boolean {
 }
 
 /**
- * Detects whether a model is free-tier based on common OpenRouter/OpenGateway
+ * Detects whether a model is free-tier based on common OpenRouter/KaltCode Gateway
  * conventions: an ID ending with `:free`, or a `free`/`is_free` boolean flag
  * in the raw payload.
  */

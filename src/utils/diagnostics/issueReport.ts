@@ -56,7 +56,7 @@ export type DiagnosticCheck = {
 export type IssueReport = {
   schemaVersion: 1
   generatedAt: string
-  openclaude: {
+  kaltcode: {
     version: string
     displayVersion?: string
     buildTime?: string
@@ -204,7 +204,7 @@ function readPackageInfo(options?: BuildIssueReportOptions['packageInfo']) {
   return { version, displayVersion, buildTime }
 }
 
-function detectSource(cwd: string): IssueReport['openclaude']['source'] {
+function detectSource(cwd: string): IssueReport['kaltcode']['source'] {
   if (existsSync(resolve(cwd, 'src')) && existsSync(resolve(cwd, 'package.json'))) {
     return 'source'
   }
@@ -577,7 +577,7 @@ export async function buildIssueReport(
   const report: IssueReport = {
     schemaVersion: 1,
     generatedAt: now.toISOString(),
-    openclaude: {
+    kaltcode: {
       version: packageInfo.version,
       ...(packageInfo.displayVersion ? { displayVersion: packageInfo.displayVersion } : {}),
       ...(packageInfo.buildTime ? { buildTime: packageInfo.buildTime } : {}),
@@ -646,10 +646,10 @@ function tableEscape(value: string | number | boolean | null | undefined): strin
 
 export function formatIssueReportAsMarkdown(report: IssueReport): string {
   const lines = [
-    '# OpenClaude diagnostic report',
+    '# Kalt Code diagnostic report',
     '',
     '## Summary',
-    `- OpenClaude: ${report.openclaude.displayVersion ?? report.openclaude.version}`,
+    `- Kalt Code: ${report.kaltcode.displayVersion ?? report.kaltcode.version}`,
     `- Runtime: ${report.runtime.platform} ${report.runtime.arch}, Node ${report.runtime.node}`,
     `- Provider: ${report.provider.label} (${report.provider.routeId})`,
     `- Model: ${report.provider.model}`,

@@ -23,7 +23,7 @@ const baseInput = {
   prompt: 'Check the implementation',
 }
 
-const existingCwd = mkdtempSync(join(tmpdir(), 'openclaude-agent-cwd-'))
+const existingCwd = mkdtempSync(join(tmpdir(), 'kaltcode-agent-cwd-'))
 afterAll(() => {
   try {
     rmSync(existingCwd, { recursive: true, force: true })
@@ -177,7 +177,7 @@ describe('AgentTool input schema isolation contract', () => {
   })
 
   test('rejects nonexistent absolute cwd paths', () => {
-    const missingCwd = join(tmpdir(), 'openclaude-missing-cwd-2052')
+    const missingCwd = join(tmpdir(), 'kaltcode-missing-cwd-2052')
     expect(() => assertAgentToolCwdAllowed(missingCwd, undefined)).toThrow(
       /cwd must be an existing directory \(.+\)\./,
     )
@@ -237,7 +237,7 @@ describe('AgentTool input schema isolation contract', () => {
   })
 
   test('prefers worktree cwd over explicit cwd when both are present defensively', () => {
-    const worktreePath = join(tmpdir(), 'openclaude-worktree')
+    const worktreePath = join(tmpdir(), 'kaltcode-worktree')
     expect(
       resolveAgentToolCwdOverride(existingCwd, {
         worktreePath,
@@ -265,7 +265,7 @@ describe('AgentTool output status contract', () => {
         agentId: 'agent-1',
         description: baseInput.description,
         prompt: baseInput.prompt,
-        outputFile: join(tmpdir(), 'openclaude-agent-output.txt'),
+        outputFile: join(tmpdir(), 'kaltcode-agent-output.txt'),
         canReadOutputFile: true,
       },
       'toolu_1',
@@ -285,7 +285,7 @@ describe('AgentTool output status contract', () => {
         agentId: 'agent-1',
         description: baseInput.description,
         prompt: baseInput.prompt,
-        outputFile: join(tmpdir(), 'openclaude-agent-output.txt'),
+        outputFile: join(tmpdir(), 'kaltcode-agent-output.txt'),
         canReadOutputFile: false,
         worktreeIsolationFallback: true,
       },
@@ -351,7 +351,7 @@ describe('AgentTool output status contract', () => {
           agentId: 'agent-1',
           description: baseInput.description,
           prompt: baseInput.prompt,
-          outputFile: join(tmpdir(), 'openclaude-agent-output.txt'),
+          outputFile: join(tmpdir(), 'kaltcode-agent-output.txt'),
           canReadOutputFile: true,
         },
         [],

@@ -33,19 +33,19 @@ function sanitizeThreshold(value: number | undefined): number | undefined {
 
 /** Startup defaults from env. Used only when `settings.smartRouting` is absent. */
 function readEnvSmartRouting(env: NodeJS.ProcessEnv): SettingsJson['smartRouting'] | undefined {
-  if (env.OPENCLAUDE_SMART_ROUTING == null) return undefined
-  const enabled = env.OPENCLAUDE_SMART_ROUTING === '1' || env.OPENCLAUDE_SMART_ROUTING === 'true'
+  if (env.KALTCODE_SMART_ROUTING == null) return undefined
+  const enabled = env.KALTCODE_SMART_ROUTING === '1' || env.KALTCODE_SMART_ROUTING === 'true'
   return {
     enabled,
-    simpleModel: env.OPENCLAUDE_SMART_ROUTING_SIMPLE?.trim() || undefined,
-    strongModel: env.OPENCLAUDE_SMART_ROUTING_STRONG?.trim() || undefined,
+    simpleModel: env.KALTCODE_SMART_ROUTING_SIMPLE?.trim() || undefined,
+    strongModel: env.KALTCODE_SMART_ROUTING_STRONG?.trim() || undefined,
   }
 }
 
 /**
  * Read and normalize smart-routing config. Precedence: `settings.smartRouting`
  * (if present at all, even disabled) wins over env, so org-managed settings
- * override an env default. Env (`OPENCLAUDE_SMART_ROUTING*`) is the startup
+ * override an env default. Env (`KALTCODE_SMART_ROUTING*`) is the startup
  * default when settings say nothing.
  *
  * Returns a disabled config when the block is absent, disabled, or

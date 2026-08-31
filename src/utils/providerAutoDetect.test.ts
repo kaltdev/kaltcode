@@ -308,7 +308,7 @@ describe('detectBestProvider — orchestrator', () => {
     expect(result?.kind).toBe('ollama')
   })
 
-  test('skipLocal + OPENGATEWAY_API_KEY falls back to opengateway without probing', async () => {
+  test('skipLocal + KALTCODE_GATEWAY_API_KEY falls back to kaltcode-gateway without probing', async () => {
     let probeCalled = false
     const fetchImpl = asFetch(async () => {
       probeCalled = true
@@ -316,17 +316,17 @@ describe('detectBestProvider — orchestrator', () => {
     })
 
     const result = await detectBestProvider({
-      env: { OPENGATEWAY_API_KEY: 'ogw_live_test_0000000000000000' },
+      env: { KALTCODE_GATEWAY_API_KEY: 'ogw_live_test_0000000000000000' },
       fetchImpl,
       skipLocal: true,
       hasCodexAuth: () => false,
     })
-    expect(result?.kind).toBe('gitlawb-opengateway')
+    expect(result?.kind).toBe('kaltcode-gateway')
     expect(result?.model).toBe('mimo-v2.5-pro')
     expect(probeCalled).toBe(false)
   })
 
-  test('completely empty environment returns null (opengateway needs an API key)', async () => {
+  test('completely empty environment returns null (kaltcode-gateway needs an API key)', async () => {
     const fetchImpl = asFetch(async (): Promise<Response> => {
       throw new Error('nothing reachable')
     })
@@ -337,48 +337,48 @@ describe('detectBestProvider — orchestrator', () => {
       timeoutMs: 100,
       hasCodexAuth: () => false,
     })
-    // As of 2026-05-22 opengateway requires a key; with no credentials in env
+    // As of 2026-05-22 kaltcode-gateway requires a key; with no credentials in env
     // we no longer auto-select it — the caller surfaces a setup prompt instead.
     expect(result).toBeNull()
   })
 
-  test('OPENGATEWAY_BASE_URL env overrides the opengateway fallback base URL', async () => {
+  test('KALTCODE_GATEWAY_BASE_URL env overrides the kaltcode-gateway fallback base URL', async () => {
     const fetchImpl = asFetch(async (): Promise<Response> => {
       throw new Error('nothing reachable')
     })
 
     const result = await detectBestProvider({
       env: {
-        OPENGATEWAY_API_KEY: 'ogw_live_test_0000000000000000',
-        OPENGATEWAY_BASE_URL: 'http://localhost:8181/v1/xiaomi-mimo',
+        KALTCODE_GATEWAY_API_KEY: 'ogw_live_test_0000000000000000',
+        KALTCODE_GATEWAY_BASE_URL: 'http://localhost:8181/v1/xiaomi-mimo',
       },
       fetchImpl,
       timeoutMs: 100,
       hasCodexAuth: () => false,
     })
-    expect(result?.kind).toBe('gitlawb-opengateway')
+    expect(result?.kind).toBe('kaltcode-gateway')
     expect(result?.baseUrl).toBe('http://localhost:8181/v1/xiaomi-mimo')
   })
 
-  test('OPENGATEWAY_BASE_URL normalizes hosted legacy Xiaomi route to smart route', async () => {
+  test('KALTCODE_GATEWAY_BASE_URL normalizes hosted legacy Xiaomi route to smart route', async () => {
     const fetchImpl = asFetch(async (): Promise<Response> => {
       throw new Error('nothing reachable')
     })
 
     const result = await detectBestProvider({
       env: {
-        OPENGATEWAY_API_KEY: 'ogw_live_test_0000000000000000',
-        OPENGATEWAY_BASE_URL: 'https://opengateway.gitlawb.com/v1/xiaomi-mimo',
+        KALTCODE_GATEWAY_API_KEY: 'ogw_live_test_0000000000000000',
+        KALTCODE_GATEWAY_BASE_URL: 'https://kaltcode.my.id/v1/xiaomi-mimo',
       },
       fetchImpl,
       timeoutMs: 100,
       hasCodexAuth: () => false,
     })
-    expect(result?.kind).toBe('gitlawb-opengateway')
-    expect(result?.baseUrl).toBe('https://opengateway.gitlawb.com/v1')
+    expect(result?.kind).toBe('kaltcode-gateway')
+    expect(result?.baseUrl).toBe('https://kaltcode.my.id/v1')
   })
 
-  test('skipOpengatewayFallback returns null when nothing else is detected', async () => {
+  test('skipGatewayFallback returns null when nothing else is detected', async () => {
     const fetchImpl = asFetch(async (): Promise<Response> => {
       throw new Error('nothing reachable')
     })
@@ -388,7 +388,7 @@ describe('detectBestProvider — orchestrator', () => {
       fetchImpl,
       timeoutMs: 100,
       hasCodexAuth: () => false,
-      skipOpengatewayFallback: true,
+      skipGatewayFallback: true,
     })
     expect(result).toBeNull()
   })

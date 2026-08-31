@@ -106,12 +106,12 @@ function protectUrls(value: string): { text: string; restore: (text: string) => 
   const urls: string[] = []
   const text = value.replace(/(?:https?:)?\/\/[^\s"'`,<>()]+/gi, rawUrl => {
     const index = urls.push(sanitizeMemoryUrl(rawUrl)) - 1
-    return `__OPENCLAUDE_MEMORY_URL_${index}__`
+    return `__KALTCODE_MEMORY_URL_${index}__`
   })
   return {
     text,
     restore: sanitized => urls.reduce(
-      (current, url, index) => current.replace(`__OPENCLAUDE_MEMORY_URL_${index}__`, url),
+      (current, url, index) => current.replace(`__KALTCODE_MEMORY_URL_${index}__`, url),
       sanitized,
     ),
   }

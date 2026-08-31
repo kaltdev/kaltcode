@@ -127,7 +127,7 @@ describe('getKnownProviderSecretEnvKeys', () => {
       'OPENAI_API_KEY',
       'ANTHROPIC_API_KEY',
       'GEMINI_API_KEY',
-      'OPENGATEWAY_API_KEY',
+      'KALTCODE_GATEWAY_API_KEY',
       'OPENROUTER_API_KEY',
       'FIREWORKS_API_KEY',
       'GROQ_API_KEY',
@@ -226,7 +226,7 @@ describe('redactSecretValueForDisplay', () => {
   test('redacts values supplied via any provider key, not just the original 8', () => {
     const sources = [
       {
-        OPENGATEWAY_API_KEY: FAKE_OPENAI_KEY,
+        KALTCODE_GATEWAY_API_KEY: FAKE_OPENAI_KEY,
         OPENROUTER_API_KEY: FAKE_GITHUB_PAT,
         GROQ_API_KEY: FAKE_GEMINI_KEY,
       },
@@ -258,7 +258,7 @@ describe('redactSecretValueForDisplay', () => {
     const providerSecret = 'ogw-provider-secret'
     expect(
       redactSecretValueForDisplay(providerSecret, {
-        OPENGATEWAY_API_KEY: ` ${providerSecret} `,
+        KALTCODE_GATEWAY_API_KEY: ` ${providerSecret} `,
       }),
     ).toBe('ogw...ret')
   })
@@ -314,7 +314,7 @@ describe('sanitizeProviderConfigValue', () => {
     const providerSecret = 'ogw-provider-secret'
     expect(
       sanitizeProviderConfigValue(providerSecret, {
-        OPENGATEWAY_API_KEY: ` ${providerSecret} `,
+        KALTCODE_GATEWAY_API_KEY: ` ${providerSecret} `,
       }),
     ).toBeUndefined()
   })

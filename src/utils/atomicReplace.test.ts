@@ -32,7 +32,7 @@ async function tempTarget(initial?: string): Promise<{
   dir: string
   target: string
 }> {
-  const dir = await mkdtemp(join(tmpdir(), 'openclaude-atomic-replace-'))
+  const dir = await mkdtemp(join(tmpdir(), 'kaltcode-atomic-replace-'))
   tempDirs.push(dir)
   const target = join(dir, 'transcript.jsonl')
   if (initial !== undefined) await writeFile(target, initial)

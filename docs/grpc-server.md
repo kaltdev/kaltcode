@@ -1,6 +1,6 @@
 # Headless gRPC Server
 
-OpenClaude can be run as a headless gRPC service, allowing you to integrate
+Kalt Code can be run as a headless gRPC service, allowing you to integrate
 its agentic capabilities (tools, bash, file editing) into other applications,
 CI/CD pipelines, or custom user interfaces. The server uses bidirectional
 streaming to send real-time text chunks, tool calls, and request permissions
@@ -34,6 +34,6 @@ In a separate terminal, run:
 npm run dev:grpc:cli
 ```
 
-> **Note:** The gRPC definitions are located in `src/proto/openclaude.proto`.
+> **Note:** The gRPC definitions are located in `src/proto/kaltcode.proto`.
 > You can use this file to generate clients in Python, Go, Rust, or any other
 > language.

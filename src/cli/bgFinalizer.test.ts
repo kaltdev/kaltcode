@@ -24,14 +24,14 @@ import {
 } from './bgRegistry.js'
 
 const fixturePath = join(import.meta.dir, 'bgFinalizer.fixture.ts')
-const installedLauncherPath = join(import.meta.dir, '../../bin/openclaude')
+const installedLauncherPath = join(import.meta.dir, '../../bin/kaltcode')
 
 describe('background session finalizer', () => {
   let configDir: string
   let sessionsRoot: string
 
   beforeEach(async () => {
-    configDir = await mkdtemp(join(tmpdir(), 'openclaude-bg-finalizer-'))
+    configDir = await mkdtemp(join(tmpdir(), 'kaltcode-bg-finalizer-'))
     sessionsRoot = join(configDir, 'bg-sessions')
     _setBackgroundSessionsRootForTesting(sessionsRoot)
   })
@@ -50,7 +50,7 @@ describe('background session finalizer', () => {
       sessionId: `conversation-${id}`,
       startedAt: '2026-08-15T08:00:00.000Z',
       updatedAt: '2026-08-15T08:00:00.000Z',
-      command: ['openclaude', '--print', 'work'],
+      command: ['kaltcode', '--print', 'work'],
       stdoutLogPath: '/tmp/stdout.log',
       stderrLogPath: '/tmp/stderr.log',
     }
@@ -320,10 +320,10 @@ describe('background session finalizer', () => {
     const child = spawn(process.execPath, [fixturePath, mode], {
       env: {
         ...process.env,
-        OPENCLAUDE_CONFIG_DIR: configDir,
+        KALTCODE_CONFIG_DIR: configDir,
         [BACKGROUND_SESSION_ID_ENV]: id,
         [BACKGROUND_SESSION_LAUNCHER_PID_ENV]: String(process.pid),
-        OPENCLAUDE_BG_FINALIZER_FIXTURE_READY: readyPath,
+        KALTCODE_BG_FINALIZER_FIXTURE_READY: readyPath,
       },
       stdio: ['ignore', 'ignore', 'ignore'],
     })
@@ -352,9 +352,9 @@ describe('background session finalizer', () => {
     const processMarker = 'c'.repeat(64)
     const processEnv: NodeJS.ProcessEnv = {
       ...process.env,
-      OPENCLAUDE_CONFIG_DIR: configDir,
+      KALTCODE_CONFIG_DIR: configDir,
     }
-    delete processEnv.OPENCLAUDE_DISABLE_CLI_ENTRYPOINT_AUTO_RUN
+    delete processEnv.KALTCODE_DISABLE_CLI_ENTRYPOINT_AUTO_RUN
     const childConfig = buildBackgroundChildProcessConfig({
       execPath: 'node',
       execArgv: [],
@@ -405,7 +405,7 @@ describe('background session finalizer', () => {
     const launcher = spawn(process.execPath, [fixturePath, 'launcher', mode], {
       env: {
         ...process.env,
-        OPENCLAUDE_CONFIG_DIR: configDir,
+        KALTCODE_CONFIG_DIR: configDir,
       },
       stdio: ['ignore', 'pipe', 'pipe'],
     })
@@ -513,9 +513,9 @@ describe('background session finalizer', () => {
       const processMarker = 'e'.repeat(64)
       const processEnv: NodeJS.ProcessEnv = {
         ...process.env,
-        OPENCLAUDE_CONFIG_DIR: configDir,
+        KALTCODE_CONFIG_DIR: configDir,
       }
-      delete processEnv.OPENCLAUDE_DISABLE_CLI_ENTRYPOINT_AUTO_RUN
+      delete processEnv.KALTCODE_DISABLE_CLI_ENTRYPOINT_AUTO_RUN
       const childConfig = buildBackgroundChildProcessConfig({
         execPath: 'node',
         execArgv: [],
@@ -575,7 +575,7 @@ describe('background session finalizer', () => {
     ).toBe(1)
 
     const ps = spawn('node', [installedLauncherPath, 'ps'], {
-      env: { ...process.env, OPENCLAUDE_CONFIG_DIR: configDir },
+      env: { ...process.env, KALTCODE_CONFIG_DIR: configDir },
       stdio: ['ignore', 'pipe', 'pipe'],
     })
     let stdout = ''

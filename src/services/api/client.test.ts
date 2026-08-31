@@ -1025,13 +1025,13 @@ test('routes env-only AI/ML API requests through the OpenAI-compatible shim desp
   )
   expect(capturedHeaders?.get('x-aimlapi-partner-id')).toBe('part_62yQoGYDq4Yqnrj2R1iGrDNJ')
   expect(capturedHeaders?.get('x-aimlapi-integration-repo')).toBe(
-    'Gitlawb/openclaude',
+    'kaltdev/kaltcode',
   )
   expect(capturedHeaders?.get('x-aimlapi-integration-version')).toBe(
     publicBuildVersion,
   )
-  expect(capturedHeaders?.get('http-referer')).toBe('OpenClaude')
-  expect(capturedHeaders?.get('x-title')).toBe('OpenClaude')
+  expect(capturedHeaders?.get('http-referer')).toBe('Kalt Code')
+  expect(capturedHeaders?.get('x-title')).toBe('Kalt Code')
   expect(capturedBody?.model).toBe('gpt-4o')
   expect(process.env.CLAUDE_CODE_USE_OPENAI).toBe('1')
   expect(process.env.OPENAI_BASE_URL).toBe('https://api.aimlapi.com/v1')

@@ -13,7 +13,7 @@ import {
   type PrintModeControlAbortSource,
 } from './printInterruption.js'
 
-const originalInterruptionTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
+const originalInterruptionTrace = process.env.KALTCODE_INTERRUPT_TRACE
 let hasSharedMutationLock = false
 
 beforeEach(async () => {
@@ -26,9 +26,9 @@ afterEach(async () => {
     await __waitForInterruptionTraceFlushForTests()
     __resetInterruptionTraceForTests()
     if (originalInterruptionTrace === undefined) {
-      delete process.env.OPENCLAUDE_INTERRUPT_TRACE
+      delete process.env.KALTCODE_INTERRUPT_TRACE
     } else {
-      process.env.OPENCLAUDE_INTERRUPT_TRACE = originalInterruptionTrace
+      process.env.KALTCODE_INTERRUPT_TRACE = originalInterruptionTrace
     }
   } finally {
     if (hasSharedMutationLock) {
@@ -45,7 +45,7 @@ describe('print-mode interruption tracing', () => {
   ] as const)(
     'links %s input to the query and speculation aborts',
     (source: PrintModeControlAbortSource, queryReason: unknown) => {
-      process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+      process.env.KALTCODE_INTERRUPT_TRACE = '1'
       __resetInterruptionTraceForTests()
       const queryController = new AbortController()
       const suggestionController = new AbortController()
@@ -87,7 +87,7 @@ describe('print-mode interruption tracing', () => {
   )
 
   test('preserves native abort behavior when tracing is disabled', () => {
-    delete process.env.OPENCLAUDE_INTERRUPT_TRACE
+    delete process.env.KALTCODE_INTERRUPT_TRACE
     __resetInterruptionTraceForTests()
     const queryController = new AbortController()
     const suggestionController = new AbortController()

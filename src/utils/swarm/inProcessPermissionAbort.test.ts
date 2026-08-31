@@ -19,11 +19,11 @@ import {
   unregisterLeaderToolUseConfirmQueue,
 } from './leaderPermissionBridge.js'
 
-const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
+const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
 
 beforeEach(async () => {
   await acquireSharedMutationLock('inProcessPermissionAbort.test.ts')
-  process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+  process.env.KALTCODE_INTERRUPT_TRACE = '1'
   __resetInterruptionTraceForTests()
 })
 
@@ -33,9 +33,9 @@ afterEach(async () => {
     __resetInterruptionTraceForTests()
     unregisterLeaderToolUseConfirmQueue()
     if (originalTrace === undefined) {
-      delete process.env.OPENCLAUDE_INTERRUPT_TRACE
+      delete process.env.KALTCODE_INTERRUPT_TRACE
     } else {
-      process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+      process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
     }
   } finally {
     releaseSharedMutationLock()

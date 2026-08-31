@@ -44,7 +44,7 @@ async function withFixtureRepo(
   callback: (repoRoot: string) => Promise<void>,
 ): Promise<void> {
   const repoRoot = await mkdtemp(
-    path.join(os.tmpdir(), 'openclaude-integration-artifacts-'),
+    path.join(os.tmpdir(), 'kaltcode-integration-artifacts-'),
   )
 
   try {
@@ -82,7 +82,7 @@ describe('integration artifact generator', () => {
       match => match[1]!,
     )
     expect(orderedPresetIds.slice(0, 3)).toEqual([
-      'gitlawb-opengateway',
+      'kaltcode-gateway',
       'aimlapi',
       'anthropic',
     ])

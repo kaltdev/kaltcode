@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 94" role="img" aria-label="OpenClaude — Open terminal for any LLM">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 94" role="img" aria-label="Kalt Code — Open terminal for any LLM">
   <!-- Startup wordmark (src/constants/brand.ts) as pure rects: no font
        dependence, crisp at any size. OPEN light green, CLAUDE brand green,
        mirroring the TUI shimmer/brand split. Regenerate via git history

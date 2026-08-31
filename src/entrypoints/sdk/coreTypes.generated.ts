@@ -1539,7 +1539,7 @@ export type AgentDefinition = {
   permissionMode?: "default" | "acceptEdits" | "bypassPermissions" | "fullAccess" | "plan" | "dontAsk"
 }
 
-/** Source for loading filesystem-based settings. 'user' - Global user settings (~/.openclaude/settings.json). 'project' - Project settings (.openclaude/settings.json). 'local' - Local settings (.openclaude/settings.local.json). */
+/** Source for loading filesystem-based settings. 'user' - Global user settings (~/.kaltcode/settings.json). 'project' - Project settings (.kaltcode/settings.json). 'local' - Local settings (.kaltcode/settings.local.json). */
 export type SettingSource = "user" | "project" | "local"
 
 /** Configuration for loading a plugin. */

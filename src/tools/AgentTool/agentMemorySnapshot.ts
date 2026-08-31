@@ -26,10 +26,10 @@ type SyncedMeta = z.infer<ReturnType<typeof syncedMetaSchema>>
 
 /**
  * Returns the path to the snapshot directory for an agent in the current project.
- * e.g., <cwd>/.openclaude/agent-memory-snapshots/<agentType>/
+ * e.g., <cwd>/.kaltcode/agent-memory-snapshots/<agentType>/
  */
 export function getSnapshotDirForAgent(agentType: string): string {
-  return join(getCwd(), '.openclaude', SNAPSHOT_BASE, agentType)
+  return join(getCwd(), '.kaltcode', SNAPSHOT_BASE, agentType)
 }
 
 function getSnapshotJsonPath(agentType: string): string {

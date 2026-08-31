@@ -32,7 +32,7 @@ const originalEnv = {
   LONGCAT_API_KEY: process.env.LONGCAT_API_KEY,
   CLAUDE_CODE_MAX_CONTEXT_TOKENS: process.env.CLAUDE_CODE_MAX_CONTEXT_TOKENS,
   USER_TYPE: process.env.USER_TYPE,
-  OPENCLAUDE_MAX_TURNS: process.env.OPENCLAUDE_MAX_TURNS,
+  KALTCODE_MAX_TURNS: process.env.KALTCODE_MAX_TURNS,
   CLAUDE_CODE_MAX_TURNS: process.env.CLAUDE_CODE_MAX_TURNS,
 }
 
@@ -55,7 +55,7 @@ beforeEach(async () => {
   delete process.env.LONGCAT_API_KEY
   delete process.env.CLAUDE_CODE_MAX_CONTEXT_TOKENS
   delete process.env.USER_TYPE
-  delete process.env.OPENCLAUDE_MAX_TURNS
+  delete process.env.KALTCODE_MAX_TURNS
   delete process.env.CLAUDE_CODE_MAX_TURNS
 })
 
@@ -146,10 +146,10 @@ afterEach(() => {
     } else {
       process.env.USER_TYPE = originalEnv.USER_TYPE
     }
-    if (originalEnv.OPENCLAUDE_MAX_TURNS === undefined) {
-      delete process.env.OPENCLAUDE_MAX_TURNS
+    if (originalEnv.KALTCODE_MAX_TURNS === undefined) {
+      delete process.env.KALTCODE_MAX_TURNS
     } else {
-      process.env.OPENCLAUDE_MAX_TURNS = originalEnv.OPENCLAUDE_MAX_TURNS
+      process.env.KALTCODE_MAX_TURNS = originalEnv.KALTCODE_MAX_TURNS
     }
     if (originalEnv.CLAUDE_CODE_MAX_TURNS === undefined) {
       delete process.env.CLAUDE_CODE_MAX_TURNS
@@ -589,7 +589,7 @@ test('unknown openai-compatible model fallback logs one debug warning and no con
   }
 })
 
-test('prefixed OpenGateway Gemini Flash Lite uses integration metadata', () => {
+test('prefixed KaltCode Gateway Gemini Flash Lite uses integration metadata', () => {
   process.env.CLAUDE_CODE_USE_OPENAI = '1'
   delete process.env.CLAUDE_CODE_MAX_OUTPUT_TOKENS
   delete process.env.OPENAI_MODEL

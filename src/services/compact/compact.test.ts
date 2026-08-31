@@ -90,7 +90,7 @@ const _realTokensModule = await import(
 )
 const compactTestTaskOutputPath = join(
   tmpdir(),
-  `openclaude-compact-test-${process.pid}-${randomUUID()}`,
+  `kaltcode-compact-test-${process.pid}-${randomUUID()}`,
 )
 
 const COMPACT_STUB_MODULES = [
@@ -822,8 +822,8 @@ afterAll(async () => {
 
 describe('compactConversation provider gate', () => {
   test('attributes cache-sharing timeout aborts to the compact fork', async () => {
-    const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     vi.useFakeTimers()
     try {
@@ -859,9 +859,9 @@ describe('compactConversation provider gate', () => {
       await __waitForInterruptionTraceFlushForTests()
       __resetInterruptionTraceForTests()
       if (originalTrace === undefined) {
-        delete process.env.OPENCLAUDE_INTERRUPT_TRACE
+        delete process.env.KALTCODE_INTERRUPT_TRACE
       } else {
-        process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+        process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
       }
     }
   })

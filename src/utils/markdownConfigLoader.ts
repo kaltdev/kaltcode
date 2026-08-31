@@ -26,7 +26,7 @@ import {
 import { getManagedFilePath } from './settings/managedPath.js'
 import { isRestrictedToPluginOnly } from './settings/pluginOnlyPolicy.js'
 
-// OpenClaude configuration directory names
+// Kalt Code configuration directory names
 export const CLAUDE_CONFIG_DIRECTORIES = [
   'commands',
   'agents',
@@ -38,12 +38,12 @@ export const CLAUDE_CONFIG_DIRECTORIES = [
 
 export type ClaudeConfigDirectory = (typeof CLAUDE_CONFIG_DIRECTORIES)[number]
 
-export const PROJECT_CONFIG_DIR_NAMES = ['.openclaude'] as const
+export const PROJECT_CONFIG_DIR_NAMES = ['.kaltcode'] as const
 
 // Concurrency cap for parallel readFile + parseFrontmatter when loading
 // commands/agents/skills/etc. With unbounded Promise.all, a directory holding
 // thousands of markdown files (e.g., an Obsidian vault symlinked into
-// ~/.openclaude/agents — see issue #769) opens that many fds and blocks the
+// ~/.kaltcode/agents — see issue #769) opens that many fds and blocks the
 // event loop on parse work, freezing the REPL at startup. Batching keeps fd
 // pressure and CPU bursts bounded.
 const MARKDOWN_LOAD_BATCH_SIZE = 32
@@ -92,7 +92,7 @@ function recordOversizedSkip(skip: OversizedMarkdownSkip): void {
   if (!oversizedSkipStderrWarned) {
     oversizedSkipStderrWarned = true
     process.stderr.write(
-      `openclaude: skipping oversized markdown config file ${skip.filePath} ` +
+      `kaltcode: skipping oversized markdown config file ${skip.filePath} ` +
         `(${skip.sizeBytes} bytes > ${skip.maxBytes} max). Set ` +
         `CLAUDE_CODE_MAX_MARKDOWN_FILE_SIZE_BYTES to raise the cap.\n`,
     )
@@ -239,14 +239,14 @@ async function getFileIdentity(filePath: string): Promise<string | null> {
  * Normally the walk stops at the nearest `.git` above `cwd`. But if the Bash
  * tool has cd'd into a nested git repo inside the session's project (submodule,
  * vendored dep with its own `.git`), that nested root isn't the right boundary —
- * stopping there makes the parent project's `.openclaude/` unreachable (#31905).
+ * stopping there makes the parent project's `.kaltcode/` unreachable (#31905).
  *
  * The boundary is widened to the session's git root only when BOTH:
  *   - the nearest `.git` from cwd belongs to a *different* canonical repo
  *     (submodule/vendored clone — not a worktree, which resolves back to main)
  *   - that nearest `.git` sits *inside* the session's project tree
  *
- * Worktrees (under `.openclaude/worktrees/`) stay on the old behavior: their `.git`
+ * Worktrees (under `.kaltcode/worktrees/`) stay on the old behavior: their `.git`
  * file is the stop, and loadMarkdownFilesForSubdir's fallback adds the main-repo
  * copy only when the worktree lacks one.
  */
@@ -283,15 +283,15 @@ function resolveStopBoundary(cwd: string): string | null {
 
 /**
  * Traverses from the current directory up to the git root (or home directory if not in a git repo),
- * collecting all .openclaude directories along the way.
+ * collecting all .kaltcode directories along the way.
  *
  * Stopping at git root prevents commands/skills from parent directories outside the repository
- * from leaking into projects. For example, if ~/projects/.openclaude/commands/ exists, it won't
+ * from leaking into projects. For example, if ~/projects/.kaltcode/commands/ exists, it won't
  * appear in ~/projects/my-repo/ if my-repo is a git repository.
  *
  * @param subdir Subdirectory (eg. "commands", "agents")
  * @param cwd Current working directory to start from
- * @returns Array of directory paths containing .openclaude/subdir, from most specific (cwd) to least specific
+ * @returns Array of directory paths containing .kaltcode/subdir, from most specific (cwd) to least specific
  */
 export function getProjectDirsUpToHome(
   subdir: ClaudeConfigDirectory,
@@ -365,17 +365,17 @@ export const loadMarkdownFilesForSubdir = memoize(
   ): Promise<MarkdownFile[]> {
     const searchStartTime = Date.now()
     const userDir = join(getClaudeConfigHomeDir(), subdir)
-    const managedDir = join(getManagedFilePath(), '.openclaude', subdir)
+    const managedDir = join(getManagedFilePath(), '.kaltcode', subdir)
     const projectDirs = getProjectDirsUpToHome(subdir, cwd)
 
-    // For git worktrees where the worktree does NOT have .openclaude/<subdir> checked
+    // For git worktrees where the worktree does NOT have .kaltcode/<subdir> checked
     // out (e.g. sparse-checkout), fall back to the main repository's copy.
     // getProjectDirsUpToHome stops at the worktree root (where the .git file is),
     // so it never sees the main repo on its own.
     //
-    // Only add the main repo's copy when the worktree root's .openclaude/<subdir>
+    // Only add the main repo's copy when the worktree root's .kaltcode/<subdir>
     // is absent. A standard `git worktree add` checks out the full tree, so the
-    // worktree already has identical .openclaude/<subdir> content — loading the main
+    // worktree already has identical .kaltcode/<subdir> content — loading the main
     // repo's copy too would duplicate every command/agent/skill
     // (anthropics/claude-code#29599, #28182, #26992).
     //
@@ -444,7 +444,7 @@ export const loadMarkdownFilesForSubdir = memoize(
     const allFiles = [...managedFiles, ...userFiles, ...projectFiles]
 
     // Deduplicate files that resolve to the same physical file (same inode).
-    // This prevents the same file from appearing multiple times when ~/.openclaude is
+    // This prevents the same file from appearing multiple times when ~/.kaltcode is
     // symlinked to a directory within the project hierarchy, causing the same
     // physical file to be discovered through different paths.
     const fileIdentities = await Promise.all(
@@ -606,7 +606,7 @@ async function findMarkdownFilesNative(
 
 /**
  * Generic function to load markdown files from specified directories
- * @param dir Directory (eg. "~/.openclaude/commands")
+ * @param dir Directory (eg. "~/.kaltcode/commands")
  * @returns Array of parsed markdown files with metadata
  */
 async function loadMarkdownFiles(dir: string): Promise<

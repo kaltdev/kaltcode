@@ -145,7 +145,7 @@ async function withSyncEnvironment(
     localSettings: string
   }) => Promise<void>,
 ): Promise<void> {
-  const root = mkdtempSync(join(tmpdir(), 'openclaude-settings-sync-'))
+  const root = mkdtempSync(join(tmpdir(), 'kaltcode-settings-sync-'))
   const project = join(root, 'project')
   const previousConfig = getClaudeConfigHomeDirOverrideForTesting()
   const previousCwd = getOriginalCwd()
@@ -158,7 +158,7 @@ async function withSyncEnvironment(
       root,
       userSettings: join(root, 'settings.json'),
       userMemory: join(root, 'CLAUDE.md'),
-      localSettings: join(project, '.openclaude', 'settings.local.json'),
+      localSettings: join(project, '.kaltcode', 'settings.local.json'),
     })
   } finally {
     setClaudeConfigHomeDirForTesting(previousConfig)

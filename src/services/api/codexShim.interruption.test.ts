@@ -18,7 +18,7 @@ import {
   requestAbort,
 } from '../../utils/interruptionTrace.js'
 
-const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
+const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
 
 beforeEach(async () => {
   await acquireSharedMutationLock('codexShim.interruption.test.ts')
@@ -28,8 +28,8 @@ afterEach(async () => {
   try {
     await __waitForInterruptionTraceFlushForTests()
     __resetInterruptionTraceForTests()
-    if (originalTrace === undefined) delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-    else process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+    if (originalTrace === undefined) delete process.env.KALTCODE_INTERRUPT_TRACE
+    else process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
   } finally {
     releaseSharedMutationLock()
   }
@@ -187,8 +187,8 @@ async function driveWithGuard(
 
 describe('issue #1830 Codex interruption ownership', () => {
   test('raw transport silence is owned by the Codex reader deadline', async () => {
-    const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     const cancelReasons: unknown[] = []
     const response = new Response(
@@ -251,9 +251,9 @@ describe('issue #1830 Codex interruption ownership', () => {
       await __waitForInterruptionTraceFlushForTests()
       __resetInterruptionTraceForTests()
       if (originalTrace === undefined) {
-        delete process.env.OPENCLAUDE_INTERRUPT_TRACE
+        delete process.env.KALTCODE_INTERRUPT_TRACE
       } else {
-        process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+        process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
       }
     }
   })
@@ -298,8 +298,8 @@ describe('issue #1830 Codex interruption ownership', () => {
   })
 
   test('a done-only Codex stream completes without waiting for transport EOF', async () => {
-    const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     const cancelReasons: unknown[] = []
     const encoder = new TextEncoder()
@@ -334,14 +334,14 @@ describe('issue #1830 Codex interruption ownership', () => {
     } finally {
       await __waitForInterruptionTraceFlushForTests()
       __resetInterruptionTraceForTests()
-      if (originalTrace === undefined) delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-      else process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+      if (originalTrace === undefined) delete process.env.KALTCODE_INTERRUPT_TRACE
+      else process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
     }
   })
 
   test('normal completed and incomplete frames after a done marker close without interruption traces', async () => {
-    const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     try {
       for (const terminalEvent of [
         'response.completed',
@@ -401,16 +401,16 @@ describe('issue #1830 Codex interruption ownership', () => {
       await __waitForInterruptionTraceFlushForTests()
       __resetInterruptionTraceForTests()
       if (originalTrace === undefined) {
-        delete process.env.OPENCLAUDE_INTERRUPT_TRACE
+        delete process.env.KALTCODE_INTERRUPT_TRACE
       } else {
-        process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+        process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
       }
     }
   })
 
   test('reports non-negative idle evidence and forwards its causal event id', async () => {
-    const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     const causalEventIds: string[] = []
     const encoder = new TextEncoder()
@@ -449,14 +449,14 @@ describe('issue #1830 Codex interruption ownership', () => {
       )
       await __waitForInterruptionTraceFlushForTests()
       __resetInterruptionTraceForTests()
-      if (originalTrace === undefined) delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-      else process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+      if (originalTrace === undefined) delete process.env.KALTCODE_INTERRUPT_TRACE
+      else process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
     }
   })
 
   test('marks the converter complete before yielding message_stop', async () => {
-    const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     const cancelReasons: unknown[] = []
     const encoder = new TextEncoder()
@@ -497,15 +497,15 @@ describe('issue #1830 Codex interruption ownership', () => {
       await __waitForInterruptionTraceFlushForTests()
       __resetInterruptionTraceForTests()
       if (originalTrace === undefined) {
-        delete process.env.OPENCLAUDE_INTERRUPT_TRACE
+        delete process.env.KALTCODE_INTERRUPT_TRACE
       } else {
-        process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+        process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
       }
     }
   })
 
   test('reports root_aborted when cancellation follows terminal evidence', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     const controller = new AbortController()
     const response = responseFromText([
@@ -541,8 +541,8 @@ describe('issue #1830 Codex interruption ownership', () => {
   })
 
   test('keeps terminal ownership when the consumer returns after message_delta', async () => {
-    const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     const response = responseFromText([
       'event: response.completed',
@@ -568,14 +568,14 @@ describe('issue #1830 Codex interruption ownership', () => {
       await bounded(iterator.return(undefined)).catch(() => {})
       await __waitForInterruptionTraceFlushForTests()
       __resetInterruptionTraceForTests()
-      if (originalTrace === undefined) delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-      else process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+      if (originalTrace === undefined) delete process.env.KALTCODE_INTERRUPT_TRACE
+      else process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
     }
   })
 
   test('classifies each Codex reader and converter frame exactly once', async () => {
-    const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     const text = [
       ': keepalive',
@@ -624,14 +624,14 @@ describe('issue #1830 Codex interruption ownership', () => {
     } finally {
       await __waitForInterruptionTraceFlushForTests()
       __resetInterruptionTraceForTests()
-      if (originalTrace === undefined) delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-      else process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+      if (originalTrace === undefined) delete process.env.KALTCODE_INTERRUPT_TRACE
+      else process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
     }
   })
 
   test('classifies event-only and typed data-only frames without inflating ignored input', async () => {
-    const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     const text = [
       'event: ping',
@@ -657,14 +657,14 @@ describe('issue #1830 Codex interruption ownership', () => {
     } finally {
       await __waitForInterruptionTraceFlushForTests()
       __resetInterruptionTraceForTests()
-      if (originalTrace === undefined) delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-      else process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+      if (originalTrace === undefined) delete process.env.KALTCODE_INTERRUPT_TRACE
+      else process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
     }
   })
 
   test('reports parsed-but-unhandled converter events with a distinct counter', async () => {
-    const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     const encoder = new TextEncoder()
     const response = new Response(
@@ -698,14 +698,14 @@ describe('issue #1830 Codex interruption ownership', () => {
     } finally {
       await __waitForInterruptionTraceFlushForTests()
       __resetInterruptionTraceForTests()
-      if (originalTrace === undefined) delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-      else process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+      if (originalTrace === undefined) delete process.env.KALTCODE_INTERRUPT_TRACE
+      else process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
     }
   })
 
   test('keepalives and parsed-but-ignored frames cannot reset QueryGuard', async () => {
-    const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     const timed = makeTimedStream(
       index => {
@@ -769,9 +769,9 @@ describe('issue #1830 Codex interruption ownership', () => {
       await __waitForInterruptionTraceFlushForTests()
       __resetInterruptionTraceForTests()
       if (originalTrace === undefined) {
-        delete process.env.OPENCLAUDE_INTERRUPT_TRACE
+        delete process.env.KALTCODE_INTERRUPT_TRACE
       } else {
-        process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+        process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
       }
     }
   })

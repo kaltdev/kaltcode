@@ -47,9 +47,9 @@ test('returns raw truncated markdown when queryHaiku throws', async () => {
     throw new Error('MiniMax rejected the model name')
   })
 
-  const output = await runApply('Gitlawb homepage content.')
+  const output = await runApply('KaltCode homepage content.')
   expect(output).toContain('[Secondary-model summarization unavailable')
-  expect(output).toContain('Gitlawb homepage content.')
+  expect(output).toContain('KaltCode homepage content.')
 })
 
 test('returns raw truncated markdown when queryHaiku simulates a timeout', async () => {

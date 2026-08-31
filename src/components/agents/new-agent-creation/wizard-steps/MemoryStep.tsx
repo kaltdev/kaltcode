@@ -37,28 +37,28 @@ export function MemoryStep() {
   let t1;
   if ($[1] !== isUserScope) {
     t1 = isUserScope ? [{
-      label: "User scope (~/.openclaude/agent-memory/) (Recommended)",
+      label: "User scope (~/.kaltcode/agent-memory/) (Recommended)",
       value: "user"
     }, {
       label: "None (no persistent memory)",
       value: "none"
     }, {
-      label: "Project scope (.openclaude/agent-memory/)",
+      label: "Project scope (.kaltcode/agent-memory/)",
       value: "project"
     }, {
-      label: "Local scope (.openclaude/agent-memory-local/)",
+      label: "Local scope (.kaltcode/agent-memory-local/)",
       value: "local"
     }] : [{
-      label: "Project scope (.openclaude/agent-memory/) (Recommended)",
+      label: "Project scope (.kaltcode/agent-memory/) (Recommended)",
       value: "project"
     }, {
       label: "None (no persistent memory)",
       value: "none"
     }, {
-      label: "User scope (~/.openclaude/agent-memory/)",
+      label: "User scope (~/.kaltcode/agent-memory/)",
       value: "user"
     }, {
-      label: "Local scope (.openclaude/agent-memory-local/)",
+      label: "Local scope (.kaltcode/agent-memory-local/)",
       value: "local"
     }];
     $[1] = isUserScope;

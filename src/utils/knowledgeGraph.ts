@@ -101,7 +101,7 @@ function currentProjectKey(): string {
  * Returns the deduplicated candidate project keys for legacy-store lookup.
  * The memdir resolves facts under the canonical git root, but legacy JSON/SQLite
  * stores were written under the raw cwd key. Probe the git-root key first so a
- * store created from the repo root is still found when OpenClaude runs from a
+ * store created from the repo root is still found when Kalt Code runs from a
  * subdirectory; the cwd key remains as a fallback (P1).
  */
 function getLegacyProjectKeys(): string[] {
@@ -411,7 +411,7 @@ function readLegacySqliteStore(dbPath: string): SqliteReadResult {
     try {
       // The distributed CLI runs on Node. Node 22.5+ exposes a compatible
       // synchronous reader, so a store originally created by a Bun-based
-      // OpenClaude install can still migrate after the user changes runtimes.
+      // Kalt Code install can still migrate after the user changes runtimes.
       const DatabaseSync = _require('node:sqlite').DatabaseSync
       openDatabase = () => {
         const db = new DatabaseSync(dbPath, { readOnly: true })

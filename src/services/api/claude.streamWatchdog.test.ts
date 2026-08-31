@@ -45,9 +45,9 @@ const envKeys = [
   'CLAUDE_DISABLE_STREAM_WATCHDOG',
   'CLAUDE_ENABLE_STREAM_WATCHDOG',
   'CLAUDE_STREAM_IDLE_TIMEOUT_MS',
-  'OPENCLAUDE_MAX_RETRIES',
-  'OPENCLAUDE_INTERRUPT_TRACE',
-  'OPENCLAUDE_INTERRUPT_TRACE_FILE',
+  'KALTCODE_MAX_RETRIES',
+  'KALTCODE_INTERRUPT_TRACE',
+  'KALTCODE_INTERRUPT_TRACE_FILE',
   'VCR_RECORD',
 ] as const
 
@@ -313,7 +313,7 @@ beforeEach(async () => {
   process.env.ANTHROPIC_API_KEY = 'sk-test-watchdog'
   process.env.CLAUDE_CODE_TEST_FIXTURES_ROOT = fixturesRoot
   process.env.CLAUDE_STREAM_IDLE_TIMEOUT_MS = '25'
-  process.env.OPENCLAUDE_MAX_RETRIES = '0'
+  process.env.KALTCODE_MAX_RETRIES = '0'
   process.env.VCR_RECORD = '1'
 })
 
@@ -357,8 +357,8 @@ afterEach(async () => {
 describe('Claude stream watchdog', () => {
   test('falls back when the top-level stream iterator never settles', async () => {
     const traceFile = join(fixturesRoot!, 'interruption-trace.jsonl')
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
-    process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = traceFile
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE_FILE = traceFile
     const wedged = makeWedgedStream()
     const streamModes: unknown[] = []
     createHandler = params => {
@@ -459,7 +459,7 @@ describe('Claude stream watchdog', () => {
 
   test('does not attempt fallback when the parent signal aborts first', async () => {
     process.env.CLAUDE_STREAM_IDLE_TIMEOUT_MS = '250'
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     const wedged = makeWedgedStream()
     const controller = new AbortController()
     registerInterruptionController(controller, { controllerRole: 'query-root' })
@@ -523,7 +523,7 @@ describe('Claude stream watchdog', () => {
   })
 
   test('records a terminal failed outcome when non-streaming fallback rejects', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     const wedged = makeWedgedStream()
     createHandler = params => {
       if (params.stream === true) return makeWithResponse(wedged.stream)
@@ -556,7 +556,7 @@ describe('Claude stream watchdog', () => {
   })
 
   test('records fallback failure when the returned message cannot be normalized', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     const wedged = makeWedgedStream()
     createHandler = params => {
       if (params.stream === true) return makeWithResponse(wedged.stream)

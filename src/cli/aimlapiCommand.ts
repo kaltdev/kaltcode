@@ -51,7 +51,7 @@ export function registerAimlapiCommand(
   aimlapi
     .command('topup')
     .description(
-      'Use passwordless sign-in, open AI/ML API top-up, then configure OpenClaude',
+      'Use passwordless sign-in, open AI/ML API top-up, then configure Kalt Code',
     )
     .option('--email <email>', 'AI/ML API account email (or AIMLAPI_EMAIL env)')
     .option(

@@ -27,8 +27,8 @@ import {
   releaseSharedMutationLock,
 } from '../test/sharedMutationLock.js'
 
-const originalEnabled = process.env.OPENCLAUDE_INTERRUPT_TRACE
-const originalFile = process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE
+const originalEnabled = process.env.KALTCODE_INTERRUPT_TRACE
+const originalFile = process.env.KALTCODE_INTERRUPT_TRACE_FILE
 const originalDiagnosticsFile = process.env.CLAUDE_CODE_DIAGNOSTICS_FILE
 let tempDirectory: string | undefined
 let originalFs: FsOperations
@@ -40,8 +40,8 @@ beforeEach(async () => {
   originalFs = getFsImplementation()
   await __waitForInterruptionTraceFlushForTests()
   __resetInterruptionTraceForTests()
-  delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-  delete process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE
+  delete process.env.KALTCODE_INTERRUPT_TRACE
+  delete process.env.KALTCODE_INTERRUPT_TRACE_FILE
   delete process.env.CLAUDE_CODE_DIAGNOSTICS_FILE
 })
 
@@ -49,10 +49,10 @@ afterEach(async () => {
   await __waitForInterruptionTraceFlushForTests()
   __resetInterruptionTraceForTests()
   setFsImplementation(originalFs)
-  if (originalEnabled === undefined) delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-  else process.env.OPENCLAUDE_INTERRUPT_TRACE = originalEnabled
-  if (originalFile === undefined) delete process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE
-  else process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = originalFile
+  if (originalEnabled === undefined) delete process.env.KALTCODE_INTERRUPT_TRACE
+  else process.env.KALTCODE_INTERRUPT_TRACE = originalEnabled
+  if (originalFile === undefined) delete process.env.KALTCODE_INTERRUPT_TRACE_FILE
+  else process.env.KALTCODE_INTERRUPT_TRACE_FILE = originalFile
   if (originalDiagnosticsFile === undefined) {
     delete process.env.CLAUDE_CODE_DIAGNOSTICS_FILE
   } else {
@@ -80,7 +80,7 @@ describe('interruptionTrace', () => {
   })
 
   test('correlates controllers and records first-wins plus repeated requests', () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     const controller = new AbortController()
     const controllerId = registerInterruptionController(controller, {
       controllerRole: 'query-root',
@@ -117,7 +117,7 @@ describe('interruptionTrace', () => {
   })
 
   test('links a combined signal abort to the winning parent request', () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     const parent = new AbortController()
     registerInterruptionController(parent, {
       controllerRole: 'query-root',
@@ -148,7 +148,7 @@ describe('interruptionTrace', () => {
   })
 
   test('assigns a causal event id when a registered signal aborts natively', () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     const controller = new AbortController()
     registerInterruptionController(controller, { controllerRole: 'external' })
 
@@ -176,7 +176,7 @@ describe('interruptionTrace', () => {
   })
 
   test('links a native AbortSignal.any result to its winning parent', () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     const caller = new AbortController()
     const deadline = new AbortController()
     const combined = AbortSignal.any([caller.signal, deadline.signal])
@@ -210,7 +210,7 @@ describe('interruptionTrace', () => {
   })
 
   test('records permission abort resolution with the input causal edge', () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     const inputEventId = traceInterruptionEvent('input.ctrl_c')
 
     interruptionTraceModule.tracePermissionAbortResolution(
@@ -229,8 +229,8 @@ describe('interruptionTrace', () => {
   })
 
   testLinuxTraceFile('observes and flushes a query-root controller already aborted when registered', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
-    process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = '/trace.jsonl'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE_FILE = '/trace.jsonl'
     let writes = 0
     setFsImplementation({
       ...originalFs,
@@ -255,8 +255,8 @@ describe('interruptionTrace', () => {
   })
 
   testLinuxTraceFile('preserves an established query-root role when creating a child', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
-    process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = '/trace.jsonl'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE_FILE = '/trace.jsonl'
     let writes = 0
     setFsImplementation({
       ...originalFs,
@@ -297,7 +297,7 @@ describe('interruptionTrace', () => {
   })
 
   test('replaces provisional parent and child roles with concrete lifecycle roles', () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     const parent = new AbortController()
     const child = createChildAbortController(parent)
 
@@ -338,7 +338,7 @@ describe('interruptionTrace', () => {
   })
 
   test('retains a child owner when the parent aborts before a later request', () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     const parent = new AbortController()
     const child = createChildAbortController(parent, undefined, {
       subsystem: 'in_process_teammate',
@@ -366,7 +366,7 @@ describe('interruptionTrace', () => {
   })
 
   test('throwing abort-reason accessors cannot block native or combined aborts', () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     const reason = new Proxy(
       {},
       {
@@ -394,7 +394,7 @@ describe('interruptionTrace', () => {
   })
 
   test('does not persist arbitrary custom error names', () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     const reason = new Error('private reason message')
     reason.name = 'private customer prompt'
 
@@ -409,7 +409,7 @@ describe('interruptionTrace', () => {
   })
 
   test('preserves only standardized DOMException names', () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     const standard = new DOMException('private message', 'AbortError')
     const custom = new DOMException('private message', 'private customer prompt')
 
@@ -432,7 +432,7 @@ describe('interruptionTrace', () => {
   })
 
   test('keeps only the newest allowlisted records up to capacity', () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = 'true'
+    process.env.KALTCODE_INTERRUPT_TRACE = 'true'
     const emitted = __INTERRUPTION_TRACE_CAPACITY_FOR_TESTS + 88
     for (let index = 0; index < emitted; index++) {
       traceInterruptionEvent('stream.progress', {
@@ -451,10 +451,10 @@ describe('interruptionTrace', () => {
   })
 
   testLinuxTraceFile('flushes valid JSONL once to an explicit absolute path', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
-    tempDirectory = await mkdtemp(join(tmpdir(), 'openclaude-interrupt-trace-'))
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
+    tempDirectory = await mkdtemp(join(tmpdir(), 'kaltcode-interrupt-trace-'))
     const traceFile = join(tempDirectory, 'trace.jsonl')
-    process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = traceFile
+    process.env.KALTCODE_INTERRUPT_TRACE_FILE = traceFile
 
     traceInterruptionEvent('query.started', {
       queryId: 'query-1',
@@ -473,10 +473,10 @@ describe('interruptionTrace', () => {
   })
 
   testLinuxTraceFile('flushes every pending record when the ring is at capacity', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
-    tempDirectory = await mkdtemp(join(tmpdir(), 'openclaude-interrupt-trace-'))
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
+    tempDirectory = await mkdtemp(join(tmpdir(), 'kaltcode-interrupt-trace-'))
     const traceFile = join(tempDirectory, 'trace.jsonl')
-    process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = traceFile
+    process.env.KALTCODE_INTERRUPT_TRACE_FILE = traceFile
     for (let index = 0; index < __INTERRUPTION_TRACE_CAPACITY_FOR_TESTS; index++) {
       traceInterruptionEvent('stream.progress', { rawByteCount: index })
     }
@@ -494,8 +494,8 @@ describe('interruptionTrace', () => {
   })
 
   testLinuxTraceFile('retains pending records after a failed write and retries them', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
-    process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = '/trace.jsonl'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE_FILE = '/trace.jsonl'
     let failWrites = true
     let writeAttempts = 0
     const successfulWrites: string[] = []
@@ -530,8 +530,8 @@ describe('interruptionTrace', () => {
   })
 
   testLinuxTraceFile('captures the enabled output target before a detached flush starts', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
-    process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = '/captured/trace.jsonl'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE_FILE = '/captured/trace.jsonl'
     const writes: Array<{ path: string; data: string }> = []
     setFsImplementation({
       ...originalFs,
@@ -542,8 +542,8 @@ describe('interruptionTrace', () => {
 
     traceInterruptionEvent('before_restore')
     flushInterruptionTrace('captured-target')
-    delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-    delete process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE
+    delete process.env.KALTCODE_INTERRUPT_TRACE
+    delete process.env.KALTCODE_INTERRUPT_TRACE_FILE
     await __waitForInterruptionTraceFlushForTests()
 
     expect(writes).toHaveLength(1)
@@ -553,8 +553,8 @@ describe('interruptionTrace', () => {
   })
 
   testLinuxTraceFile('keeps a retry batch bound to its original output target', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
-    process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = '/first/trace.jsonl'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE_FILE = '/first/trace.jsonl'
     const writes: Array<{ path: string; data: string }> = []
     setFsImplementation({
       ...originalFs,
@@ -567,7 +567,7 @@ describe('interruptionTrace', () => {
     traceInterruptionEvent('first_target')
     flushInterruptionTrace('first')
     await __waitForInterruptionTraceFlushForTests()
-    process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = '/second/trace.jsonl'
+    process.env.KALTCODE_INTERRUPT_TRACE_FILE = '/second/trace.jsonl'
     traceInterruptionEvent('second_target')
     flushInterruptionTrace('second')
     await __waitForInterruptionTraceFlushForTests()
@@ -583,8 +583,8 @@ describe('interruptionTrace', () => {
   })
 
   testLinuxTraceFile('retains an in-flight failed batch outside the bounded ring', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
-    process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = '/trace.jsonl'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE_FILE = '/trace.jsonl'
     let rejectFirstWrite!: (error: Error) => void
     let markFirstWriteStarted!: () => void
     const firstWriteStarted = new Promise<void>(resolve => {
@@ -623,8 +623,8 @@ describe('interruptionTrace', () => {
   })
 
   testLinuxTraceFile('does not replay a batch after an uncertain append failure', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
-    process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = '/trace.jsonl'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE_FILE = '/trace.jsonl'
     const writes: string[] = []
     setFsImplementation({
       ...originalFs,
@@ -652,9 +652,9 @@ describe('interruptionTrace', () => {
   })
 
   testLinuxTraceFile('rejects an existing non-regular trace target', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
-    tempDirectory = await mkdtemp(join(tmpdir(), 'openclaude-interrupt-trace-'))
-    process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = tempDirectory
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
+    tempDirectory = await mkdtemp(join(tmpdir(), 'kaltcode-interrupt-trace-'))
+    process.env.KALTCODE_INTERRUPT_TRACE_FILE = tempDirectory
     traceInterruptionEvent('pending')
 
     flushInterruptionTrace('non-regular')
@@ -668,13 +668,13 @@ describe('interruptionTrace', () => {
   })
 
   testLinuxTraceFile('rejects symlink targets and creates private files and directories', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
-    tempDirectory = await mkdtemp(join(tmpdir(), 'openclaude-interrupt-trace-'))
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
+    tempDirectory = await mkdtemp(join(tmpdir(), 'kaltcode-interrupt-trace-'))
     const target = join(tempDirectory, 'target.jsonl')
     const link = join(tempDirectory, 'trace-link.jsonl')
     await writeFile(target, '')
     await symlink(target, link)
-    process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = link
+    process.env.KALTCODE_INTERRUPT_TRACE_FILE = link
     traceInterruptionEvent('symlink-pending')
     flushInterruptionTrace('symlink')
     await __waitForInterruptionTraceFlushForTests()
@@ -683,11 +683,11 @@ describe('interruptionTrace', () => {
     // The rejected batch remains bound to its original target for retry.
     // Reset before exercising independent creation and permission behavior.
     __resetInterruptionTraceForTests()
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
 
     const privateDirectory = join(tempDirectory, 'private')
     const privateTrace = join(privateDirectory, 'trace.jsonl')
-    process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = privateTrace
+    process.env.KALTCODE_INTERRUPT_TRACE_FILE = privateTrace
     traceInterruptionEvent('private-target-pending')
     flushInterruptionTrace('private-target')
     await __waitForInterruptionTraceFlushForTests()
@@ -696,7 +696,7 @@ describe('interruptionTrace', () => {
 
     const existingTrace = join(tempDirectory, 'existing.jsonl')
     await writeFile(existingTrace, '', { mode: 0o644 })
-    process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = existingTrace
+    process.env.KALTCODE_INTERRUPT_TRACE_FILE = existingTrace
     traceInterruptionEvent('existing-private-target')
     flushInterruptionTrace('existing-private-target')
     await __waitForInterruptionTraceFlushForTests()
@@ -704,14 +704,14 @@ describe('interruptionTrace', () => {
   })
 
   testLinuxTraceFile('rejects a trace target beneath a symlinked parent directory', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
-    tempDirectory = await mkdtemp(join(tmpdir(), 'openclaude-interrupt-trace-'))
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
+    tempDirectory = await mkdtemp(join(tmpdir(), 'kaltcode-interrupt-trace-'))
     const realDirectory = join(tempDirectory, 'real-parent')
     const linkedDirectory = join(tempDirectory, 'linked-parent')
     const realTrace = join(realDirectory, 'trace.jsonl')
     await mkdir(realDirectory)
     await symlink(realDirectory, linkedDirectory, 'dir')
-    process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = join(
+    process.env.KALTCODE_INTERRUPT_TRACE_FILE = join(
       linkedDirectory,
       'trace.jsonl',
     )
@@ -727,7 +727,7 @@ describe('interruptionTrace', () => {
   })
 
   testPosixSymlink('preserves legacy diagnostics append-through-symlink behavior', async () => {
-    tempDirectory = await mkdtemp(join(tmpdir(), 'openclaude-diagnostics-'))
+    tempDirectory = await mkdtemp(join(tmpdir(), 'kaltcode-diagnostics-'))
     const target = join(tempDirectory, 'target.jsonl')
     const link = join(tempDirectory, 'diagnostics-link.jsonl')
     await writeFile(target, '')
@@ -741,8 +741,8 @@ describe('interruptionTrace', () => {
   })
 
   test('does not block native abort while a trace append is pending', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
-    process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = '/trace.jsonl'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE_FILE = '/trace.jsonl'
     let releaseWrite!: () => void
     const writeBlocked = new Promise<void>(resolve => {
       releaseWrite = resolve
@@ -767,8 +767,8 @@ describe('interruptionTrace', () => {
   })
 
   testLinuxTraceFile('keeps sequence IDs unique and drains later events during an async flush', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
-    process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = '/trace.jsonl'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE_FILE = '/trace.jsonl'
     let releaseFirstWrite!: () => void
     let markFirstWriteStarted!: () => void
     const firstWriteStarted = new Promise<void>(resolve => {
@@ -816,7 +816,7 @@ describe('interruptionTrace', () => {
   })
 
   test('never persists dynamic function names from abort stacks', () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     const controller = new AbortController()
     const customerSpecificHandlerName = () => {
       requestAbort(controller, 'user-cancel', { source: 'test' })
@@ -830,19 +830,19 @@ describe('interruptionTrace', () => {
   })
 
   test('does not write for relative paths and isolates write failures', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     traceInterruptionEvent('query.started')
 
-    process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = 'relative-trace.jsonl'
+    process.env.KALTCODE_INTERRUPT_TRACE_FILE = 'relative-trace.jsonl'
     expect(() => flushInterruptionTrace('relative')).not.toThrow()
-    process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = '/proc/openclaude/trace.jsonl'
+    process.env.KALTCODE_INTERRUPT_TRACE_FILE = '/proc/kaltcode/trace.jsonl'
     expect(() => flushInterruptionTrace('unwritable')).not.toThrow()
     await __waitForInterruptionTraceFlushForTests()
   })
 
   test('discards trace-file batches without retrying on unsupported platforms', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
-    process.env.OPENCLAUDE_INTERRUPT_TRACE_FILE = '/trace.jsonl'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE_FILE = '/trace.jsonl'
     const writtenData: string[] = []
     setFsImplementation({
       ...originalFs,
@@ -881,7 +881,7 @@ describe('interruptionTrace', () => {
   })
 
   test('redacts secret-shaped values and absolute local paths', () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     traceInterruptionEvent('provider.failed', {
       model: 'AKIA1234567890ABCDEF',
       providerRoute: 'github_pat_1234567890abcdef',
@@ -901,7 +901,7 @@ describe('interruptionTrace', () => {
   })
 
   test('never serializes secret-shaped or path-shaped abort reasons', () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     const secretReason = 'github_pat_1234567890abcdef'
     const pathReason = '/srv/private/project/abort-reason'
 

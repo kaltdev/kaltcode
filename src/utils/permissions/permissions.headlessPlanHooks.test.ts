@@ -30,7 +30,7 @@ let createPermissionContext: typeof import('../../hooks/toolPermission/Permissio
 let StructuredIO: typeof import('../../cli/structuredIO.js').StructuredIO
 let actualHooks: typeof import('../hooks.js')
 let beforeHookDecision: (() => void) | undefined
-const originalInterruptionTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
+const originalInterruptionTrace = process.env.KALTCODE_INTERRUPT_TRACE
 
 beforeAll(async () => {
   await acquireSharedMutationLock(
@@ -70,9 +70,9 @@ afterEach(async () => {
   await __waitForInterruptionTraceFlushForTests()
   __resetInterruptionTraceForTests()
   if (originalInterruptionTrace === undefined) {
-    delete process.env.OPENCLAUDE_INTERRUPT_TRACE
+    delete process.env.KALTCODE_INTERRUPT_TRACE
   } else {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = originalInterruptionTrace
+    process.env.KALTCODE_INTERRUPT_TRACE = originalInterruptionTrace
   }
 })
 
@@ -389,7 +389,7 @@ describe('headless plan-mode PermissionRequest hooks', () => {
   })
 
   test('labels SDK permission prompt interrupts as query-root aborts', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     const tool = createToolFixture(z.object({}), {
       name: 'SDKPromptInterruptTool',
@@ -423,7 +423,7 @@ describe('headless plan-mode PermissionRequest hooks', () => {
   })
 
   test('labels headless permission hook interrupts as query-root aborts', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     const tool = createToolFixture(z.object({}), {
       name: 'HeadlessHookInterruptTool',
@@ -695,7 +695,7 @@ describe('headless plan-mode PermissionRequest hooks', () => {
   })
 
   test('labels interactive permission hook interrupts as query-root aborts', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     const tool = createToolFixture(z.object({}), {
       name: 'InteractiveHookInterruptTool',

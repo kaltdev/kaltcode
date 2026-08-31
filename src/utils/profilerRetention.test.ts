@@ -44,9 +44,9 @@ function clearEntriesByName(names: string[]): void {
   }
 }
 
-function openClaudeEntryNames(type: 'mark' | 'measure', scope: string): string[] {
+function kaltCodeEntryNames(type: 'mark' | 'measure', scope: string): string[] {
   const names = markNames(type)
-  const namespacedPrefix = `openclaude:${scope}:`
+  const namespacedPrefix = `kaltcode:${scope}:`
   if (scope === 'query') {
     return names.filter(
       name => name.startsWith(namespacedPrefix) || name.startsWith('query_'),
@@ -158,8 +158,8 @@ function handlePromptSubmitProfilerScript(
     const measures = performance.getEntriesByType('measure').map(entry => entry.name)
     console.log(JSON.stringify({
       onQueryCalls,
-      queryMarks: marks.filter(name => name.startsWith('openclaude:query:')),
-      queryMeasures: measures.filter(name => name.startsWith('openclaude:query:')),
+      queryMarks: marks.filter(name => name.startsWith('kaltcode:query:')),
+      queryMeasures: measures.filter(name => name.startsWith('kaltcode:query:')),
       externalMarkRetained: marks.includes('external_profiler_retention_start'),
     }))
   `
@@ -170,7 +170,7 @@ beforeEach(async () => {
   process.env.CLAUDE_CODE_PROFILE_QUERY = '1'
   process.env.CLAUDE_CODE_PROFILE_STARTUP = '1'
   process.env.USER_TYPE = 'external'
-  tempConfigDir = mkdtempSync(join(tmpdir(), 'openclaude-profiler-retention-'))
+  tempConfigDir = mkdtempSync(join(tmpdir(), 'kaltcode-profiler-retention-'))
   process.env.CLAUDE_CONFIG_DIR = tempConfigDir
   clearEntriesByName([
     'external_profiler_retention_start',
@@ -179,7 +179,7 @@ beforeEach(async () => {
   ])
   for (const scope of ['query', 'headless', 'startup']) {
     for (const type of ['mark', 'measure'] as const) {
-      clearEntriesByName(openClaudeEntryNames(type, scope))
+      clearEntriesByName(kaltCodeEntryNames(type, scope))
     }
   }
 })
@@ -193,7 +193,7 @@ afterEach(() => {
     ])
     for (const scope of ['query', 'headless', 'startup']) {
       for (const type of ['mark', 'measure'] as const) {
-        clearEntriesByName(openClaudeEntryNames(type, scope))
+        clearEntriesByName(kaltCodeEntryNames(type, scope))
       }
     }
     restoreEnv('CLAUDE_CODE_PROFILE_QUERY')
@@ -247,8 +247,8 @@ test('query profile report is logged before scoped cleanup and unrelated entries
   expect(
     reports.some(report => report.includes('query_first_chunk_received')),
   ).toBe(true)
-  expect(openClaudeEntryNames('mark', 'query')).toEqual([])
-  expect(openClaudeEntryNames('measure', 'query')).toEqual([])
+  expect(kaltCodeEntryNames('mark', 'query')).toEqual([])
+  expect(kaltCodeEntryNames('measure', 'query')).toEqual([])
   expect(markNames('mark')).toContain('external_profiler_retention_start')
   expect(markNames('mark')).toContain('external_profiler_retention_end')
   expect(markNames('measure')).toContain('external_profiler_retention_measure')
@@ -266,8 +266,8 @@ test('partial query profile cleanup is available for abort and error paths', asy
   queryCheckpoint('query_context_loading_start')
   clearQueryProfile()
 
-  expect(openClaudeEntryNames('mark', 'query')).toEqual([])
-  expect(openClaudeEntryNames('measure', 'query')).toEqual([])
+  expect(kaltCodeEntryNames('mark', 'query')).toEqual([])
+  expect(kaltCodeEntryNames('measure', 'query')).toEqual([])
 })
 
 test('handle prompt submit clears query profile when processing produces no query', () => {
@@ -318,9 +318,9 @@ test('handle prompt submit preserves query profile when onQuery owns cleanup', (
   expect(result.onQueryCalls).toBe(1)
   expect(result.queryMarks).toEqual(
     expect.arrayContaining([
-      'openclaude:query:query_user_input_received',
-      'openclaude:query:query_process_user_input_start',
-      'openclaude:query:query_process_user_input_end',
+      'kaltcode:query:query_user_input_received',
+      'kaltcode:query:query_process_user_input_start',
+      'kaltcode:query:query_process_user_input_end',
     ]),
   )
   expect(result.queryMeasures).toEqual([])
@@ -354,8 +354,8 @@ test('headless turn logging extracts metrics and clears retained marks', async (
   }
 
   expect(analyticsSpy).toHaveBeenCalled()
-  expect(openClaudeEntryNames('mark', 'headless')).toEqual([])
-  expect(openClaudeEntryNames('measure', 'headless')).toEqual([])
+  expect(kaltCodeEntryNames('mark', 'headless')).toEqual([])
+  expect(kaltCodeEntryNames('measure', 'headless')).toEqual([])
   expect(markNames('mark')).toContain('external_profiler_retention_start')
 })
 
@@ -382,7 +382,7 @@ test('startup profile report keeps report names but clears one-shot entries', as
   expect(
     reports.some(report => report.includes('startup_retention_checkpoint')),
   ).toBe(true)
-  expect(openClaudeEntryNames('mark', 'startup')).toEqual([])
-  expect(openClaudeEntryNames('measure', 'startup')).toEqual([])
+  expect(kaltCodeEntryNames('mark', 'startup')).toEqual([])
+  expect(kaltCodeEntryNames('measure', 'startup')).toEqual([])
   expect(markNames('mark')).toContain('external_profiler_retention_start')
 })

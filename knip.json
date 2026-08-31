@@ -7,7 +7,7 @@
     "src/entrypoints/sdk/index.ts",
     "src/main.tsx",
     "scripts/**/*.ts",
-    "bin/openclaude",
+    "bin/kaltcode",
     "src/**/*.test.{ts,tsx}",
     "src/**/*.fixture.ts",
     "src/**/__tests__/**/*.{ts,tsx}",

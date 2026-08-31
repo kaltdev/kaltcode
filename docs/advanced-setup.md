@@ -1,16 +1,16 @@
-# OpenClaude Advanced Setup
+# Kalt Code Advanced Setup
 
 This guide is for users who want source builds, Bun workflows, provider profiles, diagnostics, or more control over runtime behavior.
 
 ## Install Options
 
-OpenClaude requires Node.js `>=22.0.0` for npm installs and runtime. Bun is
+Kalt Code requires Node.js `>=22.0.0` for npm installs and runtime. Bun is
 only required when building or running from source.
 
 ### Option A: npm
 
 ```bash
-npm install -g @gitlawb/openclaude@latest
+npm install -g @kaltdev/kaltcode@latest
 ```
 
 ### Option B: From source with Bun
@@ -18,8 +18,8 @@ npm install -g @gitlawb/openclaude@latest
 Use Bun `1.3.13` or newer for source builds. Older Bun versions can fail during `bun run build`.
 
 ```bash
-git clone https://github.com/Gitlawb/openclaude.git
-cd openclaude
+git clone https://github.com/kaltdev/kaltcode.git
+cd kaltcode
 
 bun install
 bun run build
@@ -29,8 +29,8 @@ npm link
 ### Option C: Run directly with Bun
 
 ```bash
-git clone https://github.com/Gitlawb/openclaude.git
-cd openclaude
+git clone https://github.com/kaltdev/kaltcode.git
+cd kaltcode
 
 bun install
 bun run dev
@@ -51,9 +51,9 @@ export OPENAI_MODEL=gpt-4o
 `codexplan` maps to GPT-5.6 Sol on the Codex backend with high reasoning.
 `codexspark` maps to GPT-5.3 Codex Spark for faster loops.
 
-If you use the in-app provider wizard, choose `Codex OAuth` to open ChatGPT sign-in in your browser and let OpenClaude store Codex credentials securely.
+If you use the in-app provider wizard, choose `Codex OAuth` to open ChatGPT sign-in in your browser and let Kalt Code store Codex credentials securely.
 
-If you already use the Codex CLI, OpenClaude reads `~/.codex/auth.json` automatically. You can also point it elsewhere with `CODEX_AUTH_JSON_PATH` or override the token directly with `CODEX_API_KEY`.
+If you already use the Codex CLI, Kalt Code reads `~/.codex/auth.json` automatically. You can also point it elsewhere with `CODEX_AUTH_JSON_PATH` or override the token directly with `CODEX_API_KEY`.
 
 If you set `CODEX_API_KEY` manually and are not relying on `auth.json` or stored
 Codex OAuth credentials, also set `CHATGPT_ACCOUNT_ID` (or
@@ -67,7 +67,7 @@ export OPENAI_MODEL=codexplan
 export CODEX_API_KEY=...
 export CHATGPT_ACCOUNT_ID=...
 
-openclaude
+kaltcode
 ```
 
 ### DeepSeek
@@ -124,7 +124,7 @@ export ANTHROPIC_VERTEX_PROJECT_ID=my-gcp-project
 export GOOGLE_CLOUD_PROJECT=my-gcp-project
 export CLOUD_ML_REGION=us-east5
 
-openclaude --model claude-sonnet-4-6
+kaltcode --model claude-sonnet-4-6
 ```
 
 `CLOUD_ML_REGION` is optional and defaults to `us-east5`. Model-specific
@@ -154,17 +154,17 @@ export OPENAI_MODEL=llama3.3:70b
 
 #### Ollama Context Length
 
-OpenClaude sends the current conversation history to Ollama on each turn and
-uses Ollama's native chat API for Ollama endpoints. Native chat lets OpenClaude
+Kalt Code sends the current conversation history to Ollama on each turn and
+uses Ollama's native chat API for Ollama endpoints. Native chat lets Kalt Code
 send `options.num_ctx` with each request, so Ollama receives a 32768-token
 context window by default instead of falling back to the smaller context often
 used by Ollama's OpenAI-compatible `/v1/chat/completions` shim.
 
 To choose a different request-level context size, set
-`OPENCLAUDE_OLLAMA_NUM_CTX` before launching OpenClaude:
+`KALTCODE_OLLAMA_NUM_CTX` before launching Kalt Code:
 
 ```bash
-export OPENCLAUDE_OLLAMA_NUM_CTX=65536
+export KALTCODE_OLLAMA_NUM_CTX=65536
 ```
 
 You can also start Ollama with a global context length:
@@ -191,7 +191,7 @@ ollama ps
 ```
 
 Check the `CONTEXT` column. If it still shows a small value such as `4K` after a
-new OpenClaude request, stop the existing Ollama app/server, start it again, and
+new Kalt Code request, stop the existing Ollama app/server, start it again, and
 retry the request.
 
 Use a concrete recall test after changing the setting, such as asking the model
@@ -253,7 +253,7 @@ export OPENCODE_API_KEY=...
 export OPENAI_BASE_URL=https://opencode.ai/zen/v1
 export OPENAI_MODEL=gpt-5.4
 
-openclaude
+kaltcode
 ```
 
 OpenCode Zen is a pay-as-you-go AI gateway with 48 models (GPT, Claude, Gemini,
@@ -268,23 +268,23 @@ export OPENCODE_API_KEY=...
 export OPENAI_BASE_URL=https://opencode.ai/zen/go/v1
 export OPENAI_MODEL=glm-5.1
 
-openclaude
+kaltcode
 ```
 
 OpenCode Go is a $10/mo subscription for 13 open models (GLM, Kimi, DeepSeek,
 MiMo, MiniMax, Qwen). Uses the same `OPENCODE_API_KEY` as OpenCode Zen.
 
-### Gitlawb Opengateway
+### KaltCode Gateway
 
 ```bash
 export CLAUDE_CODE_USE_OPENAI=1
-export OPENAI_BASE_URL=https://opengateway.gitlawb.com/v1
-export OPENGATEWAY_API_KEY=ogw_live_...
+export OPENAI_BASE_URL=https://kaltcode.my.id/v1
+export KALTCODE_GATEWAY_API_KEY=ogw_live_...
 export OPENAI_MODEL=mimo-v2.5-pro
 ```
 
-The Opengateway route is the fresh-install startup default and requires an API
-key from https://gitlawb.com/opengateway/keys. Keep the base URL at `/v1` and
+The KaltCode Gateway route is the fresh-install startup default and requires an API
+key from https://kaltcode.my.id/keys. Keep the base URL at `/v1` and
 switch models with `/model` or `OPENAI_MODEL`. Current partner models include:
 
 - `mimo-v2.5-pro`
@@ -309,7 +309,7 @@ export NEARAI_API_KEY=...
 export OPENAI_BASE_URL=https://cloud-api.near.ai/v1
 export OPENAI_MODEL=anthropic/claude-sonnet-4-6
 
-openclaude
+kaltcode
 ```
 
 NEAR AI is a unified OpenAI-compatible gateway that proxies Anthropic, OpenAI,
@@ -387,11 +387,11 @@ export OPENAI_BASE_URL=https://api.fireworks.ai/inference/v1
 export OPENAI_MODEL=accounts/fireworks/models/llama-v3p1-70b-instruct
 ```
 
-The **OpenClaude VS Code extension** can store the key in Secret Storage and set these variables for you when you launch from the Control Center. See `vscode-extension/openclaude-vscode/README.md`.
+The **Kalt Code VS Code extension** can store the key in Secret Storage and set these variables for you when you launch from the Control Center. See `vscode-extension/kaltcode-vscode/README.md`.
 
 ## Optional provider packages
 
-To keep the default `npm i -g @gitlawb/openclaude` install small and
+To keep the default `npm i -g @kaltdev/kaltcode` install small and
 warning-free, a few provider SDKs and the native image library are **not
 bundled**. They are loaded on demand, and the CLI prints an `npm install <pkg>`
 hint (add `-g` for the global CLI) if you enable a feature whose package is
@@ -405,7 +405,7 @@ missing. Install only what you need:
 | Reading/processing images | reading an image file | `npm i -g sharp` |
 | Optional error reporting | `SENTRY_DSN` is set | `npm i -g @sentry/node`. Without this package installed, setting `SENTRY_DSN` has no effect and reporting is silently disabled. |
 
-When installing OpenClaude from source (`bun install`), all of these are
+When installing Kalt Code from source (`bun install`), all of these are
 already present as dev dependencies, so source/dev builds need no extra steps.
 
 ## Environment Variables
@@ -420,7 +420,7 @@ selects the OpenAI-compatible transport instead.
 export ANTHROPIC_BASE_URL=https://anthropic-proxy.example
 export ANTHROPIC_AUTH_TOKEN=your-provider-token
 export ANTHROPIC_MODEL=your-model-name
-openclaude
+kaltcode
 ```
 
 `ANTHROPIC_AUTH_TOKEN` is sent as `Authorization: Bearer ...`. The
@@ -443,7 +443,7 @@ that extends first-party detection:
 ```bash
 export ANTHROPIC_BASE_URL=http://127.0.0.1:47821
 export ANTHROPIC_FIRST_PARTY_PROXY_HOSTS=127.0.0.1:47821
-openclaude   # OAuth session persists; traffic rides the local proxy
+kaltcode   # OAuth session persists; traffic rides the local proxy
 ```
 
 Only loopback hosts (`127.0.0.1`, `[::1]`, `localhost`) are ever honored, so
@@ -461,7 +461,7 @@ host. Without this variable the behavior is unchanged.
 | `OPENAI_BASE_URL` | No | API endpoint, defaulting to `https://api.openai.com/v1` |
 | `OPENAI_API_BASE` | No | Compatibility alias for `OPENAI_BASE_URL` |
 | `API_TIMEOUT_MS` | No | Time-to-response-headers deadline for generic OpenAI-compatible requests, direct GitHub Copilot Responses, and Copilot chat-to-Responses fallback requests, in milliseconds (default: `600000`, or 10 minutes). The value must be a safe positive integer; invalid, zero, negative, or fractional values use the default, and values above `2147483647` are capped. The deadline is disarmed after headers arrive, so it does not limit response streaming. Export this runtime setting from your shell or launcher; the provider env-file loader ignores runtime/debug settings, so a value configured only there leaves the default in effect. First-party Codex OAuth Responses and the Anthropic SDK retain their existing timeout handling. |
-| `OPENCLAUDE_OLLAMA_NUM_CTX` | Ollama only | Request-level Ollama context window. Defaults to `32768`; set a larger value for longer same-session history if your model and hardware can handle it. |
+| `KALTCODE_OLLAMA_NUM_CTX` | Ollama only | Request-level Ollama context window. Defaults to `32768`; set a larger value for longer same-session history if your model and hardware can handle it. |
 | `CLAUDE_CODE_OPENAI_CONTEXT_WINDOWS` | No | JSON map of OpenAI-compatible model names to context windows, such as `{"custom-model":1000000}`. Use this when a custom provider does not expose context metadata from `/v1/models`. |
 | `CLAUDE_CODE_OPENAI_MAX_OUTPUT_TOKENS` | No | JSON map of OpenAI-compatible model names to max output tokens, such as `{"custom-model":32768}`. Use this when a custom provider does not expose output-limit metadata from `/v1/models`. |
 | `OPENCODE_API_KEY` | OpenCode Zen / Go | Shared API key for OpenCode Zen (pay-as-you-go) and OpenCode Go (subscription); get yours from https://opencode.ai |
@@ -478,14 +478,14 @@ host. Without this variable the behavior is unchanged.
 | `CHATGPT_ACCOUNT_ID` / `CODEX_ACCOUNT_ID` | Codex only | Required for manual Codex env setup when the account id is not coming from `auth.json` or stored OAuth credentials |
 | `CODEX_AUTH_JSON_PATH` | Codex only | Path to a Codex CLI `auth.json` file |
 | `CODEX_HOME` | Codex only | Alternative Codex home directory |
-| `OPENCLAUDE_MAX_RETRIES` | No | Maximum retry attempts for retryable API failures, capped at 100 (default: 10). Set to `0` to disable retries after the initial request. If unset, deprecated `CLAUDE_CODE_MAX_RETRIES` is still honored for compatibility. |
-| `OPENCLAUDE_MAX_TURNS` | No | Per-prompt **local** interactive REPL turn cap for the in-process query loop. Defaults to `50`. Set a larger positive integer for long autonomous local interactive sessions (for example models that take many small tool steps). CLI `--max-turns 0` explicitly disables this cap and prints a cautionary warning. Precedence for a valid override: CLI `--max-turns` → this env var → legacy `CLAUDE_CODE_MAX_TURNS` (only when this var is unset/empty) → `/config` → Max turns (interactive) → `50`. If this env var is set but invalid (zero, negative, non-integer), the default `50` is used and lower layers are not consulted — same pattern as `OPENCLAUDE_MAX_RETRIES`. Does not apply to remote-backed interactive sessions (`connect` / `ssh` / `--remote`). |
-| `OPENCLAUDE_RETRY_DELAY_MS` | No | Base retry delay in milliseconds for APIs that do not send `Retry-After`; exponential backoff starts from this value, capped at 60000 (default: 500) |
-| `OPENCLAUDE_QUERY_HARD_MAX_MS` | No | Foreground query hard maximum in milliseconds. Defaults to 1800000 (30 minutes). Use a larger positive integer for long autonomous sessions; invalid, zero, negative, fractional, or timer-overflow values are ignored with a warning. |
-| `OPENCLAUDE_INTERRUPT_TRACE` | No | Set to `1` or `true` to retain a bounded, privacy-safe interruption lifecycle trace in memory. Disabled by default. The trace contains only allowlisted lifecycle metadata—never prompts, responses, tool arguments, credentials, or raw error messages. |
-| `OPENCLAUDE_INTERRUPT_TRACE_FILE` | No | Optional absolute JSONL output path used only when `OPENCLAUDE_INTERRUPT_TRACE` is enabled. On Linux, missing parent directories are created privately and every parent is opened through `/proc/self/fd` without following symbolic links before the final regular file is appended. If the file already exists, its mode is reset to `0600` on every append, so do not configure a shared file. Other platforms retain the bounded trace in memory but do not write this file because Node does not expose an equivalent safe descriptor-relative traversal API there. Writes are best-effort and never change request behavior. Use a separate path per OpenClaude process and keep the resulting diagnostic file private. |
-| `OPENCLAUDE_DISABLE_CO_AUTHORED_BY` | No | Suppress the default `Co-Authored-By` trailer in generated git commits |
-| `OPENCLAUDE_LOG_TOKEN_USAGE` | No | When truthy (e.g. `verbose`), emits one JSON line on stderr per API request with input/output/cache tokens and the resolved provider. **User-facing debug output** — complements the REPL display controlled by `/config showCacheStats`. Distinct from `CLAUDE_CODE_ENABLE_TOKEN_USAGE_ATTACHMENT`, which is **model-facing** (injects context usage info into the prompt itself). Both can run together. |
+| `KALTCODE_MAX_RETRIES` | No | Maximum retry attempts for retryable API failures, capped at 100 (default: 10). Set to `0` to disable retries after the initial request. If unset, deprecated `CLAUDE_CODE_MAX_RETRIES` is still honored for compatibility. |
+| `KALTCODE_MAX_TURNS` | No | Per-prompt **local** interactive REPL turn cap for the in-process query loop. Defaults to `50`. Set a larger positive integer for long autonomous local interactive sessions (for example models that take many small tool steps). CLI `--max-turns 0` explicitly disables this cap and prints a cautionary warning. Precedence for a valid override: CLI `--max-turns` → this env var → legacy `CLAUDE_CODE_MAX_TURNS` (only when this var is unset/empty) → `/config` → Max turns (interactive) → `50`. If this env var is set but invalid (zero, negative, non-integer), the default `50` is used and lower layers are not consulted — same pattern as `KALTCODE_MAX_RETRIES`. Does not apply to remote-backed interactive sessions (`connect` / `ssh` / `--remote`). |
+| `KALTCODE_RETRY_DELAY_MS` | No | Base retry delay in milliseconds for APIs that do not send `Retry-After`; exponential backoff starts from this value, capped at 60000 (default: 500) |
+| `KALTCODE_QUERY_HARD_MAX_MS` | No | Foreground query hard maximum in milliseconds. Defaults to 1800000 (30 minutes). Use a larger positive integer for long autonomous sessions; invalid, zero, negative, fractional, or timer-overflow values are ignored with a warning. |
+| `KALTCODE_INTERRUPT_TRACE` | No | Set to `1` or `true` to retain a bounded, privacy-safe interruption lifecycle trace in memory. Disabled by default. The trace contains only allowlisted lifecycle metadata—never prompts, responses, tool arguments, credentials, or raw error messages. |
+| `KALTCODE_INTERRUPT_TRACE_FILE` | No | Optional absolute JSONL output path used only when `KALTCODE_INTERRUPT_TRACE` is enabled. On Linux, missing parent directories are created privately and every parent is opened through `/proc/self/fd` without following symbolic links before the final regular file is appended. If the file already exists, its mode is reset to `0600` on every append, so do not configure a shared file. Other platforms retain the bounded trace in memory but do not write this file because Node does not expose an equivalent safe descriptor-relative traversal API there. Writes are best-effort and never change request behavior. Use a separate path per Kalt Code process and keep the resulting diagnostic file private. |
+| `KALTCODE_DISABLE_CO_AUTHORED_BY` | No | Suppress the default `Co-Authored-By` trailer in generated git commits |
+| `KALTCODE_LOG_TOKEN_USAGE` | No | When truthy (e.g. `verbose`), emits one JSON line on stderr per API request with input/output/cache tokens and the resolved provider. **User-facing debug output** — complements the REPL display controlled by `/config showCacheStats`. Distinct from `CLAUDE_CODE_ENABLE_TOKEN_USAGE_ATTACHMENT`, which is **model-facing** (injects context usage info into the prompt itself). Both can run together. |
 
 Model env vars are provider-scoped: first-party Anthropic sessions read
 `ANTHROPIC_MODEL`, OpenAI-compatible sessions read `OPENAI_MODEL`, Gemini reads
@@ -499,7 +499,7 @@ When a custom OpenAI-compatible provider does not expose context metadata from
 addition to the `CLAUDE_CODE_OPENAI_CONTEXT_WINDOWS` /
 `CLAUDE_CODE_OPENAI_MAX_OUTPUT_TOKENS` env vars above, you can set a
 `modelLimits` map in your `settings.json` (the same file `/config` writes, e.g.
-`~/.openclaude/settings.json`):
+`~/.kaltcode/settings.json`):
 
 ```json
 {
@@ -531,7 +531,7 @@ addition to the `CLAUDE_CODE_OPENAI_CONTEXT_WINDOWS` /
 
 ### Exact-model pricing overrides (`settings.json`)
 
-Use `modelPricing` when a gateway's real price differs from OpenClaude's
+Use `modelPricing` when a gateway's real price differs from Kalt Code's
 built-in price or unknown-model estimate. Keys match the exact, case-sensitive
 model identifier sent to the API. They are not prefixes, aliases, globs, or
 route/profile-qualified keys.
@@ -564,10 +564,10 @@ gateway rates:
 }
 ```
 
-Set this in user settings (`~/.openclaude/settings.json`), local gitignored
-settings (`.openclaude/settings.local.json`), a `--settings`/SDK settings
+Set this in user settings (`~/.kaltcode/settings.json`), local gitignored
+settings (`.kaltcode/settings.local.json`), a `--settings`/SDK settings
 source, or managed settings. Shared project settings
-(`.openclaude/settings.json`) are deliberately ignored for `modelPricing`, so
+(`.kaltcode/settings.json`) are deliberately ignored for `modelPricing`, so
 repository content cannot silently change personal USD accounting. Under the
 current architecture, one key applies to that exact model id across every
 route and profile; route-specific prices are not represented yet.
@@ -579,7 +579,7 @@ Pricing precedence is:
 3. the existing unknown-model estimate and warning.
 
 For ordinary provider routes, find the exact pre-canonicalization identifier by
-running with `OPENCLAUDE_LOG_TOKEN_USAGE=verbose` and copying the JSON log
+running with `KALTCODE_LOG_TOKEN_USAGE=verbose` and copying the JSON log
 line's `model` field. Use that value verbatim. Bedrock application inference
 profiles are the exception: cost calculation uses the profile's resolved
 backing model id. For example, an override for `claude-opus-4-8` does not match
@@ -595,12 +595,12 @@ edit record-valued settings, so edit the JSON file directly.
 
 ## Optional Error Reporting (Sentry)
 
-OpenClaude can optionally report sanitized error events to Sentry. This is
+Kalt Code can optionally report sanitized error events to Sentry. This is
 disabled by default and opt-in only.
 
 ```bash
 export SENTRY_DSN=https://your-key@your-org.ingest.sentry.io/your-project
-openclaude
+kaltcode
 ```
 
 Notes:
@@ -612,7 +612,7 @@ Notes:
 - Only sanitized, telemetry-safe error messages are sent — never raw error
   messages, which may contain file paths or other identifying information.
 - `@sentry/node` is an optional dev dependency and is **not included** in the
-  default `npm install -g @gitlawb/openclaude` install (see
+  default `npm install -g @kaltdev/kaltcode` install (see
   [Optional provider packages](#optional-provider-packages)). If you set
   `SENTRY_DSN` without installing it separately, reporting is silently
   disabled (no error, no crash). Install it explicitly with:
@@ -626,14 +626,14 @@ Notes:
 
 ## Safety strictness
 
-OpenClaude runs several "safety" checks: a model-level refusal directive, bash
+Kalt Code runs several "safety" checks: a model-level refusal directive, bash
 command-injection validation, and sensitive-file / auto-edit guards. These are
 conservative by design, but a few of them can surface as refusals or approval
 prompts for entirely benign, routine coding tasks (e.g. editing `.gitmodules`,
 running a build script that contains `$(date)`, or writing a CTF port scanner).
-See [issue #1616](https://github.com/Gitlawb/openclaude/issues/1616).
+See [issue #1616](https://github.com/kaltdev/kaltcode/issues/1616).
 
-Set `OPENCLAUDE_SAFETY_LEVEL` to dial strictness without changing behavior for
+Set `KALTCODE_SAFETY_LEVEL` to dial strictness without changing behavior for
 everyone:
 
 | Value | Behavior |
@@ -643,7 +643,7 @@ everyone:
 | `permissive` | Opt-in mode for users who prefer fewer false-positive stops. It bypasses the legacy bash command-injection validation path entirely, keeps ordinary interpreter allow-rules (`Bash(python:*)`, `Bash(npm run:*)`, …) when entering auto mode, and skips prompts for routine edits to filenames on the broad sensitive-file list. Dangerous directory, Windows-path, symlink-resolved path, and UNC guards remain active. The model-level prompt is not weakened by this flag. |
 
 ```bash
-export OPENCLAUDE_SAFETY_LEVEL=permissive   # relax benign-task false positives
+export KALTCODE_SAFETY_LEVEL=permissive   # relax benign-task false positives
 ```
 
 ## Runtime Hardening
@@ -664,16 +664,16 @@ bun run doctor:runtime:json
 bun run doctor:report
 
 # print a redacted public issue report
-openclaude doctor report --markdown
+kaltcode doctor report --markdown
 
 # write a redacted JSON issue report for attachment
-openclaude doctor report --json --out openclaude-report.json
+kaltcode doctor report --json --out kaltcode-report.json
 
 # write a deterministic task report from a session transcript
-openclaude report --json --transcript ~/.openclaude/projects/-path-to-project/session-id.jsonl --out task-report.json
+kaltcode report --json --transcript ~/.kaltcode/projects/-path-to-project/session-id.jsonl --out task-report.json
 
 # print a human-readable task report from the latest session in the current project
-openclaude report --markdown
+kaltcode report --markdown
 
 # full local hardening check (smoke + runtime doctor)
 bun run hardening:check
@@ -688,8 +688,8 @@ Notes:
 - `doctor:runtime` also validates the dedicated Gemini and Mistral env paths when `CLAUDE_CODE_USE_GEMINI=1` or `CLAUDE_CODE_USE_MISTRAL=1`.
 - Local providers such as `http://localhost:11434/v1`, `http://10.0.0.1:11434/v1`, and `http://127.0.0.1:1337/v1` can run without `OPENAI_API_KEY`.
 - Codex profiles validate `CODEX_API_KEY` or the Codex CLI auth file and probe `POST /responses` instead of `GET /models`.
-- `openclaude doctor report` is redacted by default and is intended for GitHub issues. It summarizes provider/runtime/build/settings state without prompts, transcripts, raw settings files, API keys, MCP command details, or full home-directory paths.
-- `openclaude report --json` and `openclaude report --markdown` summarize observed session facts such as tool uses, Bash commands, validation commands, changed files, branch metadata, warnings, and linked issue/PR references. Use `--transcript <file>` for an explicit transcript, `--session <id>` for a stored session, or omit both to report the latest session for the current project. Large previews are truncated and credential-shaped strings are redacted. When no validation command is observed, the report keeps `validations` empty and includes a warning instead of claiming checks passed.
+- `kaltcode doctor report` is redacted by default and is intended for GitHub issues. It summarizes provider/runtime/build/settings state without prompts, transcripts, raw settings files, API keys, MCP command details, or full home-directory paths.
+- `kaltcode report --json` and `kaltcode report --markdown` summarize observed session facts such as tool uses, Bash commands, validation commands, changed files, branch metadata, warnings, and linked issue/PR references. Use `--transcript <file>` for an explicit transcript, `--session <id>` for a stored session, or omit both to report the latest session for the current project. Large previews are truncated and credential-shaped strings are redacted. When no validation command is observed, the report keeps `validations` empty and includes a warning instead of claiming checks passed.
 
 ## Provider Launch Profiles
 
@@ -753,7 +753,7 @@ If no profile exists yet, `dev:profile` uses the same goal-aware defaults when p
 
 When a saved provider profile is active, `/model` can either show the provider's
 catalog/discovered models or only the models explicitly listed in the profile.
-Configure this in `~/.openclaude.json`:
+Configure this in `~/.kaltcode.json`:
 
 ```json
 {
@@ -797,13 +797,13 @@ For `dev:atomic-chat`, make sure Atomic Chat is running with a model loaded befo
 
 ## Message-Count Compaction Threshold
 
-By default, OpenClaude compacts conversations based on token usage and also
+By default, Kalt Code compacts conversations based on token usage and also
 applies a safety hard cap of 1000 active messages. The hard cap catches long
 sessions that accumulate many small messages with negligible token cost.
 
 This hard cap is a safety net: it can still trigger compaction even when
 `DISABLE_COMPACT`, `DISABLE_AUTO_COMPACT`, or a disabled auto-compact setting
-would otherwise prevent it. Set `OPENCLAUDE_MAX_ACTIVE_MESSAGES_HARD_CAP=0`
+would otherwise prevent it. Set `KALTCODE_MAX_ACTIVE_MESSAGES_HARD_CAP=0`
 only when you need to suppress that safety cap for diagnostics.
 
 If you frequently resume long sessions that accumulate hundreds of small
@@ -817,12 +817,12 @@ compaction via the in-app `/config` command:
 Message-count compaction defaults to `200` messages. Select
 **Message-count compaction** to choose a different threshold (`100`, `500`, or
 `1000`), or set it to `off` to disable the setting's proactive guard. The
-built-in hard cap remains, and an `OPENCLAUDE_MAX_ACTIVE_MESSAGES` override
+built-in hard cap remains, and an `KALTCODE_MAX_ACTIVE_MESSAGES` override
 remains active when configured.
 
-The legacy `OPENCLAUDE_MAX_ACTIVE_MESSAGES` environment variable is honored
+The legacy `KALTCODE_MAX_ACTIVE_MESSAGES` environment variable is honored
 when the setting is unset or `off`. An explicit numeric setting takes
-precedence over that legacy value. `OPENCLAUDE_MAX_ACTIVE_MESSAGES_HARD_CAP`
+precedence over that legacy value. `KALTCODE_MAX_ACTIVE_MESSAGES_HARD_CAP`
 can override the safety cap; set it to `0` only for diagnostics.
 
 ### Long-session memory guard validation

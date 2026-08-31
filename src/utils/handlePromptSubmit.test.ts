@@ -674,8 +674,8 @@ describe('handlePromptSubmit', () => {
   })
 
   it('traces the explicit submit-interrupt path at runtime', async () => {
-    const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     __resetInterruptionTraceForTests()
     const controller = new AbortController()
     const { handlePromptSubmit } = await import('./handlePromptSubmit.js')
@@ -725,8 +725,8 @@ describe('handlePromptSubmit', () => {
     } finally {
       await __waitForInterruptionTraceFlushForTests()
       __resetInterruptionTraceForTests()
-      if (originalTrace === undefined) delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-      else process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+      if (originalTrace === undefined) delete process.env.KALTCODE_INTERRUPT_TRACE
+      else process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
     }
   })
 })

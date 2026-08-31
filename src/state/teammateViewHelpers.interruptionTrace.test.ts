@@ -12,7 +12,7 @@ import {
   releaseSharedMutationLock,
 } from '../test/sharedMutationLock.js'
 
-const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
+const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
 
 beforeEach(async () => {
   await acquireSharedMutationLock(
@@ -24,9 +24,9 @@ afterEach(() => {
   try {
     __resetInterruptionTraceForTests()
     if (originalTrace === undefined) {
-      delete process.env.OPENCLAUDE_INTERRUPT_TRACE
+      delete process.env.KALTCODE_INTERRUPT_TRACE
     } else {
-      process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+      process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
     }
   } finally {
     releaseSharedMutationLock()
@@ -34,7 +34,7 @@ afterEach(() => {
 })
 
 test('records the panel stop source and causal input before aborting an agent', () => {
-  process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+  process.env.KALTCODE_INTERRUPT_TRACE = '1'
   const abortController = new AbortController()
   const taskId = 'agent-task-1'
   const task = {

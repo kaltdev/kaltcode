@@ -49,7 +49,7 @@ export {
 } from './providerSecrets.js'
 import { getClaudeConfigHomeDir, isEnvTruthy } from './envUtils.js'
 
-export const PROFILE_FILE_NAME = '.openclaude-profile.json'
+export const PROFILE_FILE_NAME = '.kaltcode-profile.json'
 export const DEFAULT_GEMINI_BASE_URL =
   'https://generativelanguage.googleapis.com/v1beta/openai'
 export const DEFAULT_GEMINI_MODEL = 'gemini-3-flash-preview'
@@ -1220,7 +1220,7 @@ export function buildCompatibilityProcessEnv(options: {
 }
 
 export function isDefaultStartupProviderEnv(env: NodeJS.ProcessEnv): boolean {
-  return env[DEFAULT_STARTUP_PROVIDER_ENV_VAR] === 'gitlawb-opengateway'
+  return env[DEFAULT_STARTUP_PROVIDER_ENV_VAR] === 'kaltcode-gateway'
 }
 
 export function buildCodexOAuthProfileEnv(
@@ -2403,7 +2403,7 @@ export async function buildStartupEnvFromProfile(options?: {
       persisted: null,
       goal:
         options?.goal ??
-        normalizeRecommendationGoal(processEnv.OPENCLAUDE_PROFILE_GOAL),
+        normalizeRecommendationGoal(processEnv.KALTCODE_PROFILE_GOAL),
       processEnv,
     })
   }
@@ -2446,26 +2446,26 @@ export async function buildStartupEnvFromProfile(options?: {
   if (!persisted) {
     // No saved profile. If the user explicitly disabled the OpenAI-compatible
     // provider (CLAUDE_CODE_USE_OPENAI=0), honor that opt-out instead of
-    // injecting the default Opengateway profile — otherwise the fallback
+    // injecting the default KaltCode Gateway profile — otherwise the fallback
     // re-enables OpenAI and the startup validator reports a spurious missing
     // OPENAI_API_KEY warning (#1245).
     if (hasExplicitOpenAICompatibleOptOut(processEnv)) {
       return processEnv
     }
 
-    // No saved profile — default to Gitlawb Opengateway.
+    // No saved profile — default to KaltCode Gateway.
     const env = buildCompatibilityProcessEnv({
       processEnv,
       compatibilityMode: 'openai',
       profileEnv: {
         OPENAI_BASE_URL:
-          getRouteDefaultBaseUrl('gitlawb-opengateway') ??
-          'https://opengateway.gitlawb.com/v1',
+          getRouteDefaultBaseUrl('kaltcode-gateway') ??
+          'https://kaltcode.my.id/v1',
         OPENAI_MODEL:
-          getRouteDefaultModel('gitlawb-opengateway') ?? 'mimo-v2.5-pro',
+          getRouteDefaultModel('kaltcode-gateway') ?? 'mimo-v2.5-pro',
       },
     })
-    env[DEFAULT_STARTUP_PROVIDER_ENV_VAR] = 'gitlawb-opengateway'
+    env[DEFAULT_STARTUP_PROVIDER_ENV_VAR] = 'kaltcode-gateway'
     return env
   }
 
@@ -2474,7 +2474,7 @@ export async function buildStartupEnvFromProfile(options?: {
     persisted,
     goal:
       options?.goal ??
-      normalizeRecommendationGoal(processEnv.OPENCLAUDE_PROFILE_GOAL),
+      normalizeRecommendationGoal(processEnv.KALTCODE_PROFILE_GOAL),
     processEnv,
     getOllamaChatBaseUrl:
       options?.getOllamaChatBaseUrl ?? getOllamaChatBaseUrl,
@@ -2518,8 +2518,8 @@ export async function applyStartupEnvFromProfile(options?: StartupEnvOptions & {
 
   const validationError = await getProviderValidationError(startupEnv)
   if (validationError) {
-    // The injected fresh-install Opengateway default failing validation is the
-    // EXPECTED state for a brand-new machine with no OPENGATEWAY_API_KEY —
+    // The injected fresh-install KaltCode Gateway default failing validation is the
+    // EXPECTED state for a brand-new machine with no KALTCODE_GATEWAY_API_KEY —
     // nothing was "saved", so warning on every command (even --help) is
     // first-boot noise, not signal (#1651 chose ignore+warn; the warn half
     // broke the zero-warning install contract). Onboarding surfaces provider
@@ -2562,7 +2562,7 @@ export async function applySavedProfileToCurrentSession(options: {
     const explicitEnv = await buildLaunchEnv({
       profile: options.profileFile.profile,
       persisted: options.profileFile,
-      goal: normalizeRecommendationGoal(processEnv.OPENCLAUDE_PROFILE_GOAL),
+      goal: normalizeRecommendationGoal(processEnv.KALTCODE_PROFILE_GOAL),
       processEnv: buildEnvSource,
       getOllamaChatBaseUrl,
       readGeminiAccessToken,
@@ -2611,7 +2611,7 @@ export async function applySavedProfileToCurrentSession(options: {
   const nextEnv = await buildLaunchEnv({
     profile: options.profileFile.profile,
     persisted: options.profileFile,
-    goal: normalizeRecommendationGoal(processEnv.OPENCLAUDE_PROFILE_GOAL),
+    goal: normalizeRecommendationGoal(processEnv.KALTCODE_PROFILE_GOAL),
     processEnv: baseEnv,
     getOllamaChatBaseUrl,
     readGeminiAccessToken,

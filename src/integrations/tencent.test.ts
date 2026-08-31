@@ -25,7 +25,7 @@ describe('Tencent HY3 descriptor', () => {
       },
     })
 
-    const catalogEntry = getCatalogEntriesForRoute('gitlawb-opengateway').find(
+    const catalogEntry = getCatalogEntriesForRoute('kaltcode-gateway').find(
       entry => entry.apiName === 'tencent/hy3',
     )
     expect(catalogEntry?.modelDescriptorId).toBe(model?.id)
@@ -33,7 +33,7 @@ describe('Tencent HY3 descriptor', () => {
     expect(
       resolveModelRuntimeLimits({
         model: 'tencent/hy3',
-        baseUrl: 'https://opengateway.gitlawb.com/v1',
+        baseUrl: 'https://kaltcode.my.id/v1',
         processEnv: {},
       }),
     ).toEqual({ contextWindow: 262_144, maxOutputTokens: 131_072 })

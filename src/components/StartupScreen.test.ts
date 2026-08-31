@@ -112,7 +112,7 @@ function setupOpenAIMode(baseUrl: string, model: string): void {
 }
 
 describe('printStartupScreen logo', () => {
-  test('renders CLAUDE with a D-shaped D instead of an O-shaped block', () => {
+  test('renders the KALT CODE quadrant logo on a purple field', () => {
     ;(globalThis as Record<string, unknown>).MACRO = { VERSION: 'test-version' }
     Object.defineProperty(process.stdout, 'isTTY', {
       configurable: true,
@@ -128,14 +128,14 @@ describe('printStartupScreen logo', () => {
     printStartupScreen()
 
     const plainOutput = stripAnsi(output)
-    expect(plainOutput).toContain('██████╗  ███████╗')
-    expect(plainOutput).toContain('██║  ██║ █████╗')
-    expect(plainOutput).toContain('██████╔╝ ███████╗')
-    expect(plainOutput).not.toContain('██║   ██║ █████╗')
+    expect(plainOutput).toContain('Kalt Code vtest-version')
+    // Quadrant glyphs (▌ ▛▀▖▌ etc.) render for every letter of KALT CODE.
+    expect(plainOutput).toContain('▌')
+    expect(plainOutput).toContain('▛▀▖')
   })
 })
 
-// --- Logo layout: one centered row on wide terminals, stacked fallback ---
+// --- Logo layout: fixed left-aligned purple field + compact info block ---
 
 function renderStartupScreen(columns: number): string {
   ;(globalThis as Record<string, unknown>).MACRO = { VERSION: 'test-version' }
@@ -161,70 +161,43 @@ function renderStartupScreen(columns: number): string {
 }
 
 function logoLines(plainOutput: string): string[] {
-  // Letter rows contain █; the bottom shadow row only ╚═╝ glyphs. Neither
-  // pattern occurs in the tagline, info box, or version line.
-  return plainOutput.split('\n').filter(line => line.includes('█') || line.includes('╚═╝'))
+  // Quadrant letterforms use ▀/▄/▌/▐/▖/▗/▘/▙/▚/▛/▜/▝/▞/▟ glyphs.
+  return plainOutput.split('\n').filter(line => line.includes('▀') || line.includes('▄'))
 }
 
-// Visible widths of the current art: OPEN 38 + gap 2 + CLAUDE 54.
-const ONE_ROW_WIDTH = 94
-const BOX_WIDTH = 62
+// Visible widths of the art: 4 logo rows + 1 empty pad row above + 1 below.
+const LOGO_ROW_COUNT = 4
+const FIELD_LINES = LOGO_ROW_COUNT + 2 // PAD_Y (1) above + PAD_Y (1) below
+const VERSION_PREFIX = 'Kalt Code v'
 
 describe('printStartupScreen layout', () => {
-  test('wide terminal renders OPEN and CLAUDE side by side as one 6-line block', () => {
+  test('renders a fixed left-aligned logo field followed by the info block', () => {
     const out = renderStartupScreen(120)
     const logo = logoLines(out)
-    expect(logo).toHaveLength(6)
-    // End of N (OPEN) and start of C (CLAUDE) share a line
-    expect(logo[0]).toContain('███╗   ██╗   ██████╗ ██╗')
+    expect(logo).toHaveLength(LOGO_ROW_COUNT)
+    // Field rows are left-aligned at the margin (2 spaces), not centered.
+    expect(out.split('\n')[1]!.startsWith('  ')).toBe(true)
+    const version = out.split('\n').find(line => line.includes(VERSION_PREFIX))
+    expect(version).toBeDefined()
   })
 
-  test('one-row logo is centered and rows are aligned as a block', () => {
-    const out = renderStartupScreen(120)
-    const logo = logoLines(out)
-    const pad = ' '.repeat(Math.floor((120 - ONE_ROW_WIDTH) / 2))
-    expect(logo[1]!.startsWith(`${pad}██╔═══██╗`)).toBe(true)
-    expect(logo[4]!.startsWith(`${pad}╚██████╔╝`)).toBe(true)
-    for (const line of out.split('\n')) {
-      expect(line.length).toBeLessThanOrEqual(120)
-    }
-  })
-
-  test('narrow terminal falls back to two stacked centered blocks', () => {
-    const out = renderStartupScreen(80)
-    expect(logoLines(out)).toHaveLength(12)
-    expect(out).not.toContain('███╗   ██╗   ██████╗')
-    for (const line of out.split('\n')) {
-      expect(line.length).toBeLessThanOrEqual(80)
-    }
-  })
-
-  test('layout switches exactly at the one-row width', () => {
-    expect(logoLines(renderStartupScreen(ONE_ROW_WIDTH))).toHaveLength(6)
-    expect(logoLines(renderStartupScreen(ONE_ROW_WIDTH - 1))).toHaveLength(12)
-  })
-
-  test('provider box, tagline, and version line are centered', () => {
+  test('info block lines are left-aligned and contain model + endpoint', () => {
     const out = renderStartupScreen(120)
     const lines = out.split('\n')
+    const versionIdx = lines.findIndex(line => line.includes(VERSION_PREFIX))
+    expect(versionIdx).toBeGreaterThan(-1)
+    expect(versionIdx).toBeGreaterThan(FIELD_LINES + 1)
+    expect(lines.slice(versionIdx, versionIdx + 3).join('\n')).toContain('models:')
+    expect(lines.slice(versionIdx, versionIdx + 3).join('\n')).toContain('endpoint:')
+  })
 
-    // The logo letterforms also contain ╔ — the box's top border is the line
-    // that starts with it.
-    const boxTop = lines.find(line => line.trimStart().startsWith('╔'))
-    expect(boxTop).toBeDefined()
-    expect(boxTop!.indexOf('╔')).toBe(Math.floor((120 - BOX_WIDTH) / 2))
-
-    const tagline = lines.find(line => line.includes('✦'))
-    expect(tagline).toBeDefined()
-    expect(tagline!.indexOf('✦')).toBe(
-      Math.floor((120 - tagline!.trim().length) / 2),
-    )
-
-    const version = lines.find(line => line.includes('openclaude v'))
-    expect(version).toBeDefined()
-    expect(version!.indexOf('openclaude')).toBe(
-      Math.floor((120 - version!.trim().length) / 2),
-    )
+  test('layout stays within the terminal width', () => {
+    for (const columns of [80, 100, 120]) {
+      const out = renderStartupScreen(columns)
+      for (const line of out.split('\n')) {
+        expect(line.length).toBeLessThanOrEqual(columns)
+      }
+    }
   })
 })
 

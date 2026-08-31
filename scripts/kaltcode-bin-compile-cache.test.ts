@@ -7,7 +7,7 @@ import { describe, expect, test } from 'bun:test'
 import { enableNodeCompileCacheIfAvailable } from '../bin/node-compile-cache.mjs'
 
 const REPO_ROOT = join(import.meta.dir, '..')
-const BIN_PATH = join(REPO_ROOT, 'bin', 'openclaude')
+const BIN_PATH = join(REPO_ROOT, 'bin', 'kaltcode')
 const INSTRUMENTATION_PATH = join(
   import.meta.dir,
   'fixtures',
@@ -16,7 +16,7 @@ const INSTRUMENTATION_PATH = join(
 const PACKAGE_VERSION = JSON.parse(
   readFileSync(join(REPO_ROOT, 'package.json'), 'utf8'),
 ).version
-const EXPECTED_VERSION_OUTPUT = `${PACKAGE_VERSION} (OpenClaude)\n`
+const EXPECTED_VERSION_OUTPUT = `${PACKAGE_VERSION} (Kalt Code)\n`
 
 type LauncherResult = {
   status: number | null
@@ -31,8 +31,8 @@ function launcherEnv(overrides: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
     NO_COLOR: '1',
     ...overrides,
   }
-  delete env.OPENCLAUDE_HEAP_RELAUNCHED
-  delete env.OPENCLAUDE_DISABLE_HEAP_RELAUNCH
+  delete env.KALTCODE_HEAP_RELAUNCHED
+  delete env.KALTCODE_DISABLE_HEAP_RELAUNCH
   if (!Object.hasOwn(overrides, 'NODE_OPTIONS')) delete env.NODE_OPTIONS
   if (!Object.hasOwn(overrides, 'NODE_COMPILE_CACHE')) delete env.NODE_COMPILE_CACHE
   if (!Object.hasOwn(overrides, 'NODE_DISABLE_COMPILE_CACHE')) delete env.NODE_DISABLE_COMPILE_CACHE
@@ -114,7 +114,7 @@ describe('enableNodeCompileCacheIfAvailable', () => {
   })
 })
 
-describe('openclaude launcher compile cache', () => {
+describe('kaltcode launcher compile cache', () => {
   test('does not inherit ambient NODE_OPTIONS into boundary launches', () => {
     const originalNodeOptions = process.env.NODE_OPTIONS
     try {
@@ -127,12 +127,12 @@ describe('openclaude launcher compile cache', () => {
   })
 
   test('the real absent binding remains non-fatal and silent', () => {
-    const scratch = mkdtempSync(join(tmpdir(), 'openclaude-compile-cache-absent-'))
+    const scratch = mkdtempSync(join(tmpdir(), 'kaltcode-compile-cache-absent-'))
     try {
       const result = runLauncher(
         launcherEnv({
-          OPENCLAUDE_CONFIG_DIR: join(scratch, 'config'),
-          OPENCLAUDE_TEST_COMPILE_CACHE_BEHAVIOR: 'absent',
+          KALTCODE_CONFIG_DIR: join(scratch, 'config'),
+          KALTCODE_TEST_COMPILE_CACHE_BEHAVIOR: 'absent',
         }),
         ['--import', INSTRUMENTATION_PATH],
       )
@@ -145,14 +145,14 @@ describe('openclaude launcher compile cache', () => {
   for (const behavior of ['success', 'failed-status', 'throw'] as const) {
     test(`the final importing process survives ${behavior} setup`, () => {
       if (!nodeSupportsCompileCache()) return
-      const scratch = mkdtempSync(join(tmpdir(), `openclaude-compile-cache-${behavior}-`))
+      const scratch = mkdtempSync(join(tmpdir(), `kaltcode-compile-cache-${behavior}-`))
       const markerPath = join(scratch, 'calls.jsonl')
       try {
         const result = runLauncher(
           launcherEnv({
-            OPENCLAUDE_CONFIG_DIR: join(scratch, 'config'),
-            OPENCLAUDE_TEST_COMPILE_CACHE_BEHAVIOR: behavior,
-            OPENCLAUDE_TEST_COMPILE_CACHE_MARKER: markerPath,
+            KALTCODE_CONFIG_DIR: join(scratch, 'config'),
+            KALTCODE_TEST_COMPILE_CACHE_BEHAVIOR: behavior,
+            KALTCODE_TEST_COMPILE_CACHE_MARKER: markerPath,
           }),
           ['--import', INSTRUMENTATION_PATH],
         )
@@ -171,13 +171,13 @@ describe('openclaude launcher compile cache', () => {
   }
 
   test('NODE_DISABLE_COMPILE_CACHE remains authoritative', () => {
-    const scratch = mkdtempSync(join(tmpdir(), 'openclaude-compile-cache-disabled-'))
+    const scratch = mkdtempSync(join(tmpdir(), 'kaltcode-compile-cache-disabled-'))
     const cacheDir = join(scratch, 'cache')
     try {
       expectNormalVersion(runLauncher(launcherEnv({
         NODE_COMPILE_CACHE: cacheDir,
         NODE_DISABLE_COMPILE_CACHE: '1',
-        OPENCLAUDE_CONFIG_DIR: join(scratch, 'config'),
+        KALTCODE_CONFIG_DIR: join(scratch, 'config'),
       })))
       if (nodeSupportsCompileCache()) expect(hasFileContent(cacheDir)).toBe(false)
     } finally {
@@ -187,12 +187,12 @@ describe('openclaude launcher compile cache', () => {
 
   test('a temporary NODE_COMPILE_CACHE gains content without changing output', () => {
     if (!nodeSupportsCompileCache()) return
-    const scratch = mkdtempSync(join(tmpdir(), 'openclaude-compile-cache-real-'))
+    const scratch = mkdtempSync(join(tmpdir(), 'kaltcode-compile-cache-real-'))
     const cacheDir = join(scratch, 'cache')
     try {
       const env = launcherEnv({
         NODE_COMPILE_CACHE: cacheDir,
-        OPENCLAUDE_CONFIG_DIR: join(scratch, 'config'),
+        KALTCODE_CONFIG_DIR: join(scratch, 'config'),
       })
       expectNormalVersion(runLauncher(env))
       expectNormalVersion(runLauncher(env))

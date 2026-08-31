@@ -35,7 +35,7 @@ async function runHandlerWithError(clientError: unknown): Promise<string> {
   // Default (canonical) inference endpoint so guided provisioning is not refused
   // before it reaches the account lookup.
   delete process.env.AIMLAPI_INFERENCE_URL
-  const dir = mkdtempSync(join(tmpdir(), 'openclaude-aimlapi-handler-'))
+  const dir = mkdtempSync(join(tmpdir(), 'kaltcode-aimlapi-handler-'))
   tempDirs.push(dir)
   setClaudeConfigHomeDirForTesting(dir)
   setAimlapiTopupTestDoubles({

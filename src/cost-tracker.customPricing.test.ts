@@ -35,7 +35,7 @@ let originalFlagInline: Record<string, unknown> | null
 
 beforeEach(async () => {
   await acquireSharedMutationLock('cost-tracker.customPricing.test.ts')
-  tempDir = mkdtempSync(join(tmpdir(), 'openclaude-cost-pricing-'))
+  tempDir = mkdtempSync(join(tmpdir(), 'kaltcode-cost-pricing-'))
   originalSources = [...getAllowedSettingSources()]
   originalFlagPath = getFlagSettingsPath()
   originalFlagInline = getFlagSettingsInline()

@@ -5,11 +5,11 @@
  * that the rest of the codebase uses for provider detection.
  *
  * Usage:
- *   openclaude --provider openai --model gpt-4o
- *   openclaude --provider gemini --model gemini-2.0-flash
- *   openclaude --provider mistral --model ministral-3b-latest
- *   openclaude --provider ollama --model llama3.2
- *   openclaude --provider anthropic   (default, no-op)
+ *   kaltcode --provider openai --model gpt-4o
+ *   kaltcode --provider gemini --model gemini-2.0-flash
+ *   kaltcode --provider mistral --model ministral-3b-latest
+ *   kaltcode --provider ollama --model llama3.2
+ *   kaltcode --provider anthropic   (default, no-op)
  */
 
 import '../integrations/index.js'
@@ -275,7 +275,7 @@ function usableProviderModelEnvValue(
 /**
  * Apply --model (without --provider) to process.env for the current process only.
  *
- * Issue #808: `openclaude --model <name>` should work standalone so users can
+ * Issue #808: `kaltcode --model <name>` should work standalone so users can
  * override the session model without reconfiguring a profile or polluting the
  * shell with OPENAI_MODEL=... Must run before the startup banner so the
  * displayed model matches the flag, and before resolution paths that read the
@@ -335,7 +335,7 @@ export function applyProviderFlag(
     }
   }
 
-  const opengatewayApiKey = process.env.OPENGATEWAY_API_KEY?.trim()
+  const gatewayApiKey = process.env.KALTCODE_GATEWAY_API_KEY?.trim()
   const copiedOpenAIKeyProvider =
     process.env.OPENAI_API_KEY !== undefined &&
     process.env.OPENAI_API_KEY === process.env.NVIDIA_API_KEY &&
@@ -378,10 +378,10 @@ export function applyProviderFlag(
                           process.env.OPENAI_API_KEY === process.env.LONGCAT_API_KEY
                         ? 'longcat'
                       : process.env.OPENAI_API_KEY !== undefined &&
-                      opengatewayApiKey !== undefined &&
-                      opengatewayApiKey.length > 0 &&
-                      process.env.OPENAI_API_KEY === opengatewayApiKey
-                    ? 'gitlawb-opengateway'
+                      gatewayApiKey !== undefined &&
+                      gatewayApiKey.length > 0 &&
+                      process.env.OPENAI_API_KEY === gatewayApiKey
+                    ? 'kaltcode-gateway'
                     : process.env.OPENAI_API_KEY !== undefined &&
                         process.env.OPENAI_API_KEY === process.env.CLOUDFLARE_API_TOKEN
                       ? 'cloudflare'
@@ -560,20 +560,20 @@ export function applyProviderFlag(
       }
       break
 
-    case 'gitlawb-opengateway':
+    case 'kaltcode-gateway':
       process.env.CLAUDE_CODE_USE_OPENAI = '1'
-      if (process.env.OPENGATEWAY_BASE_URL?.trim()) {
-        process.env.OPENAI_BASE_URL = process.env.OPENGATEWAY_BASE_URL.trim()
+      if (process.env.KALTCODE_GATEWAY_BASE_URL?.trim()) {
+        process.env.OPENAI_BASE_URL = process.env.KALTCODE_GATEWAY_BASE_URL.trim()
       } else {
         applyOpenAIBaseUrlDefault(
           provider,
-          defaultBaseUrl ?? 'https://opengateway.gitlawb.com/v1',
+          defaultBaseUrl ?? 'https://kaltcode.my.id/v1',
         )
       }
       process.env.OPENAI_MODEL ??= defaultModel ?? 'mimo-v2.5-pro'
       if (model) process.env.OPENAI_MODEL = model
-      if (opengatewayApiKey) {
-        process.env.OPENAI_API_KEY = opengatewayApiKey
+      if (gatewayApiKey) {
+        process.env.OPENAI_API_KEY = gatewayApiKey
       }
       break
 

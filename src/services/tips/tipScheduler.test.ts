@@ -168,7 +168,7 @@ describe('getTipToShowOnSpinner — sponsored partitioning', () => {
 })
 
 describe('getTipToShowOnSpinner — earning branch', () => {
-  test('returns the Gitlawb earning tip when earning is enabled', async () => {
+  test('returns the KaltCode earning tip when earning is enabled', async () => {
     setState({
       numStartups: 100,
       lastSponsored: 80, // would otherwise be an eligible sponsored slot
@@ -178,16 +178,16 @@ describe('getTipToShowOnSpinner — earning branch', () => {
     // Opt-in earning (the mocked config provides ads.enabled + a code); every
     // slot earns so the cadence is deterministic.
     configRef.value = { ...configRef.value, ads: { enabled: true, earnCode: 'earn_x' } }
-    const prevTipEvery = process.env.OPENCLAUDE_ADS_TIP_EVERY
-    process.env.OPENCLAUDE_ADS_TIP_EVERY = '1'
+    const prevTipEvery = process.env.KALTCODE_ADS_TIP_EVERY
+    process.env.KALTCODE_ADS_TIP_EVERY = '1'
     try {
       const { getTipToShowOnSpinner } = await freshScheduler()
       const pick = await getTipToShowOnSpinner()
       // Earning branch takes precedence over the sponsored/regular partitioning.
-      expect(pick?.id).toBe('gitlawb-earn')
+      expect(pick?.id).toBe('kaltcode-earn')
     } finally {
-      if (prevTipEvery === undefined) delete process.env.OPENCLAUDE_ADS_TIP_EVERY
-      else process.env.OPENCLAUDE_ADS_TIP_EVERY = prevTipEvery
+      if (prevTipEvery === undefined) delete process.env.KALTCODE_ADS_TIP_EVERY
+      else process.env.KALTCODE_ADS_TIP_EVERY = prevTipEvery
     }
   })
 

@@ -22,7 +22,7 @@ let configDir: string
 let memoryDir: string
 
 const originalEnv = {
-  openClaudeConfigDir: process.env.OPENCLAUDE_CONFIG_DIR,
+  kaltCodeConfigDir: process.env.KALTCODE_CONFIG_DIR,
   claudeConfigDir: process.env.CLAUDE_CONFIG_DIR,
   memoryPathOverride: process.env.CLAUDE_COWORK_MEMORY_PATH_OVERRIDE,
   disableAutoMemory: process.env.CLAUDE_CODE_DISABLE_AUTO_MEMORY,
@@ -66,7 +66,7 @@ async function setUpKnowledgeGraphTest(): Promise<void> {
   projectCwd = mkdtempSync(join(tmpdir(), 'kg-test-'))
   configDir = mkdtempSync(join(tmpdir(), 'kg-config-'))
   memoryDir = mkdtempSync(join(tmpdir(), 'kg-mem-'))
-  process.env.OPENCLAUDE_CONFIG_DIR = configDir
+  process.env.KALTCODE_CONFIG_DIR = configDir
   process.env.CLAUDE_CONFIG_DIR = configDir
   process.env.CLAUDE_COWORK_MEMORY_PATH_OVERRIDE = memoryDir
   setClaudeConfigHomeDirForTesting(configDir)
@@ -85,7 +85,7 @@ function tearDownKnowledgeGraphTest(): void {
     removeProjectArtifacts()
     setOriginalFsImplementation()
     setClaudeConfigHomeDirForTesting(undefined)
-    restoreEnv('OPENCLAUDE_CONFIG_DIR', originalEnv.openClaudeConfigDir)
+    restoreEnv('KALTCODE_CONFIG_DIR', originalEnv.kaltCodeConfigDir)
     restoreEnv('CLAUDE_CONFIG_DIR', originalEnv.claudeConfigDir)
     restoreEnv('CLAUDE_COWORK_MEMORY_PATH_OVERRIDE', originalEnv.memoryPathOverride)
     restoreEnv('CLAUDE_CODE_DISABLE_AUTO_MEMORY', originalEnv.disableAutoMemory)

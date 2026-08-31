@@ -281,10 +281,10 @@ function makeXaaFixture(
 beforeEach(async () => {
   originalFetch = globalThis.fetch
   originalXaaFlag = process.env.CLAUDE_CODE_ENABLE_XAA
-  originalConfigDir = process.env.OPENCLAUDE_CONFIG_DIR
+  originalConfigDir = process.env.KALTCODE_CONFIG_DIR
   process.env.CLAUDE_CODE_ENABLE_XAA = '1'
-  configDir = await mkdtemp(join(tmpdir(), 'openclaude-mcp-refresh-test-'))
-  process.env.OPENCLAUDE_CONFIG_DIR = configDir
+  configDir = await mkdtemp(join(tmpdir(), 'kaltcode-mcp-refresh-test-'))
+  process.env.KALTCODE_CONFIG_DIR = configDir
   clearCacheCalls = 0
   lockAttempts = []
   debugMessages = []
@@ -309,9 +309,9 @@ afterEach(async () => {
     process.env.CLAUDE_CODE_ENABLE_XAA = originalXaaFlag
   }
   if (originalConfigDir === undefined) {
-    delete process.env.OPENCLAUDE_CONFIG_DIR
+    delete process.env.KALTCODE_CONFIG_DIR
   } else {
-    process.env.OPENCLAUDE_CONFIG_DIR = originalConfigDir
+    process.env.KALTCODE_CONFIG_DIR = originalConfigDir
   }
   resetSettingsCache()
   await rm(configDir, { recursive: true, force: true })

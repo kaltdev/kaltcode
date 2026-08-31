@@ -1,0 +1,235 @@
+{
+  "name": "kaltcode-vscode",
+  "displayName": "Kalt Code",
+  "description": "Practical VS Code companion for Kalt Code with project-aware launch, Control Center, optional Microsoft Foundry / Azure OpenAI terminal env, and chat.",
+  "version": "0.2.0",
+  "publisher": "devnull-bootloader",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Themes",
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:kaltcode.start",
+    "onCommand:kaltcode.startInWorkspaceRoot",
+    "onCommand:kaltcode.openDocs",
+    "onCommand:kaltcode.openSetupDocs",
+    "onCommand:kaltcode.openWorkspaceProfile",
+    "onCommand:kaltcode.openControlCenter",
+    "onCommand:kaltcode.newChat",
+    "onCommand:kaltcode.openChat",
+    "onCommand:kaltcode.resumeSession",
+    "onCommand:kaltcode.abortChat",
+    "onCommand:kaltcode.setAzureApiKey",
+    "onCommand:kaltcode.clearAzureApiKey",
+    "onCommand:kaltcode.configureAzureChat",
+    "onCommand:kaltcode.openAzureSettings",
+    "onView:kaltcode.controlCenter",
+    "onView:kaltcode.chat"
+  ],
+  "main": "./src/extension.js",
+  "files": [
+    "README.md",
+    "media/**",
+    "src/extension.js",
+    "src/presentation.js",
+    "src/state.js",
+    "src/chat/**",
+    "themes/**"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "kaltcode.start",
+        "title": "Kalt Code: Launch in Terminal",
+        "category": "Kalt Code"
+      },
+      {
+        "command": "kaltcode.startInWorkspaceRoot",
+        "title": "Kalt Code: Launch in Workspace Root",
+        "category": "Kalt Code"
+      },
+      {
+        "command": "kaltcode.openDocs",
+        "title": "Kalt Code: Open Repository",
+        "category": "Kalt Code"
+      },
+      {
+        "command": "kaltcode.openSetupDocs",
+        "title": "Kalt Code: Open Setup Guide",
+        "category": "Kalt Code"
+      },
+      {
+        "command": "kaltcode.openWorkspaceProfile",
+        "title": "Kalt Code: Open Workspace Profile",
+        "category": "Kalt Code"
+      },
+      {
+        "command": "kaltcode.openControlCenter",
+        "title": "Kalt Code: Open Control Center",
+        "category": "Kalt Code"
+      },
+      {
+        "command": "kaltcode.newChat",
+        "title": "Kalt Code: New Chat",
+        "category": "Kalt Code"
+      },
+      {
+        "command": "kaltcode.openChat",
+        "title": "Kalt Code: Open Chat Panel",
+        "category": "Kalt Code"
+      },
+      {
+        "command": "kaltcode.resumeSession",
+        "title": "Kalt Code: Resume Session",
+        "category": "Kalt Code"
+      },
+      {
+        "command": "kaltcode.abortChat",
+        "title": "Kalt Code: Abort Generation",
+        "category": "Kalt Code"
+      },
+      {
+        "command": "kaltcode.setAzureApiKey",
+        "title": "Kalt Code: Set Azure / Foundry API Key (Secret Storage)",
+        "category": "Kalt Code"
+      },
+      {
+        "command": "kaltcode.clearAzureApiKey",
+        "title": "Kalt Code: Clear Azure / Foundry API Key",
+        "category": "Kalt Code"
+      },
+      {
+        "command": "kaltcode.configureAzureChat",
+        "title": "Kalt Code: Configure Azure / Foundry Chat (wizard)",
+        "category": "Kalt Code"
+      },
+      {
+        "command": "kaltcode.openAzureSettings",
+        "title": "Kalt Code: Open Azure / Foundry Settings",
+        "category": "Kalt Code"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "kaltcode",
+          "title": "Kalt Code",
+          "icon": "media/kaltcode.svg"
+        }
+      ]
+    },
+    "views": {
+      "kaltcode": [
+        {
+          "id": "kaltcode.chat",
+          "name": "Chat",
+          "type": "webview"
+        },
+        {
+          "id": "kaltcode.controlCenter",
+          "name": "Control Center",
+          "type": "webview"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "kaltcode.openChat",
+        "key": "ctrl+shift+l",
+        "mac": "cmd+shift+l"
+      }
+    ],
+    "configuration": {
+      "title": "Kalt Code",
+      "properties": {
+        "kaltcode.launchCommand": {
+          "type": "string",
+          "default": "kaltcode",
+          "description": "Command run in the integrated terminal when launching Kalt Code."
+        },
+        "kaltcode.terminalName": {
+          "type": "string",
+          "default": "Kalt Code",
+          "description": "Integrated terminal tab name for Kalt Code sessions."
+        },
+        "kaltcode.useOpenAIShim": {
+          "type": "boolean",
+          "default": false,
+          "description": "Optionally set CLAUDE_CODE_USE_OPENAI=1 in launched Kalt Code terminals when Azure injection is off or incomplete."
+        },
+        "kaltcode.azure.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "When true, launch injects Microsoft Foundry / Azure OpenAI-compatible chat env (OPENAI_* + AZURE_OPENAI_API_VERSION) into the Kalt Code terminal."
+        },
+        "kaltcode.azure.endpoint": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Azure resource base URL for OpenAI-compatible chat (example: `https://YOUR_RESOURCE.openai.azure.com`). Do not put `api-version` here; use **Kalt Code: Azure API Version**."
+        },
+        "kaltcode.azure.apiVersion": {
+          "type": "string",
+          "default": "2024-12-01-preview",
+          "description": "Azure API version for chat completions (AZURE_OPENAI_API_VERSION)."
+        },
+        "kaltcode.azure.deployment": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Azure deployment name (maps to `OPENAI_MODEL` for the OpenAI shim)."
+        },
+        "kaltcode.azure.forceAzureUrlStyle": {
+          "type": "boolean",
+          "default": true,
+          "description": "Sets OPENAI_AZURE_STYLE=1 so deployment URLs and api-key header work on Foundry and non-standard Azure hosts."
+        },
+        "kaltcode.azure.apiKey": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Optional API key in settings (not recommended). Prefer **Kalt Code: Set Azure / Foundry API Key**. Secret wins if both are set."
+        },
+        "kaltcode.permissionMode": {
+          "type": "string",
+          "default": "acceptEdits",
+          "enum": ["default", "acceptEdits", "bypassPermissions", "plan"],
+          "enumDescriptions": [
+            "Prompt for permission on each tool use (requires manual approval)",
+            "Auto-approve file edits, prompt for other operations (recommended)",
+            "Auto-approve all operations without prompting",
+            "Read-only mode — no file modifications allowed"
+          ],
+          "description": "Permission mode for chat sessions. Controls which tool operations are auto-approved."
+        }
+      }
+    },
+    "themes": [
+      {
+        "label": "Kalt Code Terminal Black",
+        "uiTheme": "vs-dark",
+        "path": "./themes/Kalt Code-Terminal-Black.json"
+      }
+    ]
+  },
+  "scripts": {
+    "test": "bun test src",
+    "lint": "node scripts/lint.js",
+    "package": "npx @vscode/vsce package --no-dependencies"
+  },
+  "keywords": [
+    "kaltcode",
+    "terminal",
+    "theme",
+    "cli",
+    "llm",
+    "azure",
+    "foundry"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kaltdev/kaltcode"
+  },
+  "license": "MIT"
+}

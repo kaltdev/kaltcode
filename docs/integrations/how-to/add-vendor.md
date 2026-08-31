@@ -162,7 +162,7 @@ export default defineVendor({
     kind: 'openai-compatible',
     openaiShim: {
       headers: {
-        'X-Acme-Client': 'openclaude',
+        'X-Acme-Client': 'kaltcode',
         'X-Acme-Protocol': 'labs-v1',
       },
       supportsApiFormatSelection: false,
@@ -268,7 +268,7 @@ checklist.
 For OpenAI-compatible vendors, be explicit about the provider editor surface:
 
 - `supportsApiFormatSelection: false`
-  for fixed vendor APIs where OpenClaude should choose the API surface.
+  for fixed vendor APIs where Kalt Code should choose the API surface.
 - `supportsApiFormatSelection: true`
   only when users should choose between compatible API modes such as chat
   completions and responses.

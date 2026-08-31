@@ -7,19 +7,19 @@ import {
 
 describe('getGlobalUpdateFailureHint', () => {
   test('points npm-only builds at npm instead of the native installer', () => {
-    withMockMacro({ PACKAGE_URL: '@gitlawb/openclaude' }, () => {
+    withMockMacro({ PACKAGE_URL: '@kaltdev/kaltcode' }, () => {
       expect(getGlobalUpdateFailureHint(false)).toContain(
-        'npm install -g @gitlawb/openclaude@latest',
+        'npm install -g @kaltdev/kaltcode@latest',
       )
       expect(getGlobalUpdateFailureHint(false)).not.toContain(
-        'openclaude install',
+        'kaltcode install',
       )
     })
   })
 
   test('preserves native installer guidance for native-capable builds', () => {
     expect(getGlobalUpdateFailureHint(true)).toBe(
-      'Or consider using native installation with: openclaude install\n',
+      'Or consider using native installation with: kaltcode install\n',
     )
   })
 })
@@ -27,7 +27,7 @@ describe('getGlobalUpdateFailureHint', () => {
 describe('writePackageManagerUpdateGuidance', () => {
   test.each([
     ['@anthropic-ai/claude-code', true],
-    ['@gitlawb/openclaude', false],
+    ['@kaltdev/kaltcode', false],
     ['@example/custom-cli', false],
   ] as const)(
     'uses the runtime package identity for %s',
@@ -46,7 +46,7 @@ describe('writePackageManagerUpdateGuidance', () => {
       })
 
       expect(output).toContain(
-        'OpenClaude is managed by Homebrew. Use Homebrew to update OpenClaude.',
+        'Kalt Code is managed by Homebrew. Use Homebrew to update Kalt Code.',
       )
       expect(output).toContain('Update available: 1.0.0 → 2.0.0')
       if (expectsUpstreamCommand) {

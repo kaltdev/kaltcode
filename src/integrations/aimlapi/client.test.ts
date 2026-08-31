@@ -42,7 +42,7 @@ function payReceipt(overrides: Record<string, unknown> = {}): Record<string, unk
       id: 'sess_1',
       sessionToken: 'session',
       partnerId: 'part_1',
-      partnerName: 'OpenClaude',
+      partnerName: 'Kalt Code',
       userId: 1,
       amountUsdMinor: 2500,
       status: 'pending_payment',
@@ -85,7 +85,7 @@ test('passwordless onboarding methods use the current backend contracts', async 
     token: 'new-bearer',
     exp: 2,
   })
-  expect(await client.createKey('bearer', 'OpenClaude CLI')).toEqual({
+  expect(await client.createKey('bearer', 'Kalt Code CLI')).toEqual({
     key: 'key_test',
     id: 'id_test',
   })
@@ -96,7 +96,7 @@ test('passwordless onboarding methods use the current backend contracts', async 
     ['POST', 'https://auth.example.test/v1/auth/sign-in/code', { email: 'user@example.com' }],
     ['POST', 'https://auth.example.test/v1/auth/sign-in/code/verify', { email: 'user@example.com', code: '123456' }],
     ['POST', 'https://auth.example.test/v1/auth/account/passwordless', { email: 'new@example.com' }],
-    ['POST', 'https://app.example.test/v1/keys', { name: 'OpenClaude CLI' }],
+    ['POST', 'https://app.example.test/v1/keys', { name: 'Kalt Code CLI' }],
     ['GET', 'https://api.example.test/v1/billing/balance', undefined],
   ])
 })
@@ -583,12 +583,12 @@ test('typed methods reject wrong-typed success fields without a raw TypeError', 
   )
 
   globalThis.fetch = mock(async () => jsonResponse({ key: 1 })) as unknown as typeof fetch
-  await expect(client.createKey('bearer', 'OpenClaude CLI')).rejects.toThrow(
+  await expect(client.createKey('bearer', 'Kalt Code CLI')).rejects.toThrow(
     'did not return an API key',
   )
   // Key without its required id is an incomplete receipt and must be rejected.
   globalThis.fetch = mock(async () => jsonResponse({ key: 'k_only' })) as unknown as typeof fetch
-  await expect(client.createKey('bearer', 'OpenClaude CLI')).rejects.toThrow(
+  await expect(client.createKey('bearer', 'Kalt Code CLI')).rejects.toThrow(
     'did not return an API key',
   )
 
@@ -623,7 +623,7 @@ test('every request to an AI/ML API host carries the mandatory attribution heade
 
   // Both headers are mandatory on EVERY aimlapi request (auth / checkout /
   // catalog): the integration source and the partner id.
-  expect(headers.get('X-AIMLAPI-Source')).toBe('agent/openclaude')
+  expect(headers.get('X-AIMLAPI-Source')).toBe('agent/kaltcode')
   const partner = headers.get('X-AIMLAPI-Partner-ID')
   expect(partner).toBeTruthy()
   expect(partner?.startsWith('part_')).toBe(true)
@@ -637,13 +637,13 @@ test('attribution headers are withheld from an overridden (non-aimlapi) inferenc
   }) as unknown as typeof fetch
 
   // inferenceBaseUrl points at api.example.test (a user proxy). The balance probe
-  // must not leak OpenClaude's partner/source identity to a third-party host,
+  // must not leak Kalt Code's partner/source identity to a third-party host,
   // mirroring the inference/catalog stripping contract.
   const client = new AimlapiClient(endpoints)
   await client.getBalance('key_test')
 
   expect(headers.get('X-AIMLAPI-Source')).toBeNull()
   expect(headers.get('X-AIMLAPI-Partner-ID')).toBeNull()
-  // The caller's own credential still rides — only OpenClaude attribution is gated.
+  // The caller's own credential still rides — only Kalt Code attribution is gated.
   expect(headers.get('Authorization')).toBe('Bearer key_test')
 })

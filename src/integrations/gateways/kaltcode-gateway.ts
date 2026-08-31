@@ -10,20 +10,20 @@ import {
 } from '../modelMapping.js'
 
 /**
- * Normalizes OpenGateway model IDs by removing the `xiaomi/` prefix when the
- * remainder starts with `mimo` (the gateway exposes some Xiaomi models both
+ * Normalizes kaltcode-gateway model IDs by removing the `xiaomi/` prefix when
+ * the remainder starts with `mimo` (the gateway exposes some Xiaomi models both
  * with and without the vendor prefix; we keep the shorter form for the catalog).
  */
-function normalizeOpenGatewayModelId(id: string): string {
+function normalizeGatewayModelId(id: string): string {
   return id.replace(/^xiaomi\/(?=mimo(?:-|$))/i, '')
 }
 
 /**
- * Map OpenGateway's public GET /v1/models payload into a catalog entry.
+ * Map kaltcode-gateway's public GET /v1/models payload into a catalog entry.
  * The gateway already curates what it exposes, so every non-empty id is kept
  * except clearly non-coding names if they ever appear.
  */
-export function mapOpenGatewayModel(raw: unknown): ModelCatalogEntry | null {
+export function mapGatewayModel(raw: unknown): ModelCatalogEntry | null {
   if (!isRecord(raw)) {
     return null
   }
@@ -32,7 +32,7 @@ export function mapOpenGatewayModel(raw: unknown): ModelCatalogEntry | null {
   if (!rawId || isKnownNonCodingModelId(rawId)) {
     return null
   }
-  const id = normalizeOpenGatewayModelId(rawId)
+  const id = normalizeGatewayModelId(rawId)
 
   const name =
     getTrimmedString(raw, 'name') ||
@@ -61,35 +61,36 @@ export function mapOpenGatewayModel(raw: unknown): ModelCatalogEntry | null {
 }
 
 export default defineGateway({
-  id: 'gitlawb-opengateway',
-  label: 'Gitlawb Opengateway',
+  id: 'kaltcode-gateway',
+  label: 'KaltCode Gateway',
   category: 'aggregating',
-  defaultBaseUrl: 'https://opengateway.gitlawb.com/v1',
+  defaultBaseUrl: 'https://kaltcode.my.id/v1',
   defaultModel: 'mimo-v2.5-pro',
   supportsModelRouting: true,
   vendorId: 'openai',
   setup: {
     requiresAuth: true,
     authMode: 'api-key',
-    credentialEnvVars: ['OPENGATEWAY_API_KEY', 'OPENAI_API_KEYS', 'OPENAI_API_KEY'],
+    credentialEnvVars: ['KALTCODE_GATEWAY_API_KEY', 'OPENAI_API_KEYS', 'OPENAI_API_KEY'],
   },
   validation: {
     kind: 'credential-env',
-    // OPENGATEWAY_API_KEY first so users who set both don't get their generic
-    // OpenAI key sent to opengateway by accident. OPENAI_API_KEYS / OPENAI_API_KEY kept as
-    // fallbacks because existing openclaude configs may already hold generic credentials there.
-    credentialEnvVars: ['OPENGATEWAY_API_KEY', 'OPENAI_API_KEYS', 'OPENAI_API_KEY'],
+    // KALTCODE_GATEWAY_API_KEY first so users who set both don't get their
+    // generic OpenAI key sent to the gateway by accident. OPENAI_API_KEYS /
+    // OPENAI_API_KEY kept as fallbacks because existing Kalt Code configs may
+    // already hold generic credentials there.
+    credentialEnvVars: ['KALTCODE_GATEWAY_API_KEY', 'OPENAI_API_KEYS', 'OPENAI_API_KEY'],
     missingCredentialMessage:
-      'OPENGATEWAY_API_KEY is required to use Gitlawb Opengateway.\n' +
-      'Mint a free API key at https://gitlawb.com/opengateway/keys and set it as OPENGATEWAY_API_KEY (or OPENAI_API_KEYS / OPENAI_API_KEY when OPENAI_BASE_URL points at opengateway).',
+      'KALTCODE_GATEWAY_API_KEY is required to use KaltCode Gateway.\n' +
+      'Mint a free API key at https://kaltcode.my.id/keys and set it as KALTCODE_GATEWAY_API_KEY (or OPENAI_API_KEYS / OPENAI_API_KEY when OPENAI_BASE_URL points at the gateway).',
     routing: {
-      matchBaseUrlHosts: ['opengateway.gitlawb.com', 'opengateway.fly.dev'],
+      matchBaseUrlHosts: ['kaltcode.my.id'],
     },
   },
   transportConfig: {
     kind: 'openai-compatible',
     openaiShim: {
-      // Opengateway expects `Authorization: Bearer ogw_live_...`. Previous
+      // The gateway expects `Authorization: Bearer kc_live_...`. Previous
       // `api-key` raw header was a leftover from the direct-Xiaomi era.
       headers: {
         'Accept-Encoding': 'identity',
@@ -105,19 +106,19 @@ export default defineGateway({
     },
   },
   preset: {
-    id: 'gitlawb-opengateway',
-    description: 'Gitlawb Opengateway - (API key required, signup at https://gitlawb.com/opengateway/keys)',
-    apiKeyEnvVars: ['OPENGATEWAY_API_KEY'],
-    label: 'Gitlawb Opengateway',
-    name: 'Gitlawb Opengateway',
+    id: 'kaltcode-gateway',
+    description: 'KaltCode Gateway - (API key required, signup at https://kaltcode.my.id/keys)',
+    apiKeyEnvVars: ['KALTCODE_GATEWAY_API_KEY'],
+    label: 'KaltCode Gateway',
+    name: 'KaltCode Gateway',
     badge: {
       text: 'Recommended',
       color: 'success',
     },
     vendorId: 'openai',
     modelEnvVars: ['OPENAI_MODEL'],
-    baseUrlEnvVars: ['OPENGATEWAY_BASE_URL', 'OPENAI_BASE_URL'],
-    fallbackBaseUrl: 'https://opengateway.gitlawb.com/v1',
+    baseUrlEnvVars: ['KALTCODE_GATEWAY_BASE_URL', 'OPENAI_BASE_URL'],
+    fallbackBaseUrl: 'https://kaltcode.my.id/v1',
     fallbackModel: 'mimo-v2.5-pro',
   },
   catalog: {
@@ -128,7 +129,7 @@ export default defineGateway({
       kind: 'openai-compatible',
       // Public model list works without a key (chat still requires auth).
       requiresAuth: false,
-      mapModel: mapOpenGatewayModel,
+      mapModel: mapGatewayModel,
     },
     discoveryCacheTtl: '1d',
     discoveryRefreshMode: 'startup',
@@ -136,58 +137,57 @@ export default defineGateway({
     models: [
       // Virtual model: the gateway's smart router picks the cheapest model
       // expected to handle the request and escalates on upstream failure
-      // (see opengateway/src/routing/). Billed at the serving model's rate;
+      // (see kaltcode-gateway routing). Billed at the serving model's rate;
       // the x-gateway-served-model response header names who answered.
       {
-        id: 'opengateway-auto',
+        id: 'kaltcode-gateway-auto',
         apiName: 'auto',
-        label: 'Auto — Smart Routing (via Opengateway)',
+        label: 'Auto — Smart Routing (via KaltCode Gateway)',
         notes: 'Gateway picks the cheapest capable model and escalates on failure',
       },
       {
-        id: 'opengateway-mimo-v2.5-pro',
+        id: 'kaltcode-gateway-mimo-v2.5-pro',
         apiName: 'mimo-v2.5-pro',
-        label: 'MiMo V2.5 Pro (via Opengateway)',
+        label: 'MiMo V2.5 Pro (via KaltCode Gateway)',
         modelDescriptorId: 'mimo-v2.5-pro',
       },
       {
-        id: 'opengateway-mimo-v2.5',
+        id: 'kaltcode-gateway-mimo-v2.5',
         apiName: 'mimo-v2.5',
-        label: 'MiMo V2.5 (via Opengateway)',
+        label: 'MiMo V2.5 (via KaltCode Gateway)',
         modelDescriptorId: 'mimo-v2.5',
       },
       {
-        id: 'opengateway-mimo-v2-flash',
+        id: 'kaltcode-gateway-mimo-v2-flash',
         apiName: 'mimo-v2-flash',
-        label: 'MiMo V2 Flash (via Opengateway)',
+        label: 'MiMo V2 Flash (via KaltCode Gateway)',
         modelDescriptorId: 'mimo-v2-flash',
       },
       // Non-Xiaomi models reachable through the same gateway endpoint. The
-      // gateway routes by model name (see opengateway/src/providers.ts), so
-      // the gateway URL stays unchanged; only the apiName the client sends
-      // determines the upstream.
+      // gateway routes by model name, so the gateway URL stays unchanged; only
+      // the apiName the client sends determines the upstream.
       {
-        id: 'opengateway-gemini-3.1-flash-lite',
+        id: 'kaltcode-gateway-gemini-3.1-flash-lite',
         apiName: 'google/gemini-3.1-flash-lite',
-        label: 'Gemini 3.1 Flash Lite (via Opengateway)',
+        label: 'Gemini 3.1 Flash Lite (via KaltCode Gateway)',
         modelDescriptorId: 'gemini-3.1-flash-lite',
       },
       {
-        id: 'opengateway-minimax-m3',
+        id: 'kaltcode-gateway-minimax-m3',
         apiName: 'minimax/minimax-m3',
-        label: 'MiniMax M3 (via Opengateway)',
+        label: 'MiniMax M3 (via KaltCode Gateway)',
         modelDescriptorId: 'minimax-m3',
       },
       {
-        id: 'opengateway-qwen3.7-max',
+        id: 'kaltcode-gateway-qwen3.7-max',
         apiName: 'qwen/qwen3.7-max',
-        label: 'Qwen 3.7 Max (via Opengateway)',
+        label: 'Qwen 3.7 Max (via KaltCode Gateway)',
         modelDescriptorId: 'qwen3.7-max',
       },
       {
-        id: 'opengateway-glm-5.2',
+        id: 'kaltcode-gateway-glm-5.2',
         apiName: 'z-ai/glm-5.2',
-        label: 'GLM 5.2 (via Opengateway)',
+        label: 'GLM 5.2 (via KaltCode Gateway)',
         modelDescriptorId: 'glm-5.2',
         transportOverrides: {
           openaiShim: {
@@ -202,39 +202,38 @@ export default defineGateway({
       // model kept through the gateway's 2026-08-10 free retirement;
       // OpenRouter rate-limits it via a shared account-level pool.
       {
-        id: 'opengateway-nemotron-3-ultra-free',
+        id: 'kaltcode-gateway-nemotron-3-ultra-free',
         apiName: 'nvidia/nemotron-3-ultra-550b-a55b:free',
-        label: 'Nemotron 3 Ultra Free (via Opengateway)',
+        label: 'Nemotron 3 Ultra Free (via KaltCode Gateway)',
         modelDescriptorId: 'nvidia/nemotron-3-ultra-550b-a55b:free',
         notes: 'Free (rate limited)',
       },
       // Throttle-free paid sibling of the :free row above.
       {
-        id: 'opengateway-nemotron-3-ultra',
+        id: 'kaltcode-gateway-nemotron-3-ultra',
         apiName: 'nvidia/nemotron-3-ultra-550b-a55b',
-        label: 'Nemotron 3 Ultra (via Opengateway)',
+        label: 'Nemotron 3 Ultra (via KaltCode Gateway)',
         modelDescriptorId: 'nvidia/nemotron-3-ultra-550b-a55b',
       },
       // Paid since the gateway's 2026-08-10 free retirement. The ling entry
       // id keeps its historical "-free" suffix so saved user selections
       // still resolve; the gateway aliases the old :free api id to paid.
       {
-        id: 'opengateway-ling-3.0-flash-free',
+        id: 'kaltcode-gateway-ling-3.0-flash-free',
         apiName: 'inclusionai/ling-3.0-flash',
-        label: 'Ling 3.0 Flash (via Opengateway)',
+        label: 'Ling 3.0 Flash (via KaltCode Gateway)',
         modelDescriptorId: 'inclusionai/ling-3.0-flash',
       },
       // Day-0 Novita launch via the gateway's OpenRouter wiring. Lifecycle:
-      // the gateway time-boxes the id server-side (LING_TINY_FREE_END_ISO in
-      // opengateway/src/pricing.ts) and 400s requests after the window;
-      // `availableUntil` below is the client-side guard — catalog resolution
-      // drops the entry at the same instant, so the picker never offers an
-      // id the gateway rejects. Keep the two dates in sync if the window
-      // moves.
+      // the gateway time-boxes the id server-side and 400s requests after the
+      // window; `availableUntil` below is the client-side guard — catalog
+      // resolution drops the entry at the same instant, so the picker never
+      // offers an id the gateway rejects. Keep the two dates in sync if the
+      // window moves.
       {
-        id: 'opengateway-ling-3.0-tiny-free',
+        id: 'kaltcode-gateway-ling-3.0-tiny-free',
         apiName: 'inclusionai/ling-3.0-tiny:free',
-        label: 'Ling 3.0 Tiny Free (via Opengateway)',
+        label: 'Ling 3.0 Tiny Free (via KaltCode Gateway)',
         modelDescriptorId: 'inclusionai/ling-3.0-tiny:free',
         notes: 'Free through August 13, 2026 (rate limited)',
         availableUntil: '2026-08-13T10:00:00Z',
@@ -242,21 +241,21 @@ export default defineGateway({
       // Macaron — served by the gateway via direct Novita (not on
       // OpenRouter). Paid since 2026-08-10.
       {
-        id: 'opengateway-macaron-v1-tall',
+        id: 'kaltcode-gateway-macaron-v1-tall',
         apiName: 'mindai/macaron-v1-tall',
-        label: 'Macaron V1 Tall (via Opengateway)',
+        label: 'Macaron V1 Tall (via KaltCode Gateway)',
         modelDescriptorId: 'mindai/macaron-v1-tall',
       },
       {
-        id: 'opengateway-macaron-v1-venti',
+        id: 'kaltcode-gateway-macaron-v1-venti',
         apiName: 'mindai/macaron-v1-venti',
-        label: 'Macaron V1 Venti (via Opengateway)',
+        label: 'Macaron V1 Venti (via KaltCode Gateway)',
         modelDescriptorId: 'mindai/macaron-v1-venti',
       },
       {
-        id: 'opengateway-tencent-hy3',
+        id: 'kaltcode-gateway-tencent-hy3',
         apiName: 'tencent/hy3',
-        label: 'Tencent HY3 (via Opengateway)',
+        label: 'Tencent HY3 (via KaltCode Gateway)',
         modelDescriptorId: 'tencent/hy3',
       },
     ],

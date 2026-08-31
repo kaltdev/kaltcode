@@ -242,7 +242,7 @@ function parseSettingsFileUncached(path: string): {
 
 /**
  * Get the absolute path to the associated file root for a given settings source
- * (e.g. for $PROJ_DIR/.openclaude/settings.json, returns $PROJ_DIR)
+ * (e.g. for $PROJ_DIR/.kaltcode/settings.json, returns $PROJ_DIR)
  * @param source The source of the settings
  * @returns The root path of the settings file
  */
@@ -310,9 +310,9 @@ export function getRelativeSettingsFilePathForSource(
 ): string {
   switch (source) {
     case 'projectSettings':
-      return '.openclaude/settings.json'
+      return '.kaltcode/settings.json'
     case 'localSettings':
-      return '.openclaude/settings.local.json'
+      return '.kaltcode/settings.local.json'
   }
 }
 
@@ -684,14 +684,14 @@ export function getManagedSettingsKeysForLogging(
 function isSettingsLoadInProgress(): boolean {
   return (
     (globalThis as Record<string, unknown>)[
-      '__openclaudeSettingsLoadInProgress'
+      '__kaltcodeSettingsLoadInProgress'
     ] === true
   )
 }
 
 function setSettingsLoadInProgress(value: boolean): void {
   ;(globalThis as Record<string, unknown>)[
-    '__openclaudeSettingsLoadInProgress'
+    '__kaltcodeSettingsLoadInProgress'
   ] = value
 }
 

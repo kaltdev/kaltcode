@@ -11,7 +11,7 @@ import {
   registerInterruptionController,
 } from './utils/interruptionTrace.js'
 
-const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
+const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
 
 beforeEach(async () => {
   await acquireSharedMutationLock('QueryEngine.interruptionTrace.test.ts')
@@ -21,8 +21,8 @@ afterEach(async () => {
   try {
     await __waitForInterruptionTraceFlushForTests()
     __resetInterruptionTraceForTests()
-    if (originalTrace === undefined) delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-    else process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+    if (originalTrace === undefined) delete process.env.KALTCODE_INTERRUPT_TRACE
+    else process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
   } finally {
     releaseSharedMutationLock()
   }
@@ -30,7 +30,7 @@ afterEach(async () => {
 
 describe('QueryEngine interruption tracing', () => {
   test('does not record lifecycle entries while tracing is disabled', async () => {
-    delete process.env.OPENCLAUDE_INTERRUPT_TRACE
+    delete process.env.KALTCODE_INTERRUPT_TRACE
     const engine = Object.create(QueryEngine.prototype) as QueryEngine
     const controller = new AbortController()
     ;(engine as unknown as { abortController: AbortController }).abortController =
@@ -47,7 +47,7 @@ describe('QueryEngine interruption tracing', () => {
   })
 
   test('records a programmatic query-root interruption before aborting', () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     const controller = new AbortController()
     const engine = Object.create(QueryEngine.prototype) as QueryEngine
     ;(engine as unknown as {
@@ -68,7 +68,7 @@ describe('QueryEngine interruption tracing', () => {
   })
 
   test('records start and terminal lifecycle for successful SDK turns', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     const engine = Object.create(QueryEngine.prototype) as QueryEngine
     const controller = new AbortController()
     ;(engine as unknown as { abortController: AbortController }).abortController =
@@ -100,7 +100,7 @@ describe('QueryEngine interruption tracing', () => {
   })
 
   test('records aborted and failed SDK turn terminals', async () => {
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
 
     for (const scenario of ['aborted', 'failed'] as const) {
       __resetInterruptionTraceForTests()
@@ -145,7 +145,7 @@ describe('QueryEngine interruption tracing', () => {
   })
 
   test('registers the query root when tracing is enabled at the turn boundary', async () => {
-    delete process.env.OPENCLAUDE_INTERRUPT_TRACE
+    delete process.env.KALTCODE_INTERRUPT_TRACE
     const engine = Object.create(QueryEngine.prototype) as QueryEngine
     const controller = new AbortController()
     ;(engine as unknown as { abortController: AbortController }).abortController =
@@ -154,7 +154,7 @@ describe('QueryEngine interruption tracing', () => {
       subsystem: 'query_engine',
       controllerRole: 'query-root',
     })
-    process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+    process.env.KALTCODE_INTERRUPT_TRACE = '1'
     ;(engine as unknown as {
       submitMessageImpl(): AsyncGenerator<never, void, unknown>
     }).submitMessageImpl = async function* () {

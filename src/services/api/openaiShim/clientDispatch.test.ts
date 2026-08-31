@@ -118,8 +118,8 @@ test('OpenAIShimStream combines parent and controller cancellation', async () =>
 
 test('OpenAIShimStream records its parent signal relationship', async () => {
   await acquireSharedMutationLock('openaiShim-clientDispatch-parent-trace')
-  const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
-  process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+  const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
+  process.env.KALTCODE_INTERRUPT_TRACE = '1'
   __resetInterruptionTraceForTests()
   const parent = new AbortController()
   let stream: OpenAIShimStream | undefined
@@ -151,8 +151,8 @@ test('OpenAIShimStream records its parent signal relationship', async () => {
     parent.abort('test-cleanup')
     await __waitForInterruptionTraceFlushForTests()
     __resetInterruptionTraceForTests()
-    if (originalTrace === undefined) delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-    else process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+    if (originalTrace === undefined) delete process.env.KALTCODE_INTERRUPT_TRACE
+    else process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
     releaseSharedMutationLock()
   }
 })
@@ -174,8 +174,8 @@ test('OpenAIShimStream cancels the response before iteration starts', () => {
 
 test('OpenAIShimStream aborts its controller when a consumer returns early', async () => {
   await acquireSharedMutationLock('openaiShim-clientDispatch-closure-trace')
-  const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
-  process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+  const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
+  process.env.KALTCODE_INTERRUPT_TRACE = '1'
   __resetInterruptionTraceForTests()
   const stream = new OpenAIShimStream(async function* () {
     yield { type: 'first' }
@@ -192,16 +192,16 @@ test('OpenAIShimStream aborts its controller when a consumer returns early', asy
   } finally {
     await __waitForInterruptionTraceFlushForTests()
     __resetInterruptionTraceForTests()
-    if (originalTrace === undefined) delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-    else process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+    if (originalTrace === undefined) delete process.env.KALTCODE_INTERRUPT_TRACE
+    else process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
     releaseSharedMutationLock()
   }
 })
 
 test('OpenAIShimStream does not relabel a provider exception as consumer closure', async () => {
   await acquireSharedMutationLock('openaiShim-clientDispatch-failure-trace')
-  const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
-  process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+  const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
+  process.env.KALTCODE_INTERRUPT_TRACE = '1'
   __resetInterruptionTraceForTests()
   const stream = new OpenAIShimStream(async function* () {
     yield { type: 'message_start' }
@@ -224,8 +224,8 @@ test('OpenAIShimStream does not relabel a provider exception as consumer closure
     stream.controller.abort('test-cleanup')
     await __waitForInterruptionTraceFlushForTests()
     __resetInterruptionTraceForTests()
-    if (originalTrace === undefined) delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-    else process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+    if (originalTrace === undefined) delete process.env.KALTCODE_INTERRUPT_TRACE
+    else process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
     releaseSharedMutationLock()
   }
 })

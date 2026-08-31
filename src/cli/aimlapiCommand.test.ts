@@ -10,7 +10,7 @@ test('aimlapi topup forwards the passwordless CLI contract', async () => {
 
   await program.parseAsync([
     'node',
-    'openclaude',
+    'kaltcode',
     'aimlapi',
     'topup',
     '--email',
@@ -38,7 +38,7 @@ test('aimlapi topup forwards explicit amount and model', async () => {
 
   await program.parseAsync([
     'node',
-    'openclaude',
+    'kaltcode',
     'aimlapi',
     'topup',
     '--email',
@@ -67,7 +67,7 @@ test('aimlapi topup defaults to opening the browser when --no-open is absent', a
 
   await program.parseAsync([
     'node',
-    'openclaude',
+    'kaltcode',
     'aimlapi',
     'topup',
     '--email',
@@ -91,7 +91,7 @@ test('aimlapi topup --code-stdin reads the code from stdin instead of argv', asy
   try {
     await program.parseAsync([
       'node',
-      'openclaude',
+      'kaltcode',
       'aimlapi',
       'topup',
       '--email',
@@ -118,7 +118,7 @@ test('aimlapi topup --code prints a deprecation warning steering off argv', asyn
   try {
     await program.parseAsync([
       'node',
-      'openclaude',
+      'kaltcode',
       'aimlapi',
       'topup',
       '--email',
@@ -156,7 +156,7 @@ test('aimlapi topup rejects the removed method option', async () => {
   await expect(
     program.parseAsync([
       'node',
-      'openclaude',
+      'kaltcode',
       'aimlapi',
       'topup',
       '--method',

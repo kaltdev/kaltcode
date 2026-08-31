@@ -11,15 +11,15 @@ import {
 import { clearPluginOutputStyleCache } from '../utils/plugins/loadPluginOutputStyles.js'
 
 /**
- * Loads markdown files from .openclaude/output-styles directories throughout the project
- * and from ~/.openclaude/output-styles directory and converts them to output styles.
+ * Loads markdown files from .kaltcode/output-styles directories throughout the project
+ * and from ~/.kaltcode/output-styles directory and converts them to output styles.
  *
  * Each filename becomes a style name, and the file content becomes the style prompt.
  * The frontmatter provides name and description.
  *
  * Structure:
- * - Project .openclaude/output-styles/*.md -> project styles
- * - User ~/.openclaude/output-styles/*.md -> user styles (overridden by project styles)
+ * - Project .kaltcode/output-styles/*.md -> project styles
+ * - User ~/.kaltcode/output-styles/*.md -> user styles (overridden by project styles)
  *
  * @param cwd Current working directory for project directory traversal
  */

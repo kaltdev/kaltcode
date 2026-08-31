@@ -23,7 +23,7 @@ import {
 
 const originalEnv = {
   HOME: process.env.HOME,
-  OPENCLAUDE_CONFIG_DIR: process.env.OPENCLAUDE_CONFIG_DIR,
+  KALTCODE_CONFIG_DIR: process.env.KALTCODE_CONFIG_DIR,
   CLAUDE_CONFIG_DIR: process.env.CLAUDE_CONFIG_DIR,
   CLAUDE_CODE_SIMPLE: process.env.CLAUDE_CODE_SIMPLE,
   CLAUDE_CODE_USE_NATIVE_FILE_SEARCH:
@@ -38,13 +38,13 @@ let previousConfigHomeOverride: string | undefined
 
 beforeEach(async () => {
   await acquireSharedMutationLock('loadAgentsDir.test.ts')
-  tempDir = await mkdtemp(join(tmpdir(), 'openclaude-agents-test-'))
-  projectRootDir = await mkdtemp(join(tmpdir(), 'openclaude-agents-project-'))
-  const configDir = join(tempDir, '.openclaude')
+  tempDir = await mkdtemp(join(tmpdir(), 'kaltcode-agents-test-'))
+  projectRootDir = await mkdtemp(join(tmpdir(), 'kaltcode-agents-project-'))
+  const configDir = join(tempDir, '.kaltcode')
   previousConfigHomeOverride = getClaudeConfigHomeDirOverrideForTesting()
   setClaudeConfigHomeDirForTesting(configDir)
   process.env.HOME = tempDir
-  process.env.OPENCLAUDE_CONFIG_DIR = configDir
+  process.env.KALTCODE_CONFIG_DIR = configDir
   process.env.CLAUDE_CONFIG_DIR = configDir
   process.env.CLAUDE_CODE_USE_NATIVE_FILE_SEARCH = '1'
   delete process.env.CLAUDE_CODE_SIMPLE
@@ -68,7 +68,7 @@ afterEach(async () => {
     await rm(tempDir, { recursive: true, force: true })
     await rm(projectRootDir, { recursive: true, force: true })
     restoreEnv('HOME')
-    restoreEnv('OPENCLAUDE_CONFIG_DIR')
+    restoreEnv('KALTCODE_CONFIG_DIR')
     restoreEnv('CLAUDE_CONFIG_DIR')
     restoreEnv('CLAUDE_CODE_SIMPLE')
     restoreEnv('CLAUDE_CODE_USE_NATIVE_FILE_SEARCH')
@@ -115,7 +115,7 @@ ${prompt}
 }
 
 describe('agent definition loading', () => {
-  test('loads user agents from the OpenClaude config dir in simple mode', async () => {
+  test('loads user agents from the Kalt Code config dir in simple mode', async () => {
     await writeAgent(
       join(userConfigDir, 'agents', 'user-agent.md'),
       'user-agent',
@@ -134,10 +134,10 @@ describe('agent definition loading', () => {
     )
   })
 
-  test('loads project agents from .openclaude/agents', async () => {
+  test('loads project agents from .kaltcode/agents', async () => {
     const projectDir = join(projectRootDir, 'project')
     await writeAgent(
-      join(projectDir, '.openclaude', 'agents', 'project-agent.md'),
+      join(projectDir, '.kaltcode', 'agents', 'project-agent.md'),
       'project-agent',
     )
 
@@ -148,29 +148,29 @@ describe('agent definition loading', () => {
     ).toBe(true)
   })
 
-  test('prefers .openclaude project agents over legacy .claude agents', async () => {
+  test('prefers .kaltcode project agents over legacy .kaltcode agents', async () => {
     const projectDir = join(projectRootDir, 'project')
     await writeAgent(
-      join(projectDir, '.claude', 'agents', 'shared-agent.md'),
+      join(projectDir, '.kaltcode', 'agents', 'shared-agent.md'),
       'shared-agent',
       'legacy prompt',
     )
     await writeAgent(
-      join(projectDir, '.openclaude', 'agents', 'shared-agent.md'),
+      join(projectDir, '.kaltcode', 'agents', 'shared-agent.md'),
       'shared-agent',
-      'openclaude prompt',
+      'kaltcode prompt',
     )
 
     const { activeAgents } = await getAgentDefinitionsWithOverrides(projectDir)
     const agent = activeAgents.find(agent => agent.agentType === 'shared-agent')
 
-    expect(agent?.source === 'projectSettings' ? agent.getSystemPrompt() : undefined).toBe('openclaude prompt')
+    expect(agent?.source === 'projectSettings' ? agent.getSystemPrompt() : undefined).toBe('kaltcode prompt')
   })
 
   test('accepts worktree isolation in markdown agent frontmatter', async () => {
     const projectDir = join(projectRootDir, 'project')
     await writeAgent(
-      join(projectDir, '.openclaude', 'agents', 'worktree-agent.md'),
+      join(projectDir, '.kaltcode', 'agents', 'worktree-agent.md'),
       'worktree-agent',
       'worktree prompt',
       'isolation: worktree\n',
@@ -186,7 +186,7 @@ describe('agent definition loading', () => {
     process.env.USER_TYPE = 'ant'
     const projectDir = join(projectRootDir, 'project')
     await writeAgent(
-      join(projectDir, '.openclaude', 'agents', 'remote-agent.md'),
+      join(projectDir, '.kaltcode', 'agents', 'remote-agent.md'),
       'remote-agent',
       'remote prompt',
       'isolation: remote\n',
@@ -202,7 +202,7 @@ describe('agent definition loading', () => {
   test('loads maxSteps from markdown agent frontmatter', async () => {
     const projectDir = join(projectRootDir, 'project')
     await writeAgent(
-      join(projectDir, '.openclaude', 'agents', 'limited-agent.md'),
+      join(projectDir, '.kaltcode', 'agents', 'limited-agent.md'),
       'limited-agent',
       'limited prompt',
       'maxSteps: 3\n',
@@ -217,13 +217,13 @@ describe('agent definition loading', () => {
   test('ignores invalid maxSteps in markdown agent frontmatter', async () => {
     const projectDir = join(projectRootDir, 'project')
     await writeAgent(
-      join(projectDir, '.openclaude', 'agents', 'invalid-steps-agent.md'),
+      join(projectDir, '.kaltcode', 'agents', 'invalid-steps-agent.md'),
       'invalid-steps-agent',
       'invalid steps prompt',
       'maxSteps: 0\n',
     )
     await writeAgent(
-      join(projectDir, '.openclaude', 'agents', 'malformed-steps-agent.md'),
+      join(projectDir, '.kaltcode', 'agents', 'malformed-steps-agent.md'),
       'malformed-steps-agent',
       'malformed steps prompt',
       'maxSteps: 2abc\n',
@@ -252,7 +252,7 @@ describe('agent definition loading', () => {
       'maxSteps: 1\n',
     )
     await writeAgent(
-      join(projectDir, '.openclaude', 'agents', 'shared-limited.md'),
+      join(projectDir, '.kaltcode', 'agents', 'shared-limited.md'),
       'shared-limited',
       'project prompt',
       'maxSteps: 5\n',

@@ -143,10 +143,10 @@ model is normalized.
 
 ### Public aggregator model discovery
 
-OpenRouter and Gitlawb Opengateway use public model-list endpoints to keep their
+OpenRouter and KaltCode Gateway use public model-list endpoints to keep their
 hybrid catalogs current. Listing models does not require credentials, but chat
 and other inference requests still require the provider's API key. OpenRouter
-refreshes stale discovery data in the background. Opengateway refreshes once at
+refreshes stale discovery data in the background. KaltCode Gateway refreshes once at
 startup and uses that request instead of a separate readiness probe.
 
 ## Descriptor Authoring Pattern
@@ -221,6 +221,6 @@ Important compatibility surfaces include:
 Contributor docs should describe these as compatibility bridges, not as the
 primary architecture.
 
-Preset ordering pins `gitlawb-opengateway` first, derives the middle entries from preset
+Preset ordering pins `kaltcode-gateway` first, derives the middle entries from preset
 descriptions with standard alphanumeric sorting, and pins the custom presets
 last: `custom` followed by `custom-anthropic`.

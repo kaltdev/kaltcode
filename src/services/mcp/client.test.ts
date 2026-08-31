@@ -88,7 +88,7 @@ function makeNeedsAuthTransportFixture() {
   const provider = {
     redirectUrl: 'http://127.0.0.1:31337/callback',
     clientMetadata: {
-      client_name: 'OpenClaude test',
+      client_name: 'Kalt Code test',
       redirect_uris: ['http://127.0.0.1:31337/callback'],
       grant_types: ['authorization_code'],
       response_types: ['code'],

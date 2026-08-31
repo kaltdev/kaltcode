@@ -18,11 +18,11 @@ import {
 } from '../../bootstrap/state.js'
 import { resetSettingsCache } from '../../utils/settings/settingsCache.js'
 
-const originalOpenClaudeConfigDir = process.env.OPENCLAUDE_CONFIG_DIR
-const fixtureDir = mkdtempSync(join(tmpdir(), 'openclaude-pricing-display-'))
+const originalKaltCodeConfigDir = process.env.KALTCODE_CONFIG_DIR
+const fixtureDir = mkdtempSync(join(tmpdir(), 'kaltcode-pricing-display-'))
 const userConfigDir = join(fixtureDir, 'user-config')
 const pricingSettingsPath = join(fixtureDir, 'pricing-settings.json')
-process.env.OPENCLAUDE_CONFIG_DIR = userConfigDir
+process.env.KALTCODE_CONFIG_DIR = userConfigDir
 
 mock.module('../../utils/model/providers.js', () => ({
   getAPIProvider: () => 'firstParty',
@@ -220,10 +220,10 @@ try {
   setFlagSettingsPath(originalFlagPath)
   setFlagSettingsInline(originalFlagInline)
   resetSettingsCache()
-  if (originalOpenClaudeConfigDir === undefined) {
-    delete process.env.OPENCLAUDE_CONFIG_DIR
+  if (originalKaltCodeConfigDir === undefined) {
+    delete process.env.KALTCODE_CONFIG_DIR
   } else {
-    process.env.OPENCLAUDE_CONFIG_DIR = originalOpenClaudeConfigDir
+    process.env.KALTCODE_CONFIG_DIR = originalKaltCodeConfigDir
   }
   rmSync(fixtureDir, { recursive: true, force: true })
 }

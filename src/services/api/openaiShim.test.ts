@@ -65,8 +65,8 @@ const originalEnv = {
   MIMO_API_KEY: process.env.MIMO_API_KEY,
   LONGCAT_API_KEY: process.env.LONGCAT_API_KEY,
   CLINE_API_KEY: process.env.CLINE_API_KEY,
-  OPENGATEWAY_API_KEY: process.env.OPENGATEWAY_API_KEY,
-  OPENGATEWAY_BASE_URL: process.env.OPENGATEWAY_BASE_URL,
+  KALTCODE_GATEWAY_API_KEY: process.env.KALTCODE_GATEWAY_API_KEY,
+  KALTCODE_GATEWAY_BASE_URL: process.env.KALTCODE_GATEWAY_BASE_URL,
   OPENCODE_API_KEY: process.env.OPENCODE_API_KEY,
   CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED: process.env.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED,
   CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED_ID: process.env.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED_ID,
@@ -526,8 +526,8 @@ beforeEach(async () => {
   delete process.env.MIMO_API_KEY
   delete process.env.LONGCAT_API_KEY
   delete process.env.CLINE_API_KEY
-  delete process.env.OPENGATEWAY_API_KEY
-  delete process.env.OPENGATEWAY_BASE_URL
+  delete process.env.KALTCODE_GATEWAY_API_KEY
+  delete process.env.KALTCODE_GATEWAY_BASE_URL
   delete process.env.OPENCODE_API_KEY
   delete process.env.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED
   delete process.env.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED_ID
@@ -574,8 +574,8 @@ afterEach(() => {
     restoreEnv('MIMO_API_KEY', originalEnv.MIMO_API_KEY)
     restoreEnv('LONGCAT_API_KEY', originalEnv.LONGCAT_API_KEY)
     restoreEnv('CLINE_API_KEY', originalEnv.CLINE_API_KEY)
-    restoreEnv('OPENGATEWAY_API_KEY', originalEnv.OPENGATEWAY_API_KEY)
-    restoreEnv('OPENGATEWAY_BASE_URL', originalEnv.OPENGATEWAY_BASE_URL)
+    restoreEnv('KALTCODE_GATEWAY_API_KEY', originalEnv.KALTCODE_GATEWAY_API_KEY)
+    restoreEnv('KALTCODE_GATEWAY_BASE_URL', originalEnv.KALTCODE_GATEWAY_BASE_URL)
     restoreEnv('OPENCODE_API_KEY', originalEnv.OPENCODE_API_KEY)
     restoreEnv('CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED', originalEnv.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED)
     restoreEnv('CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED_ID', originalEnv.CLAUDE_CODE_PROVIDER_PROFILE_ENV_APPLIED_ID)
@@ -4756,7 +4756,7 @@ test('caller abort winning the timeout catch race prevents a retry', async () =>
 })
 
 test('interruption tracing preserves the native AbortSignal.any request path', async () => {
-  const originalTrace = process.env.OPENCLAUDE_INTERRUPT_TRACE
+  const originalTrace = process.env.KALTCODE_INTERRUPT_TRACE
   const originalAbortSignalAny = Object.getOwnPropertyDescriptor(
     AbortSignal,
     'any',
@@ -4770,7 +4770,7 @@ test('interruption tracing preserves the native AbortSignal.any request path', a
       return nativeAny(signals)
     },
   })
-  process.env.OPENCLAUDE_INTERRUPT_TRACE = '1'
+  process.env.KALTCODE_INTERRUPT_TRACE = '1'
   globalThis.fetch = asMockFetch(
     mock(async () => makeChatCompletionResponse('gpt-4o-mini')),
   )
@@ -4790,8 +4790,8 @@ test('interruption tracing preserves the native AbortSignal.any request path', a
   } finally {
     await __waitForInterruptionTraceFlushForTests()
     __resetInterruptionTraceForTests()
-    if (originalTrace === undefined) delete process.env.OPENCLAUDE_INTERRUPT_TRACE
-    else process.env.OPENCLAUDE_INTERRUPT_TRACE = originalTrace
+    if (originalTrace === undefined) delete process.env.KALTCODE_INTERRUPT_TRACE
+    else process.env.KALTCODE_INTERRUPT_TRACE = originalTrace
     if (originalAbortSignalAny) {
       Object.defineProperty(AbortSignal, 'any', originalAbortSignalAny)
     }
@@ -5030,7 +5030,7 @@ test('preserves valid tool_result and drops orphan tool_result', async () => {
             type: 'tool_use',
             id: 'valid_call_1',
             name: 'Search',
-            input: { query: 'openclaude' },
+            input: { query: 'kaltcode' },
           },
         ],
       },
