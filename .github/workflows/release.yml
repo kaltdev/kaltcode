@@ -26,7 +26,14 @@ jobs:
         id: release
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # A PAT (fine-grained or classic with `repo` scope) is required here:
+          # the default GITHUB_TOKEN is not permitted to create/approve the
+          # release-please version-bump pull request unless the repository
+          # setting "Allow GitHub Actions to create and approve pull requests"
+          # is enabled. Create `RELEASE_PLEASE_TOKEN` under Settings -> Secrets
+          # and variables -> Actions with write access to pull requests and
+          # contents for this repository.
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
           release-type: node
 
   # Zero-warning install gate: pack the release tag and install it globally in
