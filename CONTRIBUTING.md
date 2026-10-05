@@ -9,6 +9,7 @@ Kalt Code is a rapidly evolving open-source coding-agent CLI with support for mu
 - [Before You Start](#before-you-start)
 - [Proposing New Features](#proposing-new-features)
 - [Pull Requests](#pull-requests)
+  - [PR Titles and Commits](#pr-titles-and-commits)
   - [Automated Review (CodeRabbit)](#automated-review-coderabbit)
   - [Keep Your Branch Current](#keep-your-branch-current)
   - [PR Follow-Up Requirements](#pr-follow-up-requirements)
@@ -22,6 +23,7 @@ Kalt Code is a rapidly evolving open-source coding-agent CLI with support for mu
 - [Provider Changes](#provider-changes)
 - [Local Setup](#local-setup)
 - [Validation](#validation)
+- [Secrets](#secrets)
 - [Community](#community)
 
 ## Before You Start
@@ -68,6 +70,21 @@ Every PR needs a reason. Your PR description must include:
 The PR author is responsible for ensuring their PR is merge-ready. PRs with merge conflicts will not be reviewed or approved until the conflicts are resolved.
 
 Issues are the recommended starting point for anything non-trivial — opening one first helps avoid wasted effort if the change is out of scope or already being worked on. Small fixes, doc corrections, and obvious improvements can stand on their own without a linked issue, as long as the PR description explains the intent.
+
+### PR Titles and Commits
+
+Releases are automated with [release-please](https://github.com/googleapis/release-please), which derives version bumps and changelog entries from commit messages on `main`. PRs are merged with **squash merge**, so the **pull request title becomes the commit message** that release-please reads.
+
+Write PR titles in [Conventional Commits](https://www.conventionalcommits.org/) form:
+
+```text
+feat: add Ollama model preloading
+fix(providers): keep managed AIMLAPI attribution over caller headers
+docs: clarify provider setup for Gemini
+chore(deps): bump commander to 12.1.0
+```
+
+A title that is not conventional (for example, `Fix stuff` or `Update README`) is treated as a non-releasing change and will not appear in the changelog. Use `feat:` for new behavior, `fix:` for bug fixes, and `docs:` / `chore:` / `ci:` / `test:` / `refactor:` for changes that should not trigger a release. The project does not accept unreviewed changes to provider tags — those are applied by maintainers during review.
 
 ### Automated Review (CodeRabbit)
 
@@ -205,6 +222,11 @@ When submitting provider changes:
 
 ## Local Setup
 
+Prerequisites:
+
+- Node.js `>=22.0.0` — this is the runtime floor for the installed CLI. CI exercises Node 22 and 24, and separately builds and launches under exactly 22.0.0.
+- Bun `1.3.13` — used for source builds, scripts, dependency management, and tests. The exact version is pinned in [`.bun-version`](.bun-version) and CI reads it from there, so make sure `bun --version` matches after you install, or your results may not reproduce CI.
+
 Install dependencies:
 
 ```bash
@@ -340,6 +362,19 @@ Provider/runtime diagnostics:
 ```bash
 bun run doctor:runtime
 ```
+
+## Secrets
+
+Never commit credentials to this repository. That includes:
+
+- provider API keys (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, and any other `*_API_KEY`)
+- GitHub tokens, Actions secrets, and npm tokens
+- OAuth tokens and credential files such as `auth.json`
+- `.env` files, saved provider profiles, and `.kaltcode` state
+
+Some of these paths are gitignored (`.env`, `auth.json`, `.kaltcode/`, `.kaltcode-profile.json`), but `.gitignore` is not a guarantee. Check `git status` before every commit, and never paste real values into issues, discussions, PR descriptions, logs, or screenshots.
+
+If a key is exposed, revoke and replace it at the provider — that is the only reliable remediation. See [SECURITY.md § Credentials, Keys, and Logs](SECURITY.md#credentials-keys-and-logs).
 
 ## Community
 

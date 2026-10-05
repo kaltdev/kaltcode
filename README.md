@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/assets/kaltcode-wordmark.png" alt="Kalt Code — Open terminal for any LLM" width="830">
+  <img src="docs/assets/kaltcode-wordmark.svg" alt="Kalt Code — Open terminal for any LLM" width="830">
 
   <p>
     <a href="https://trendshift.io/repositories/25807?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-25807" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/25807/daily?language=TypeScript" alt="KaltCode | Trendshift" width="250" height="55"/></a>
@@ -19,7 +19,7 @@ Use OpenAI-compatible APIs, Gemini, GitHub Models, Codex OAuth, Codex, Ollama, A
 [![Discord](https://img.shields.io/badge/Discord-join-5865F2?logo=discord&logoColor=white)](https://discord.gg/k68zFR6AcB)
 [![X](https://img.shields.io/badge/X-@kaltcode-000000?logo=x&logoColor=white)](https://x.com/kaltcode)
 [![Security Policy](https://img.shields.io/badge/security-policy-0f766e)](SECURITY.md)
-[![License](https://img.shields.io/badge/license-MIT-2563eb)](LICENSE)
+[![License](https://img.shields.io/badge/license-see%20LICENSE-2563eb)](LICENSE)
 
 Kalt Code is also mirrored to GitLawb:
 [kaltcode.my.id/node/repos/z6MkqDnb/kaltcode](https://kaltcode.my.id/node/repos/z6MkqDnb/kaltcode)
