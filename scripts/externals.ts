@@ -95,6 +95,16 @@ export const OPTIONAL_RUNTIME_EXTERNALS: string[] = [
   // Sentry error reporting — loaded via require() in utils/sentry.ts only
   // when SENTRY_DSN is set. Optional: most users never enable this.
   '@sentry/node',
+  // Repo-map tree-sitter — loaded via dynamic import('web-tree-sitter') in
+  // src/context/repoMap/parser.ts (+ Query in symbolExtractor.ts) and WASM
+  // grammars via require.resolve('tree-sitter-wasms/...') at runtime.
+  // Optional: REPO_MAP is off by default (feature flag false, opt-in via
+  // REPO_MAP=1). Per web-tree-sitter docs, Parser.init({ locateFile }) must
+  // resolve tree-sitter.wasm at runtime, so both packages stay external in
+  // COMMON_EXTERNALS (never bundled) and are declared here so the
+  // externals validator knows they are intentionally not shipped.
+  'web-tree-sitter',
+  'tree-sitter-wasms',
 ]
 
 // OPTIONAL_RUNTIME_EXTERNALS that are loaded ONLY through the runtime importer

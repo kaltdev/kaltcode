@@ -30,87 +30,20 @@ Kalt Code is also mirrored to GitLawb:
 
 <table align="center">
   <tr>
-    <td align="center" width="150" height="80">
-      <a href="https://kaltcode.my.id">
-        <img src="https://kaltcode.my.id/logo.png" alt="GitLawb logo" width="72">
+    <td align="center" width="750" height="140">
+      <strong>Interested in supporting Kalt Code?</strong>
+      <br><br>
+      Partner with Kalt Code and help support open-source development.
+      <br>
+      <sub>
+        AI platforms, infrastructure providers, developer tools, and
+        companies supporting open source are welcome.
+      </sub>
+      <br><br>
+      <a href="mailto:hello@kaltcode.my.id">
+        <strong>Become a partner →</strong>
       </a>
     </td>
-    <td align="center" width="150" height="80">
-      <a href="https://bankr.bot">
-        <img src="https://bankr.bot/favicon.svg" alt="Bankr.bot logo" width="72">
-      </a>
-    </td>
-    <td align="center" width="150" height="80">
-      <a href="https://atomic.chat/">
-        <img src="docs/assets/atomic-chat-logo.png" alt="Atomic Chat logo" width="72">
-      </a>
-    </td>
-    <td align="center" width="150" height="80">
-      <a href="https://mimo.mi.com">
-        <img src="https://mimo.xiaomi.com/mimo-v2-pro/assets/logo.svg" alt="Xiaomi MiMo logo" width="136">
-      </a>
-    </td>
-    <td align="center" width="150" height="80">
-      <a href="https://www.atlascloud.ai/">
-        <img src="docs/assets/atlas-cloud-banner.png" alt="Atlas Cloud logo" width="136">
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <td align="center"><a href="https://kaltcode.my.id"><strong>GitLawb</strong></a></td>
-    <td align="center"><a href="https://bankr.bot"><strong>Bankr.bot</strong></a></td>
-    <td align="center"><a href="https://atomic.chat/"><strong>Atomic Chat</strong></a></td>
-    <td align="center"><a href="https://mimo.mi.com"><strong>Xiaomi MiMo</strong></a></td>
-    <td align="center"><a href="https://www.atlascloud.ai/"><strong>Atlas Cloud</strong></a></td>
-  </tr>
-  <tr>
-    <td align="center" width="150" height="80">
-      <a href="https://aimlapi.com/">
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="docs/assets/aimlapi-logo-dark.svg">
-          <img src="docs/assets/aimlapi-logo.svg" alt="AI/ML API logo" width="136">
-        </picture>
-      </a>
-    </td>
-    <td align="center" width="150" height="80">
-      <a href="https://novita.ai/">
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="docs/assets/novita-logo-dark.svg">
-          <img src="docs/assets/novita-logo.svg" alt="Novita AI logo" width="136">
-        </picture>
-      </a>
-    </td>
-    <td align="center" width="150" height="80">
-      <a href="https://www.apismart.ai">
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="docs/assets/apismart-logo-dark.png">
-          <img src="docs/assets/apismart-logo.png" alt="ApiSmart logo" width="120">
-        </picture>
-      </a>
-    </td>
-    <td align="center" width="150" height="80">
-      <a href="https://concentrate.ai/">
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="docs/assets/concentrate-logo-dark.svg">
-          <img src="docs/assets/concentrate-logo.svg" alt="Concentrate logo" width="64">
-        </picture>
-      </a>
-    </td>
-    <td align="center" width="150" height="80">
-      <a href="https://exa.ai/">
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcset="docs/assets/exa-logo-dark.svg">
-          <img src="docs/assets/exa-logo.svg" alt="Exa logo" width="110">
-        </picture>
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <td align="center"><a href="https://aimlapi.com/"><strong>AI/ML API</strong></a></td>
-    <td align="center"><a href="https://novita.ai/"><strong>Novita AI</strong></a></td>
-    <td align="center"><a href="https://www.apismart.ai"><strong>ApiSmart</strong></a></td>
-    <td align="center"><a href="https://concentrate.ai/"><strong>Concentrate</strong></a></td>
-    <td align="center"><a href="https://exa.ai/"><strong>Exa</strong></a></td>
   </tr>
 </table>
 
@@ -134,6 +67,7 @@ npm install -g @kaltdev/kaltcode@latest
 ```
 
 If you're on Arch Linux, you can install Kalt Code from the community-maintained [AUR package](https://aur.archlinux.org/packages/kaltcode):
+
 ```bash
 paru -S kaltcode
 ```
@@ -303,31 +237,31 @@ Advanced and source-build guides:
 
 ## Supported Providers
 
-| Provider | Setup Path | Notes |
-| --- | --- | --- |
-| OpenAI-compatible | `/provider` or env vars | Works with OpenAI, OpenRouter, DeepSeek, Groq, Mistral, LM Studio, and other compatible `/v1` servers |
-| Z.AI GLM Coding Plan | `/provider` or OpenAI-compatible env vars | Uses `OPENAI_API_KEY` at `https://api.z.ai/api/coding/paas/v4` and defaults to `glm-5.2` |
-| AI/ML API | `/provider` or `AIMLAPI_API_KEY` ([setup guide](docs/aimlapi-setup.md)) | Uses `https://api.aimlapi.com/v1`, auto-detects the OpenAI-compatible route from `AIMLAPI_API_KEY`, sends Kalt Code attribution headers, and discovers chat-capable models from the public `/models` catalog |
-| Concentrate | `/provider` or `CONCENTRATE_API_KEY` | Unified OpenAI-compatible gateway at `https://api.concentrate.ai/v1`; defaults to `deepseek-v4-flash` and auto-discovers the chat model catalog |
-| LLMTR | `/provider` or OpenAI-compatible env vars | Multi-model gateway at `https://llmtr.com/v1`; `/provider` and `--provider llmtr` default to `deepseek/deepseek-v4-flash`, while raw env setup must set `OPENAI_BASE_URL=https://llmtr.com/v1` and `OPENAI_MODEL`; accepts `LLMTR_API_KEY` or `OPENAI_API_KEY` after the route is selected and discovers tool-capable Chat Completions models from the public catalog |
-| ApiSmart | `/provider` or `APISMART_API_KEY` | Uses `https://gw.apismart.ai/v1`, defaults to `DEEPSEEK_V4_FLASH`, and supports optional `APISMART_MODEL` plus authenticated model discovery |
-| Hicap | `/provider` or OpenAI-compatible env vars | Uses `api-key` auth, discovers models from unauthenticated `/models`, and supports Responses mode for `gpt-` models |
-| Fireworks AI | `/provider` or env vars | First-class provider with 276 curated models (DeepSeek, Qwen, Llama, Gemma, and more); uses `FIREWORKS_API_KEY` |
-| LongCat | `/provider` or env vars | Meituan LongCat OpenAI-compatible API at `https://api.longcat.chat/openai/v1`; uses `LONGCAT_API_KEY` and defaults to `LongCat-2.0` |
-| ClinePass | `/provider` or env vars | AI model gateway with usage limits (5hr, weekly, monthly); uses `CLINE_API_KEY` at `https://api.cline.bot/api/v1` |
-| Gemini | `/provider` or env vars | Supports API key only |
-| GitHub Models | `/onboard-github` | Interactive onboarding with saved credentials |
-| Codex OAuth | `/provider` | Opens ChatGPT sign-in in your browser and stores Codex credentials securely |
-| Codex | `/provider` | Uses existing Codex CLI auth, Kalt Code secure storage, or env credentials |
-| KaltCode Gateway | Startup default, `/provider`, or env vars | Smart gateway at `https://kaltcode.my.id/v1`; requires an API key from https://kaltcode.my.id/keys and routes Xiaomi MiMo and GMI Cloud partner models by `OPENAI_MODEL` |
-| OpenCode Zen | `/provider` or env vars | Pay-as-you-go AI gateway (48 models); uses `OPENCODE_API_KEY` via `https://opencode.ai/zen/v1`; shared key with OpenCode Go |
-| OpenCode Go | `/provider` or env vars | $10/mo subscription for open models (13 models); uses `OPENCODE_API_KEY` via `https://opencode.ai/zen/go/v1`; shared key with OpenCode Zen |
-| Xiaomi MiMo | `/provider` or env vars | OpenAI-compatible API at `https://mimo.mi.com`; uses `MIMO_API_KEY` and defaults to `mimo-v2.5-pro` |
-| NEAR AI | `/provider` or env vars | Unified gateway (Claude, GPT, Gemini + TEE open models); uses `NEARAI_API_KEY` at `https://cloud-api.near.ai/v1` |
-| Cloudflare Workers AI | `/provider` or env vars | OpenAI-compatible API at `https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/ai/v1`; uses `CLOUDFLARE_API_TOKEN`. Replace `<ACCOUNT_ID>` with your Cloudflare account id. |
-| Ollama | `/provider` or env vars | Local inference with no API key |
-| Atomic Chat | `/provider`, env vars, or `bun run dev:atomic-chat` | Local Model Provider; auto-detects loaded models |
-| Bedrock / Vertex / Foundry | env vars | Anthropic-family cloud routes; Vertex is for Claude on Vertex AI, not arbitrary Model Garden models |
+| Provider                   | Setup Path                                                              | Notes                                                                                                                                                                                                                                                                                                                                                                 |
+| -------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| OpenAI-compatible          | `/provider` or env vars                                                 | Works with OpenAI, OpenRouter, DeepSeek, Groq, Mistral, LM Studio, and other compatible `/v1` servers                                                                                                                                                                                                                                                                 |
+| Z.AI GLM Coding Plan       | `/provider` or OpenAI-compatible env vars                               | Uses `OPENAI_API_KEY` at `https://api.z.ai/api/coding/paas/v4` and defaults to `glm-5.2`                                                                                                                                                                                                                                                                              |
+| AI/ML API                  | `/provider` or `AIMLAPI_API_KEY` ([setup guide](docs/aimlapi-setup.md)) | Uses `https://api.aimlapi.com/v1`, auto-detects the OpenAI-compatible route from `AIMLAPI_API_KEY`, sends Kalt Code attribution headers, and discovers chat-capable models from the public `/models` catalog                                                                                                                                                          |
+| Concentrate                | `/provider` or `CONCENTRATE_API_KEY`                                    | Unified OpenAI-compatible gateway at `https://api.concentrate.ai/v1`; defaults to `deepseek-v4-flash` and auto-discovers the chat model catalog                                                                                                                                                                                                                       |
+| LLMTR                      | `/provider` or OpenAI-compatible env vars                               | Multi-model gateway at `https://llmtr.com/v1`; `/provider` and `--provider llmtr` default to `deepseek/deepseek-v4-flash`, while raw env setup must set `OPENAI_BASE_URL=https://llmtr.com/v1` and `OPENAI_MODEL`; accepts `LLMTR_API_KEY` or `OPENAI_API_KEY` after the route is selected and discovers tool-capable Chat Completions models from the public catalog |
+| ApiSmart                   | `/provider` or `APISMART_API_KEY`                                       | Uses `https://gw.apismart.ai/v1`, defaults to `DEEPSEEK_V4_FLASH`, and supports optional `APISMART_MODEL` plus authenticated model discovery                                                                                                                                                                                                                          |
+| Hicap                      | `/provider` or OpenAI-compatible env vars                               | Uses `api-key` auth, discovers models from unauthenticated `/models`, and supports Responses mode for `gpt-` models                                                                                                                                                                                                                                                   |
+| Fireworks AI               | `/provider` or env vars                                                 | First-class provider with 276 curated models (DeepSeek, Qwen, Llama, Gemma, and more); uses `FIREWORKS_API_KEY`                                                                                                                                                                                                                                                       |
+| LongCat                    | `/provider` or env vars                                                 | Meituan LongCat OpenAI-compatible API at `https://api.longcat.chat/openai/v1`; uses `LONGCAT_API_KEY` and defaults to `LongCat-2.0`                                                                                                                                                                                                                                   |
+| ClinePass                  | `/provider` or env vars                                                 | AI model gateway with usage limits (5hr, weekly, monthly); uses `CLINE_API_KEY` at `https://api.cline.bot/api/v1`                                                                                                                                                                                                                                                     |
+| Gemini                     | `/provider` or env vars                                                 | Supports API key only                                                                                                                                                                                                                                                                                                                                                 |
+| GitHub Models              | `/onboard-github`                                                       | Interactive onboarding with saved credentials                                                                                                                                                                                                                                                                                                                         |
+| Codex OAuth                | `/provider`                                                             | Opens ChatGPT sign-in in your browser and stores Codex credentials securely                                                                                                                                                                                                                                                                                           |
+| Codex                      | `/provider`                                                             | Uses existing Codex CLI auth, Kalt Code secure storage, or env credentials                                                                                                                                                                                                                                                                                            |
+| KaltCode Gateway           | Startup default, `/provider`, or env vars                               | Smart gateway at `https://kaltcode.my.id/v1`; requires an API key from https://kaltcode.my.id/keys and routes Xiaomi MiMo and GMI Cloud partner models by `OPENAI_MODEL`                                                                                                                                                                                              |
+| OpenCode Zen               | `/provider` or env vars                                                 | Pay-as-you-go AI gateway (48 models); uses `OPENCODE_API_KEY` via `https://opencode.ai/zen/v1`; shared key with OpenCode Go                                                                                                                                                                                                                                           |
+| OpenCode Go                | `/provider` or env vars                                                 | $10/mo subscription for open models (13 models); uses `OPENCODE_API_KEY` via `https://opencode.ai/zen/go/v1`; shared key with OpenCode Zen                                                                                                                                                                                                                            |
+| Xiaomi MiMo                | `/provider` or env vars                                                 | OpenAI-compatible API at `https://mimo.mi.com`; uses `MIMO_API_KEY` and defaults to `mimo-v2.5-pro`                                                                                                                                                                                                                                                                   |
+| NEAR AI                    | `/provider` or env vars                                                 | Unified gateway (Claude, GPT, Gemini + TEE open models); uses `NEARAI_API_KEY` at `https://cloud-api.near.ai/v1`                                                                                                                                                                                                                                                      |
+| Cloudflare Workers AI      | `/provider` or env vars                                                 | OpenAI-compatible API at `https://api.cloudflare.com/client/v4/accounts/<ACCOUNT_ID>/ai/v1`; uses `CLOUDFLARE_API_TOKEN`. Replace `<ACCOUNT_ID>` with your Cloudflare account id.                                                                                                                                                                                     |
+| Ollama                     | `/provider` or env vars                                                 | Local inference with no API key                                                                                                                                                                                                                                                                                                                                       |
+| Atomic Chat                | `/provider`, env vars, or `bun run dev:atomic-chat`                     | Local Model Provider; auto-detects loaded models                                                                                                                                                                                                                                                                                                                      |
+| Bedrock / Vertex / Foundry | env vars                                                                | Anthropic-family cloud routes; Vertex is for Claude on Vertex AI, not arbitrary Model Garden models                                                                                                                                                                                                                                                                   |
 
 ## What Works
 
@@ -378,8 +312,6 @@ Kalt Code supports multiple providers, but behavior is not identical across all 
 - GitHub Copilot serializes sub-agent execution by default to reduce Premium Request consumption — see [Agent Routing and Step Limits](docs/agent-routing.md#github-copilot-sub-agent-optimization) for tuning
 
 For best results, use models with strong tool/function calling support.
-
-
 
 ## Agents
 
