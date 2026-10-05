@@ -123,10 +123,8 @@ jobs:
       - name: Verify zero-warning global install
         run: bun run install:verify
 
-      - name: Clear token auth for trusted publishing
-        run: |
-          unset NODE_AUTH_TOKEN
-          echo "NODE_AUTH_TOKEN=" >> "$GITHUB_ENV"
+      - name: Show npm version
+        run: npm --version
 
       - name: Publish to npm
         run: npm publish --access public --provenance
