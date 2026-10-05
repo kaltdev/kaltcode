@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.30.1](https://github.com/kaltdev/kaltcode/compare/v0.30.0...v0.30.1) (2026-10-05)
+
+
+### Bug Fixes
+
+* **release:** preserve npm trusted publishing auth ([#10](https://github.com/kaltdev/kaltcode/issues/10)) ([096b132](https://github.com/kaltdev/kaltcode/commit/096b13297966196d781e1dfd36d2fdd90c89c6a0))
+
 ## [0.30.0](https://github.com/kaltdev/kaltcode/compare/v0.29.1...v0.30.0) (2026-09-01)
 
 
