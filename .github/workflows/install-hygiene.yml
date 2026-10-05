@@ -24,6 +24,9 @@ jobs:
   verify-published-install:
     name: ${{ matrix.os }} / Node ${{ matrix.node-version }}
     runs-on: ${{ matrix.os }}
+    # Windows legs of this matrix have run past 15 minutes; keep a bound so a
+    # hung install cannot sit on a runner indefinitely.
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:

@@ -1,0 +1,56 @@
+# Dependabot version updates.
+#
+# This repository builds with Bun and commits `bun.lock`, so the Bun ecosystem
+# (not `npm`) is the correct manager here — the `npm` ecosystem reads
+# package-lock.json / pnpm-lock.yaml / yarn.lock and would never see our
+# lockfile. The root and `web/` workspaces each have their own package.json and
+# bun.lock, so they are listed separately.
+#
+# Security updates are always enabled regardless of this file; the entries below
+# control routine version updates.
+version: 2
+updates:
+  - package-ecosystem: "bun"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:17"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # Development tooling moves together and is rarely worth a PR each.
+      dev-dependencies:
+        dependency-type: "development"
+        patterns:
+          - "*"
+
+  - package-ecosystem: "bun"
+    directory: "/web"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:27"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "chore(deps-web)"
+
+  # Actions referenced by .github/workflows. These are pinned to full commit
+  # SHAs, so routine updates need to be surfaced here rather than by a tag bump.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:37"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci(actions)"
+    groups:
+      github-actions:
+        patterns:
+          - "*"

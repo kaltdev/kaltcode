@@ -6,12 +6,20 @@ on:
     branches:
       - main
 
+# Superseded pushes to the same PR (or branch) no longer need their run to
+# finish, so cancel the stale run and free the runner. Keyed on the PR number
+# when available so re-pushes collapse onto one run per PR.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
   smoke-and-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       matrix:
         node-version: ["22", "24.11.x"]
@@ -56,6 +64,7 @@ jobs:
 
   launcher-node-floor:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Check out repository
@@ -84,6 +93,7 @@ jobs:
 
   typecheck:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Check out repository
@@ -107,6 +117,7 @@ jobs:
 
   web:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Check out repository

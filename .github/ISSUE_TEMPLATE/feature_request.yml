@@ -1,0 +1,72 @@
+name: Feature request
+description: Suggest an improvement or new capability for Kalt Code
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Kalt Code is focused on stability, performance, and core reliability, so
+        new features are evaluated against that direction. Describing the
+        smallest useful version of your idea makes it much easier to assess.
+
+        For open-ended ideas and brainstorming, use
+        [Discussions](https://github.com/kaltdev/kaltcode/discussions) first.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do, and what gets in the way today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed direction
+      description: What would you like Kalt Code to do? The smallest useful version is ideal.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What are you doing today instead? Any workarounds?
+    validations:
+      required: false
+
+  - type: dropdown
+    id: workflow
+    attributes:
+      label: Which workflow does this affect?
+      multiple: true
+      options:
+        - Provider setup, profiles, or models
+        - Terminal UI / chat experience
+        - Tools, agents, tasks, or MCP
+        - Slash commands or CLI flags
+        - VS Code extension
+        - Documentation or website
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Examples, screenshots, related projects, or prior art.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and discussions for this request.
+          required: true
+        - label: I have not included any API keys, tokens, or private prompts.
+          required: true
