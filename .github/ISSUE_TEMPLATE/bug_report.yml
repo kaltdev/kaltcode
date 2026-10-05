@@ -1,0 +1,114 @@
+name: Bug report
+description: Report a reproducible problem in Kalt Code
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a report.
+
+        **Do not paste API keys, access tokens, OAuth credentials, or private
+        prompts.** Kalt Code talks to many model providers, so logs and config
+        often contain live credentials. Redact them before posting. See
+        [SECURITY.md](https://github.com/kaltdev/kaltcode/blob/main/SECURITY.md)
+        for what to remove and how to rotate a key you have already exposed.
+
+        For questions and setup help, please use
+        [Discussions](https://github.com/kaltdev/kaltcode/discussions) instead
+        of this form.
+
+  - type: input
+    id: version
+    attributes:
+      label: Kalt Code version
+      description: Run `kaltcode --version`.
+      placeholder: "0.30.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: How did you install Kalt Code?
+      options:
+        - npm global install (`npm install -g @kaltdev/kaltcode`)
+        - Built from source (Bun)
+        - Docker image
+        - VS Code extension
+        - Other / not sure
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "macOS 26.6, Ubuntu 24.04, Windows 11, ..."
+    validations:
+      required: true
+
+  - type: input
+    id: runtime
+    attributes:
+      label: Node.js version
+      description: The installed CLI runs on Node.js `>=22.0.0`. Run `node --version`.
+      placeholder: "v22.23.2"
+    validations:
+      required: true
+
+  - type: input
+    id: provider-model
+    attributes:
+      label: Provider and model
+      description: Which provider path and model were you using? Write "not provider-specific" if the bug is unrelated.
+      placeholder: "OpenAI / gpt-5, Ollama / qwen2.5-coder:7b, ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: A minimal, exact sequence that other people can follow.
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: |
+        Paste the exact error output, or attach screenshots if useful.
+        Redact credentials, tokens, private file paths, and prompt content first.
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: redaction
+    attributes:
+      label: Before submitting
+      options:
+        - label: I have removed API keys, tokens, OAuth credentials, and private prompts from everything I pasted or attached.
+          required: true
+        - label: I searched existing issues and discussions for this problem.
+          required: true

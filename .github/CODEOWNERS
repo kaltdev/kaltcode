@@ -1,0 +1,17 @@
+# Default owners for everything in the repository.
+#
+# These are the two accounts with admin access to kaltdev/kaltcode, verified
+# from the repository collaborator list and the kaltdev org membership. Keep
+# this list in sync with actual maintainers — a CODEOWNERS entry that names a
+# non-maintainer silently routes review requests to the wrong place.
+* @radityama @pratamarap
+
+# Workflow and repository-governance changes gate the whole project's CI and
+# release paths, so they stay explicitly with maintainers.
+/.github/ @radityama @pratamarap
+
+# Release automation and packaging are security-sensitive (npm publishing runs
+# with an OIDC token from the `release` environment).
+/release-please-config.json @radityama @pratamarap
+/.release-please-manifest.json @radityama @pratamarap
+/package.json @radityama @pratamarap

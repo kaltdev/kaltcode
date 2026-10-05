@@ -59,8 +59,10 @@ representative at an online or offline event.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the project maintainers through the repository maintainers or
-security/community contact paths available in the repository.
+reported privately to the project maintainers by contacting
+[@radityama](https://github.com/radityama) or
+[@pratamarap](https://github.com/pratamarap) directly on GitHub. Do not open a
+public issue for a conduct report.
 
 All complaints will be reviewed and investigated promptly and fairly.
 

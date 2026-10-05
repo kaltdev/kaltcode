@@ -1,5 +1,17 @@
 blank_issues_enabled: true
+
+# Keep Issues for confirmed bugs and actionable work. Route everything
+# conversational to Discussions, and security reports to private advisories so
+# unpatched vulnerabilities are never filed in public.
 contact_links:
   - name: Kalt Code Discussions
     url: https://github.com/kaltdev/kaltcode/discussions
-    about: Use Discussions for setup help, questions, ideas, and community conversation.
+    about: Setup help, questions, ideas, and community conversation.
+
+  - name: Report a security vulnerability (private)
+    url: https://github.com/kaltdev/kaltcode/security/advisories/new
+    about: Privately report a vulnerability. Never file an unpatched security issue publicly.
+
+  - name: Support policy
+    url: https://github.com/kaltdev/kaltcode/blob/main/SECURITY.md
+    about: What counts as a vulnerability, and how to handle leaked API keys.
